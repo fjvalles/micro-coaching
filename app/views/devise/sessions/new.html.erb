@@ -1,0 +1,63 @@
+<div class="login-page-wrapper">
+  <div class="login-card-container">
+    
+    <% if flash[:alert] %>
+      <div class="login-alert">
+        <svg class="login-alert-icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span><%= flash[:alert] %></span>
+      </div>
+    <% end %>
+
+    <% if flash[:notice] %>
+      <div class="login-notice">
+        <svg class="login-alert-icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span><%= flash[:notice] %></span>
+      </div>
+    <% end %>
+
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo-wrap">
+          <img src="/icon.svg" class="login-logo-img" alt="Impulso Logo">
+        </div>
+        <h1 class="login-title">Impulso</h1>
+        <p class="login-subtitle">Panel de Administración</p>
+      </div>
+
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+        <div class="login-field">
+          <%= f.label :email, "Correo Electrónico", class: "login-label" %>
+          <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "login-input", placeholder: "admin@comtraining.cl", required: true %>
+        </div>
+
+        <div class="login-field">
+          <%= f.label :password, "Contraseña", class: "login-label" %>
+          <%= f.password_field :password, autocomplete: "current-password", class: "login-input", placeholder: "••••••••", required: true %>
+        </div>
+
+        <div class="login-row">
+          <% if devise_mapping.rememberable? %>
+            <label class="login-remember">
+              <%= f.check_box :remember_me %>
+              <span>Recordarme</span>
+            </label>
+          <% end %>
+
+          <%- if devise_mapping.recoverable? && controller_name != 'passwords' && action_name != 'edit' %>
+            <%= link_to "¿Olvidaste tu contraseña?", new_password_path(resource_name), class: "login-forgot" %>
+          <% end %>
+        </div>
+
+        <%= f.submit "Iniciar Sesión", class: "btn-login" %>
+      <% end %>
+    </div>
+
+    <div class="login-footer">
+      <p>&copy; <%= Time.current.year %> Impulso. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</div>

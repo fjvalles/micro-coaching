@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Run check-docs-updated verification script
+echo "=== Running pre-push documentation checks ==="
+ruby bin/check-docs-updated
+
+RESULT=$?
+if [ $RESULT -ne 0 ]; then
+  echo "✗ Documentation check failed! Push aborted."
+  echo "Please update the documentation files before pushing."
+  exit 1
+fi
+
+echo "✓ Documentation checks passed."
+exit 0

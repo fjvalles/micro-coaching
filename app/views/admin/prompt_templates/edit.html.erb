@@ -1,0 +1,20 @@
+<% content_for :title, "Editar #{@template.label}" %>
+
+<div class="card">
+  <div class="card-body">
+    <%= form_with model: @template, url: admin_prompt_template_path(@template), method: :patch, local: true do |f| %>
+      <div class="form-group">
+        <label>Body</label>
+        <%= text_area_tag "prompt_template[current_body]", @template.current_body, rows: 18, style: "width: 100%; font-family: monospace; font-size: 13px;" %>
+      </div>
+      <div class="form-group">
+        <label>Nota del cambio</label>
+        <%= text_field_tag "prompt_template[change_note]", nil, style: "width: 100%;", placeholder: "Por qué este cambio" %>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <%= submit_tag "Guardar nueva versión", class: "btn btn-primary" %>
+        <%= link_to "Cancelar", admin_prompt_template_path(@template), class: "btn btn-secondary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

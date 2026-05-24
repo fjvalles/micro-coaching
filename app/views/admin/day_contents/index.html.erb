@@ -166,8 +166,8 @@
                   <% end %>
                 </td>
                 <td class="table-actions">
-                  <a href="<%= admin_day_content_path(content, return_to_program_id: (@program_context&.id || new_day_program_id)) %>" class="btn btn-secondary btn-sm">Ver</a>
-                  <a href="<%= edit_admin_day_content_path(content, return_to_program_id: (@program_context&.id || new_day_program_id)) %>" class="btn btn-secondary btn-sm">Editar</a>
+                  <%= render "shared/table_action_view", path: admin_day_content_path(content, return_to_program_id: (@program_context&.id || new_day_program_id)), title: "Ver día" %>
+                  <%= render "shared/table_action_edit", path: edit_admin_day_content_path(content, return_to_program_id: (@program_context&.id || new_day_program_id)), title: "Editar día" %>
                 </td>
               </tr>
             <% end %>

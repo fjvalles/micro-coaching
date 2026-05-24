@@ -3,6 +3,11 @@ module Admin
     before_action :set_conversation, only: [ :show, :destroy ]
 
     def index
+      if params[:tab] == "unknown"
+        @unknown_inbounds = UnknownInbound.order(received_at: :desc).limit(200)
+        return
+      end
+
       scope = Conversation.all
 
       # Search body, message id, template name
@@ -48,12 +53,17 @@ module Admin
         end
       end
 
-      # Filter by created_at preset
-      if params[:date_preset].present?
-        case params[:date_preset]
-        when "today"   then scope = scope.where(created_at: Time.current.beginning_of_day..)
-        when "last_7"  then scope = scope.where(created_at: 7.days.ago..)
-        when "last_30" then scope = scope.where(created_at: 30.days.ago..)
+      # Filter by created_at date range
+      if params[:created_from].present?
+        begin
+          scope = scope.where("created_at >= ?", Time.zone.parse(params[:created_from]).beginning_of_day)
+        rescue ArgumentError, TypeError
+        end
+      end
+      if params[:created_to].present?
+        begin
+          scope = scope.where("created_at <= ?", Time.zone.parse(params[:created_to]).end_of_day)
+        rescue ArgumentError, TypeError
         end
       end
 

@@ -1,0 +1,125 @@
+<%= form_with url: admin_prompt_template_path(@template), method: :get, local: true, class: "filters-form", style: "display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; background-color: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 20px;" do %>
+  <input type="hidden" name="tab" value="executions">
+  
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <label class="form-label" style="margin-bottom: 0; font-size: 11px;">Día</label>
+    <input type="number" name="day" value="<%= params[:day] %>" class="form-input" style="width: 100px; padding: 6px 10px; font-size: 13px;" placeholder="Ej: 1">
+  </div>
+  
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <label class="form-label" style="margin-bottom: 0; font-size: 11px;">Momento</label>
+    <select name="moment" class="form-select" style="min-width: 160px; padding: 6px 10px; font-size: 13px; height: 34px;">
+      <option value="">Todos</option>
+      <% %w[morning_wake checkin_response free_assistant manifesto voice_analysis].each do |m| %>
+        <option value="<%= m %>" <%= "selected" if params[:moment] == m %>><%= translate_moment(m) %></option>
+      <% end %>
+    </select>
+  </div>
+  
+  <div style="display: flex; gap: 8px;">
+    <button class="btn btn-primary btn-sm" type="submit" style="height: 34px; padding: 0 16px;">Filtrar</button>
+    <% if params[:day].present? || params[:moment].present? %>
+      <%= link_to "Limpiar", admin_prompt_template_path(@template, tab: "executions"), class: "btn btn-secondary btn-sm", style: "height: 34px; display: inline-flex; align-items: center; justify-content: center;" %>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @executions_by_day.any? %>
+  <div style="margin: 16px 0 24px; padding: 12px 16px; background-color: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--border);">
+    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 8px;">Ejecuciones por día</span>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <% @executions_by_day.sort.each do |day, n| %>
+        <span class="badge badge-neutral" style="font-size: 12px; font-weight: 500; padding: 4px 10px;">
+          <strong style="color: var(--brand);">D<%= day || '?' %>:</strong> <%= n %>
+        </span>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<div class="table-responsive" style="border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);">
+  <table class="table" style="margin-bottom: 0;">
+    <thead>
+      <tr>
+        <th>Fecha / Hora</th>
+        <th style="text-align: center;">Día</th>
+        <th>Momento</th>
+        <th>Participante</th>
+        <th style="text-align: center;">Versión</th>
+        <th>Tokens</th>
+        <th>Latencia</th>
+        <th>Detalle / Salida</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if @executions.empty? %>
+        <tr>
+          <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">
+            No se encontraron ejecuciones que coincidan con los filtros.
+          </td>
+        </tr>
+      <% else %>
+        <% @executions.each do |e| %>
+          <tr>
+            <td style="white-space: nowrap; font-size: 13px;">
+              <strong><%= e.created_at.strftime("%d %b") %></strong>, <%= e.created_at.strftime("%H:%M") %>
+            </td>
+            <td style="text-align: center; font-weight: 600;">
+              <%= e.day_number %>
+            </td>
+            <td>
+              <span class="badge badge-neutral" style="font-size: 11.5px; font-weight: 500;"><%= translate_moment(e.moment) %></span>
+            </td>
+            <td>
+              <% if e.participant %>
+                <a href="<%= admin_participant_path(e.participant) %>" style="color: var(--brand); font-weight: 500; text-decoration: none;">
+                  <%= e.participant.name %>
+                </a>
+              <% else %>
+                <span style="color: var(--text-muted);">—</span>
+              <% end %>
+            </td>
+            <td style="text-align: center;">
+              <span class="badge badge-info" style="font-family: monospace; font-size: 11px;">v<%= e.prompt_version.version %></span>
+            </td>
+            <td style="white-space: nowrap; font-size: 12px; font-family: monospace;">
+              <span style="color: var(--brand);" title="Input"><%= number_with_delimiter(e.tokens_input) %>↓</span>
+              <span style="color: var(--info);" title="Output"><%= number_with_delimiter(e.tokens_output) %>↑</span>
+            </td>
+            <td>
+              <% 
+                latency = e.latency_ms.to_i
+                latency_badge = if latency < 1500
+                                  'badge-success'
+                                elsif latency < 3500
+                                  'badge-warning'
+                                else
+                                  'badge-danger'
+                                end
+              %>
+              <span class="badge <%= latency_badge %>" style="font-family: monospace; font-size: 11.5px;">
+                <%= number_with_delimiter(latency) %>ms
+              </span>
+            </td>
+            <td style="max-width: 320px; font-size: 12.5px; vertical-align: top;">
+              <details style="cursor: pointer; padding: 4px 0;">
+                <summary style="color: var(--brand); font-weight: 500; outline: none;"><%= e.output_body.to_s.truncate(45) %></summary>
+                <div style="background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; margin-top: 8px; cursor: default; box-shadow: var(--shadow-sm);">
+                  <div style="font-weight: 600; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Cuerpo de la Salida</div>
+                  <pre style="white-space: pre-wrap; font-family: monospace; font-size: 12px; line-height: 1.5; max-height: 200px; overflow-y: auto; color: var(--text-main);"><%= e.output_body %></pre>
+                  
+                  <% if e.rendered_messages.present? %>
+                    <details style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px;">
+                      <summary style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); outline: none;">Mensajes Renderizados (JSON)</summary>
+                      <pre style="white-space: pre-wrap; font-family: monospace; font-size: 11px; margin-top: 6px; background-color: #0f172a; color: #cbd5e1; padding: 8px; border-radius: 4px; max-height: 150px; overflow-y: auto;"><%= JSON.pretty_generate(e.rendered_messages) %></pre>
+                    </details>
+                  <% end %>
+                </div>
+              </details>
+            </td>
+          </tr>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
+</div>

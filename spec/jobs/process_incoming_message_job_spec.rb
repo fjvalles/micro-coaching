@@ -22,9 +22,24 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
       .to_return(status: 200, body: { messages: [ { id: "wamid.OUT" } ] }.to_json)
   end
 
-  it "ignores unknown phone" do
-    described_class.new.perform(text_payload(from: "999999"))
+  it "creates UnknownInbound record for unregistered phone" do
+    expect {
+      described_class.new.perform(text_payload(from: "999999"))
+    }.to change(UnknownInbound, :count).by(1)
+
+    record = UnknownInbound.last
+    expect(record.phone).to eq("+999999")
+    expect(record.message_type).to eq("text")
+    expect(record.body_preview).to eq("Hola")
     expect(Conversation.count).to eq(0)
+  end
+
+  it "does not duplicate UnknownInbound on repeated webhook delivery" do
+    payload = text_payload(from: "999999")
+    described_class.new.perform(payload)
+    expect {
+      described_class.new.perform(payload)
+    }.not_to change(UnknownInbound, :count)
   end
 
   it "stores inbound from known participant" do

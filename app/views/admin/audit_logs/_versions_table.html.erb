@@ -1,0 +1,57 @@
+<%# locals: (versions:, show_item_col: false) %>
+<% if versions.empty? %>
+  <div class="empty-state">
+    <p class="empty-state-title">Sin historial</p>
+    <p class="empty-state-desc">No se han registrado cambios todavía.</p>
+  </div>
+<% else %>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <% if show_item_col %>
+            <th>Tipo</th>
+            <th>Registro</th>
+          <% end %>
+          <th>Acción</th>
+          <th>Origen</th>
+          <th>Por</th>
+          <th>Cambios</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% versions.each do |v| %>
+          <tr>
+            <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">
+              <%= v.created_at.strftime("%d/%m/%Y %H:%M") %>
+            </td>
+            <% if show_item_col %>
+              <td><span class="badge badge-secondary" style="font-size:0.7rem;"><%= v.item_type %></span></td>
+              <td style="font-size:0.85rem;">
+                <% item = v.item %>
+                <% if item %>
+                  <%= link_to audit_item_label(v), audit_item_path(v), class: "text-link" %>
+                <% else %>
+                  <span style="color:var(--text-muted);">#<%= v.item_id.to_s.first(8) %>&hellip;</span>
+                <% end %>
+              </td>
+            <% end %>
+            <td>
+              <span class="badge <%= audit_event_badge(v.event) %>"><%= v.event %></span>
+            </td>
+            <td>
+              <span class="badge <%= audit_source_badge(v.source) %>"><%= v.source.presence || "—" %></span>
+            </td>
+            <td style="font-size:0.8rem;color:var(--text-muted);">
+              <%= v.whodunnit.presence || "—" %>
+            </td>
+            <td style="font-size:0.8rem;max-width:320px;">
+              <%= render "admin/audit_logs/changes_cell", version: v %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

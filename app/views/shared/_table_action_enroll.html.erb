@@ -1,0 +1,24 @@
+<%#
+  Locals:
+    path        - string, target URL/path (required)
+    confirm     - string, confirmation message (default: nil)
+    title       - string, tooltip/accessible name (default: "Inscribir")
+    class_name  - string, additional CSS classes (default: nil)
+%>
+<%
+  path = path
+  confirm = local_assigns.fetch(:confirm, nil)
+  title = local_assigns.fetch(:title, "Inscribir")
+  class_name = local_assigns.fetch(:class_name, nil)
+  
+  data_attr = {}
+  if confirm.present?
+    data_attr[:confirm] = confirm
+    data_attr[:turbo_confirm] = confirm
+  end
+%>
+<%= button_to path, method: :post, data: data_attr, class: "btn btn-primary btn-sm #{class_name}", title: title, aria: { label: title }, style: "padding: 6px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0;", form: { style: "display: inline-block; margin: 0;" } do %>
+  <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0zM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+  </svg>
+<% end %>

@@ -37,102 +37,377 @@
   <div style="display: flex; flex-direction: column; gap: 32px;">
     <!-- Profile Card -->
     <div class="card" style="margin-bottom: 0;">
-      <div class="card-header">
-        <h3 class="card-title">Perfil del Participante</h3>
-        <% badge_class = case @participant.status.to_sym
-           when :active then 'badge-success'
-           when :pending then 'badge-warning'
-           when :completed then 'badge-info'
-           when :paused then 'badge-danger'
-           else 'badge-neutral'
-           end %>
-        <span class="badge <%= badge_class %>">
-          <%= translate_status(@participant.status) %>
-        </span>
-      </div>
-      <div class="card-body">
-        <div class="details-list">
-          <div class="detail-item">
-            <span class="detail-label">Teléfono (E.164)</span>
-            <span class="detail-value" style="font-family: monospace; font-weight: 500;"><%= @participant.phone_e164 %></span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Email</span>
-            <span class="detail-value"><%= @participant.email.presence || '(Sin email)' %></span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Empresa</span>
-            <span class="detail-value"><%= @participant.company.presence || '(Sin empresa)' %></span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Cargo / Rol</span>
-            <span class="detail-value"><%= @participant.role.presence || '(Sin cargo)' %></span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Programa</span>
-            <span class="detail-value">
-              <% if @participant.program %>
-                <a href="<%= admin_program_path(@participant.program) %>" style="color: var(--brand); font-weight: 500; text-decoration: none;">
-                  <%= @participant.program.name %>
-                </a>
-              <% else %>
-                Sin programa
-              <% end %>
+      <%
+        # Generate initials dynamically from participant's name
+        initials = @participant.name.to_s.split.map(&:first).join.upcase[0..1]
+        initials = "?" if initials.blank?
+      %>
+      
+      <!-- Hero Header -->
+      <div class="profile-hero">
+        <div class="profile-avatar">
+          <%= initials %>
+        </div>
+        <div class="profile-hero-meta">
+          <div class="profile-name-row">
+            <h2 class="profile-hero-name"><%= @participant.name %></h2>
+            <% badge_class = case @participant.status.to_sym
+               when :active then 'badge-success'
+               when :pending then 'badge-warning'
+               when :completed then 'badge-info'
+               when :paused then 'badge-danger'
+               else 'badge-neutral'
+               end %>
+            <span class="badge <%= badge_class %>">
+              <%= translate_status(@participant.status) %>
             </span>
           </div>
-          <div class="detail-item">
-            <span class="detail-label">Día Actual / Fase</span>
-            <span class="detail-value">
-              Día <%= @participant.current_day %>
-              <% if @participant.status.to_sym == :active %>
-                · <span class="badge badge-info" style="font-size: 10px; padding: 2px 6px;"><%= translate_phase(@participant.phase).upcase %></span>
-              <% end %>
-            </span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Zona Horaria</span>
-            <span class="detail-value"><%= @participant.timezone %></span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Inscrito el</span>
-            <span class="detail-value"><%= l(@participant.enrolled_at, format: :long) rescue @participant.enrolled_at&.strftime("%Y-%m-%d %H:%M") || 'No inscrito' %></span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Iniciado el</span>
-            <span class="detail-value"><%= l(@participant.started_at, format: :long) rescue @participant.started_at&.strftime("%Y-%m-%d %H:%M") || 'No iniciado' %></span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Finalizado el</span>
-            <span class="detail-value"><%= l(@participant.completed_at, format: :long) rescue @participant.completed_at&.strftime("%Y-%m-%d %H:%M") || 'No finalizado' %></span>
-          </div>
-          <% if @participant.pending_checkin_at.present? %>
-            <div class="detail-item">
-              <span class="detail-label">Check-in Pendiente Desde</span>
-              <span class="detail-value"><%= l(@participant.pending_checkin_at, format: :short) rescue @participant.pending_checkin_at.strftime("%Y-%m-%d %H:%M") %></span>
-            </div>
-          <% end %>
-          <% if @participant.discarded_at.present? %>
-            <div class="detail-item" style="color: var(--danger);">
-              <span class="detail-label">Archivado el</span>
-              <span class="detail-value"><%= l(@participant.discarded_at, format: :long) rescue @participant.discarded_at.strftime("%Y-%m-%d %H:%M") %></span>
-            </div>
-          <% end %>
-
-          <div class="detail-item" style="grid-column: span 2;">
-            <span class="detail-label">Patrón Inicial Detectado</span>
-            <pre class="detail-value-code"><%= @participant.initial_pattern.presence || 'Ninguno.' %></pre>
-          </div>
-          
-          <div class="detail-item" style="grid-column: span 2;">
-            <span class="detail-label">Mapa de Energía (JSON)</span>
-            <pre class="detail-value-code" style="font-size: 12px; font-family: monospace;"><%= @participant.energy_map.is_a?(Hash) ? JSON.pretty_generate(@participant.energy_map) : @participant.energy_map.presence || '{}' %></pre>
-          </div>
-
-          <div class="detail-item" style="grid-column: span 2;">
-            <span class="detail-label">Manifiesto de Cierre</span>
-            <pre class="detail-value-code"><%= @participant.closing_manifesto.presence || 'Ninguno.' %></pre>
+          <div class="profile-hero-subtitle">
+            <% if @participant.role.present? %>
+              <span><%= @participant.role %></span>
+            <% else %>
+              <span style="font-style: italic; color: var(--text-muted);">Sin cargo</span>
+            <% end %>
+            <% if @participant.company.present? %>
+              <span class="dot-separator">·</span>
+              <span><%= @participant.company %></span>
+            <% end %>
           </div>
         </div>
+      </div>
+
+      <!-- Info Sections Grid -->
+      <div class="profile-info-sections">
+        <!-- Contacto y Organización -->
+        <div class="profile-info-column">
+          <h4 class="profile-section-title">Contacto y Trabajo</h4>
+          
+          <div class="profile-info-row">
+            <div class="info-icon-wrapper" title="Teléfono">
+              <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+              </svg>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Teléfono (E.164)</span>
+              <span class="info-value" style="font-family: monospace;"><%= @participant.phone_e164 %></span>
+            </div>
+          </div>
+
+          <div class="profile-info-row">
+            <div class="info-icon-wrapper" title="Email">
+              <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Email</span>
+              <span class="info-value">
+                <% if @participant.email.present? %>
+                  <a href="mailto:<%= @participant.email %>"><%= @participant.email %></a>
+                <% else %>
+                  <span style="color: var(--text-muted); font-style: italic;">No registrado</span>
+                <% end %>
+              </span>
+            </div>
+          </div>
+
+          <div class="profile-info-row">
+            <div class="info-icon-wrapper" title="Empresa">
+              <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 10.5h.75m-.75 3h.75m-9-6h.75m-.75 3h.75m-.75 3h.75m3-9h.75m-.75 3h.75m-.75 3h.75" />
+              </svg>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Empresa</span>
+              <span class="info-value"><%= @participant.company.presence || '(Sin empresa)' %></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Programa y Progreso -->
+        <div class="profile-info-column">
+          <h4 class="profile-section-title">Programa y Estado</h4>
+
+          <div class="profile-info-row">
+            <div class="info-icon-wrapper" title="Programa">
+              <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+              </svg>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Programa</span>
+              <span class="info-value">
+                <% if @participant.program %>
+                  <a href="<%= admin_program_path(@participant.program) %>">
+                    <%= @participant.program.name %>
+                  </a>
+                <% else %>
+                  <span style="color: var(--text-muted); font-style: italic;">Sin programa asignado</span>
+                <% end %>
+              </span>
+            </div>
+          </div>
+
+          <div class="profile-info-row">
+            <div class="info-icon-wrapper" title="Día actual">
+              <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 0 0 .495-7.467 5.99 5.99 0 0 0-1.925 3.546 5.974 5.974 0 0 1-2.133-1A3.75 3.75 0 0 0 12 18Z" />
+              </svg>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Día Actual y Fase</span>
+              <span class="info-value">
+                Día <%= @participant.current_day %>
+                <% if @participant.status.to_sym == :active %>
+                  · <span class="badge badge-info" style="font-size: 10px; padding: 2px 6px; text-transform: uppercase;"><%= translate_phase(@participant.phase) %></span>
+                <% end %>
+              </span>
+            </div>
+          </div>
+
+          <div class="profile-info-row">
+            <div class="info-icon-wrapper" title="Zona Horaria">
+              <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.115 5.19l.758 1.63a2.25 2.25 0 002.014 1.31h1.493a2.25 2.25 0 011.666.732l.79.882a2.25 2.25 0 001.665.732h2.247a2.25 2.25 0 002.247-2.247V5.19m-14.736 0A9 9 0 0118 4.51m-11.885 0A8.966 8.966 0 0112 3.75c1.29 0 2.5.27 3.6.76M12 21a9.03 9.03 0 01-9-9c0-4.72 3.64-8.585 8.246-8.97M12 21a9.03 9.03 0 009-9c0-4.72-3.64-8.585-8.246-8.97M12 21v-3.25M3.666 8.25h16.668M3.047 12h17.906M3.666 15.75h16.668" />
+              </svg>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Zona Horaria</span>
+              <span class="info-value"><%= @participant.timezone %></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cronología y Fechas -->
+        <div class="profile-info-column">
+          <h4 class="profile-section-title">Cronología del Proceso</h4>
+
+          <div class="profile-info-row">
+            <div class="info-icon-wrapper" title="Fechas">
+              <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+              </svg>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Registro Histórico</span>
+              <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 2px;">
+                <span class="info-value" style="font-size: 13px;">
+                  <strong style="color: var(--text-muted);">Inscrito:</strong> 
+                  <%= @participant.enrolled_at ? l(@participant.enrolled_at, format: :short) : 'No inscrito' %>
+                </span>
+                <span class="info-value" style="font-size: 13px;">
+                  <strong style="color: var(--text-muted);">Iniciado:</strong> 
+                  <%= @participant.started_at ? l(@participant.started_at, format: :short) : 'No iniciado' %>
+                </span>
+                <span class="info-value" style="font-size: 13px;">
+                  <strong style="color: var(--text-muted);">Finalizado:</strong> 
+                  <%= @participant.completed_at ? l(@participant.completed_at, format: :short) : 'No finalizado' %>
+                </span>
+                <% if @participant.pending_checkin_at.present? %>
+                  <span class="info-value" style="font-size: 13px; color: var(--warning);">
+                    <strong>Check-in Pendiente:</strong> 
+                    <%= l(@participant.pending_checkin_at, format: :short) %>
+                  </span>
+                <% end %>
+                <% if @participant.discarded_at.present? %>
+                  <span class="info-value" style="font-size: 13px; color: var(--danger);">
+                    <strong>Archivado:</strong> 
+                    <%= l(@participant.discarded_at, format: :short) %>
+                  </span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Highlights (Pattern & Manifesto) -->
+      <div class="highlight-blocks-container">
+        <!-- Patrón Inicial -->
+        <div class="highlight-block pattern">
+          <div class="highlight-block-header">
+            <span class="highlight-block-icon">
+              <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3h9m-9 3h3m-6.75 3h13.5c1.104 0 2-.896 2-2V5.25c0-1.104-.896-2-2-2H4.875c-1.104 0-2 .896-2 2V15.75c0 1.104.896 2 2 2Z" />
+              </svg>
+            </span>
+            <span class="highlight-block-title">Patrón Inicial Detectado</span>
+          </div>
+          <p class="highlight-block-content"><%= @participant.initial_pattern.presence || 'Ningún patrón inicial registrado.' %></p>
+        </div>
+
+        <!-- Manifiesto de Cierre (Solo si tiene) -->
+        <% if @participant.closing_manifesto.present? %>
+          <div class="highlight-block manifesto">
+            <div class="highlight-block-header">
+              <span class="highlight-block-icon">
+                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.485l-3.11.731a9 9 0 0 1-6.086-.71l-.109-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+                </svg>
+              </span>
+              <span class="highlight-block-title">Manifiesto de Cierre</span>
+            </div>
+            <p class="highlight-block-content"><%= @participant.closing_manifesto %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Mapa de Energía Semanal -->
+    <div class="card" style="margin-bottom: 0;">
+      <%
+        day_mappings = [
+          { label: "Lunes", keys: ["lunes", "monday"] },
+          { label: "Martes", keys: ["martes", "tuesday"] },
+          { label: "Miércoles", keys: ["miercoles", "miércoles", "wednesday"] },
+          { label: "Jueves", keys: ["jueves", "thursday"] },
+          { label: "Viernes", keys: ["viernes", "friday"] },
+          { label: "Sábado", keys: ["sabado", "sábado", "saturday"] },
+          { label: "Domingo", keys: ["domingo", "sunday"] }
+        ]
+
+        raw_map = @participant.energy_map.presence || {}
+        normalized_map = {}
+        if raw_map.is_a?(Hash)
+          raw_map.each do |k, v|
+            norm_k = k.to_s.downcase.gsub('á', 'a').gsub('é', 'e').gsub('í', 'i').gsub('ó', 'o').gsub('ú', 'u')
+            normalized_map[norm_k] = v
+          end
+        end
+
+        active_days = []
+        day_mappings.each do |day_def|
+          found_key = day_def[:keys].find { |k| normalized_map.key?(k) }
+          if found_key
+            values = normalized_map[found_key]
+            values_array = Array(values).map { |v| v.to_i rescue 0 }
+            active_days << { label: day_def[:label], values: values_array }
+          end
+        end
+
+        # Collect any non-standard keys to make it robust
+        all_mapped_keys = day_mappings.flat_map { |d| d[:keys] }
+        raw_map.each do |k, v|
+          norm_k = k.to_s.downcase.gsub('á', 'a').gsub('é', 'e').gsub('í', 'i').gsub('ó', 'o').gsub('ú', 'u')
+          unless all_mapped_keys.include?(norm_k)
+            values_array = Array(v).map { |val| val.to_i rescue 0 }
+            active_days << { label: k.to_s.capitalize, values: values_array }
+          end
+        end
+      %>
+
+      <div class="card-header">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <h3 class="card-title">Mapa de Energía Semanal</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Niveles promedio registrados en la mañana (☀️) y tarde/noche (🌙)</p>
+        </div>
+        <a href="<%= edit_admin_participant_path(@participant) %>" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 12px;">
+          <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.83 20.013a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+          </svg>
+          Editar
+        </a>
+      </div>
+      <div class="card-body">
+        <% if active_days.any? %>
+          <div class="energy-map-grid">
+            <% active_days.each do |day| %>
+              <%
+                m_level = day[:values][0] || 0
+                e_level = day[:values][1] || 0
+              %>
+              <div class="energy-day-column">
+                <div class="energy-day-title"><%= day[:label] %></div>
+                
+                <!-- Mañana -->
+                <div class="energy-period" title="Mañana: <%= m_level > 0 ? "#{m_level}/5" : 'Sin datos' %>">
+                  <div class="energy-period-header">
+                    <span class="energy-period-icon morning">☀️</span>
+                    <span>Mañana</span>
+                  </div>
+                  <% if m_level > 0 %>
+                    <div class="energy-bar" data-level="<%= m_level %>">
+                      <% 5.times do %>
+                        <div class="energy-bar-dot"></div>
+                      <% end %>
+                    </div>
+                    <span class="energy-value-label"><%= m_level %> / 5</span>
+                  <% else %>
+                    <span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Sin datos</span>
+                  <% end %>
+                </div>
+                
+                <!-- Tarde/Noche -->
+                <div class="energy-period" title="Tarde/Noche: <%= e_level > 0 ? "#{e_level}/5" : 'Sin datos' %>">
+                  <div class="energy-period-header">
+                    <span class="energy-period-icon evening">🌙</span>
+                    <span>Tarde</span>
+                  </div>
+                  <% if e_level > 0 %>
+                    <div class="energy-bar" data-level="<%= e_level %>">
+                      <% 5.times do %>
+                        <div class="energy-bar-dot"></div>
+                      <% end %>
+                    </div>
+                    <span class="energy-value-label"><%= e_level %> / 5</span>
+                  <% else %>
+                    <span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Sin datos</span>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          <!-- Leyenda -->
+          <div class="energy-legend">
+            <div class="energy-legend-item">
+              <span class="energy-legend-color" style="background-color: #cbd5e1;"></span>
+              <span>1: Muy bajo</span>
+            </div>
+            <div class="energy-legend-item">
+              <span class="energy-legend-color" style="background-color: #818cf8;"></span>
+              <span>2: Bajo</span>
+            </div>
+            <div class="energy-legend-item">
+              <span class="energy-legend-color" style="background-color: var(--brand);"></span>
+              <span>3: Normal</span>
+            </div>
+            <div class="energy-legend-item">
+              <span class="energy-legend-color" style="background-color: #8b5cf6;"></span>
+              <span>4: Alto</span>
+            </div>
+            <div class="energy-legend-item">
+              <span class="energy-legend-color" style="background-color: #ec4899;"></span>
+              <span>5: Muy alto</span>
+            </div>
+          </div>
+        <% else %>
+          <div class="empty-state" style="padding: 32px 16px; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 12px; color: var(--text-muted);">⚡</div>
+            <div class="empty-state-title" style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">Sin Mapa de Energía</div>
+            <div class="empty-state-desc" style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+              Este participante no registra un mapa de energía configurado.
+            </div>
+            <a href="<%= edit_admin_participant_path(@participant) %>" class="btn btn-secondary btn-sm">
+              Configurar Mapa de Energía
+            </a>
+          </div>
+        <% end %>
+
+        <!-- Collapsible Raw JSON -->
+        <details class="energy-map-raw-details">
+          <summary style="font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none;">
+            <svg class="chevron-icon" style="width: 16px; height: 16px; transition: transform 0.2s;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+            Ver datos JSON originales
+          </summary>
+          <div style="margin-top: 12px;">
+            <pre class="detail-value-code" style="font-size: 12px; font-family: monospace; background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; margin: 0;"><%= @participant.energy_map.is_a?(Hash) ? JSON.pretty_generate(@participant.energy_map) : @participant.energy_map.presence || '{}' %></pre>
+          </div>
+        </details>
       </div>
     </div>
 
@@ -212,5 +487,16 @@
         <% end %>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:1.5rem;">
+  <div class="card-header">
+    <h3 class="card-title">Historial de cambios</h3>
+  </div>
+  <div class="card-body" style="padding:0;">
+    <%= render "admin/audit_logs/versions_table",
+               versions: @participant.versions.order(created_at: :desc).limit(50),
+               show_item_col: false %>
   </div>
 </div>

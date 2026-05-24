@@ -51,7 +51,11 @@
   </head>
   <body>
     <div class="topbar">
-      <a href="/admin" class="brand">← Impulso <span style="font-weight: 400; font-size: 13px; opacity: 0.65; margin-left: 2px;">by comtraining</span></a>
+      <a href="/admin" class="brand" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+        <span>←</span>
+        <img src="/icon.svg" alt="Impulso Logo" style="width: 24px; height: 24px; border-radius: 4px;">
+        <span>Impulso <span style="font-weight: 400; font-size: 13px; opacity: 0.65; margin-left: 2px;">by comtraining</span></span>
+      </a>
       <a href="<%= admin_docs_path %>">Documentación</a>
       <div class="spacer"></div>
       <span style="color: var(--muted); font-size: 13px;">

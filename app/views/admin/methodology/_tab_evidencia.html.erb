@@ -1,0 +1,85 @@
+<h3 style="color: var(--text-main); margin-bottom: 14px;">Participantes estancados</h3>
+<p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+  Participantes activos cuyo <code>ai_key_pattern</code> se repitió en
+  <strong><%= Methodology::InsightBuilder::STUCK_REPEAT_THRESHOLD %>+ días seguidos</strong>.
+  Candidatos a intervención humana del coach.
+</p>
+
+<% if @stuck_insight.blank? %>
+  <p style="color: var(--text-muted);">Sin insights aún — encola un recálculo.</p>
+<% else %>
+  <% stuck = @stuck_insight.payload["participants"] || [] %>
+  <% if stuck.empty? %>
+    <div class="card" style="padding: 16px; border-left: 4px solid var(--success);">
+      <strong style="color: var(--success);">✓</strong>
+      <span style="color: var(--text-muted);">No hay participantes estancados en este momento.</span>
+    </div>
+  <% else %>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Participante</th>
+          <th>Patrón repetido</th>
+          <th>Días</th>
+          <th>Reportes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% stuck.each do |s| %>
+          <tr>
+            <td>
+              <%= link_to s["participant_name"], admin_participant_path(s["participant_id"]), style: "color: var(--brand); text-decoration: none;" %>
+            </td>
+            <td><em><%= s["repeated_pattern"] %></em></td>
+            <td><%= Array(s["days"]).sort.join(", ") %></td>
+            <td>
+              <% Array(s["daily_report_ids"]).each_with_index do |rid, i| %>
+                <%= link_to "##{i + 1}", admin_daily_report_path(rid), style: "color: var(--brand); margin-right: 6px; text-decoration: none; font-size: 12px;" %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+      Actualizado <%= time_ago_in_words(@stuck_insight.generated_at) %> atrás.
+    </p>
+  <% end %>
+<% end %>
+
+<hr style="margin: 32px 0; border: none; border-top: 1px solid var(--border);">
+
+<h3 style="color: var(--text-main); margin-bottom: 14px;">Debilidades recurrentes en prompts</h3>
+<p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+  Hallazgos agregados de los últimos análisis de <code>Openai::PromptCritic</code>.
+  Cada debilidad muestra cuántas veces el critic la mencionó en distintos templates.
+</p>
+
+<% if @prompt_digest.blank? %>
+  <p style="color: var(--text-muted);">Sin análisis de prompts aún — disparalos desde
+    <%= link_to "Prompts IA", admin_prompt_templates_path, style: "color: var(--brand);" %>.</p>
+<% else %>
+  <% weaknesses = @prompt_digest.payload["recurring_weaknesses"] || [] %>
+  <% if weaknesses.empty? %>
+    <p style="color: var(--text-muted);">Sin debilidades agregadas todavía.</p>
+  <% else %>
+    <ul style="list-style: none; padding: 0;">
+      <% weaknesses.each do |w| %>
+        <li style="display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border);">
+          <span><%= w["weakness"] %></span>
+          <span class="badge badge-warning"><%= w["count"] %></span>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <% templates = @prompt_digest.payload["templates_with_recent_analysis"] || [] %>
+  <% if templates.any? %>
+    <h4 style="margin-top: 24px; color: var(--text-main);">Templates con análisis reciente</h4>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <% templates.each do |t| %>
+        <%= link_to t["name"], admin_prompt_template_path(t["template_id"], tab: "analyses"), class: "badge badge-info", style: "text-decoration: none;" %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

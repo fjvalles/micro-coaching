@@ -20,6 +20,11 @@ module Admin
         title:       "Metodología y Pedagogía",
         description: "El marco cognitivo See-Choose-Anchor y la cadencia de micro-coaching."
       },
+      "learning-system" => {
+        path:        "docs/learning-system.md",
+        title:       "Sistema de Aprendizaje Continuo",
+        description: "Loop Observe-Evaluate-Improve: cómo el sistema mejora con cada cohorte."
+      },
       "architecture" => {
         path:        "docs/architecture-flows.md",
         title:       "Arquitectura y Flujos",
@@ -65,11 +70,6 @@ module Admin
         title:       "Ejemplos e Interacciones",
         description: "Simulación de interacciones completas de 14 días y estrategia de reportes de valor para participantes y empresas."
       },
-      "readme" => {
-        path:        "README.md",
-        title:       "README",
-        description: "Stack, setup local y configuración de Meta Cloud API."
-      },
       "claude" => {
         path:        "CLAUDE.md",
         title:       "Guía técnica",
@@ -77,11 +77,27 @@ module Admin
       }
     }.freeze
 
+    STRATEGY_SLUGS = %w[
+      commercial-strategy lean-canvas dvf-analysis customer-interviews
+      offer-hormozi brand-positioning interaction-examples-reports
+    ].freeze
+
+    TECHNICAL_SLUGS = %w[
+      architecture decisions business-rules pedagogy learning-system
+    ].freeze
+
     def index
       @docs = DOCS.map do |slug, meta|
         full = Rails.root.join(meta[:path])
         meta.merge(slug: slug, exists: full.exist?, mtime: (File.mtime(full) if full.exist?))
       end
+    end
+
+    def strategy
+      @sections = render_doc_sections(STRATEGY_SLUGS)
+    end
+
+    def technical
     end
 
     def show
@@ -95,6 +111,21 @@ module Admin
       @mtime    = File.mtime(full)
       @html     = Kramdown::Document.new(File.read(full), input: "GFM", hard_wrap: false).to_html.html_safe
       @raw_path = entry[:path]
+    end
+
+    private
+
+    def render_doc_sections(slugs)
+      slugs.filter_map do |slug|
+        meta = DOCS[slug]
+        next unless meta
+
+        full = Rails.root.join(meta[:path])
+        next unless full.exist?
+
+        html = Kramdown::Document.new(File.read(full), input: "GFM", hard_wrap: false).to_html.html_safe
+        meta.merge(slug: slug, html: html, mtime: File.mtime(full))
+      end
     end
   end
 end

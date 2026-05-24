@@ -24,9 +24,13 @@ class ProcessIncomingMessageJob < ApplicationJob
   end
 
   def process_message(message)
-    participant = Participant.kept.find_by(phone_e164: "+#{message.from}") ||
-                  Participant.kept.find_by(phone_e164: message.from)
-    return unless participant
+    normalized = message.from.start_with?("+") ? message.from : "+#{message.from}"
+    participant = Participant.kept.find_by(phone_e164: normalized)
+
+    unless participant
+      log_unknown_inbound(message)
+      return
+    end
 
     if AUDIO_TYPES.include?(message.type)
       process_audio_message(participant, message)
@@ -88,7 +92,9 @@ class ProcessIncomingMessageJob < ApplicationJob
 
     case classification.type
     when :initial_pattern_answer
-      participant.update!(initial_pattern: text)
+      PaperTrail.request(whodunnit: "ai:MessageClassifier", controller_info: { source: "ai" }) do
+        participant.update!(initial_pattern: text)
+      end
       inbound.update!(moment: :welcome)
       ack(participant, "Recibido. Mañana empieza tu primer día.")
     when :checkin_response
@@ -100,9 +106,14 @@ class ProcessIncomingMessageJob < ApplicationJob
   end
 
   def handle_checkin(participant, text, voice_analysis: nil)
-    day_content = participant.day_content
     enriched = enrich_with_voice(text, voice_analysis)
 
+    if ResponseMode.manual?(participant)
+      Outbound::Dispatcher.new(participant: participant, moment: :free_assistant).send_text(body: "")
+      return
+    end
+
+    day_content = participant.day_content
     result = Openai::CheckinSummarizer.new(
       participant: participant, day_content: day_content, raw_text: enriched
     ).call
@@ -122,8 +133,12 @@ class ProcessIncomingMessageJob < ApplicationJob
   end
 
   def handle_free(participant, text, voice_analysis: nil)
-    enriched = enrich_with_voice(text, voice_analysis)
+    if ResponseMode.manual?(participant)
+      Outbound::Dispatcher.new(participant: participant, moment: :free_assistant).send_text(body: "")
+      return
+    end
 
+    enriched = enrich_with_voice(text, voice_analysis)
     result = Openai::FreeResponseGenerator.new(
       participant: participant, user_message: enriched
     ).call
@@ -133,8 +148,6 @@ class ProcessIncomingMessageJob < ApplicationJob
         tokens_output: result.tokens_output, model_used: result.model)
   end
 
-  # Appends a brief paralinguistic note so the LLM can attend to tone/emotion
-  # without polluting the literal transcription stored on the Conversation.
   def enrich_with_voice(text, voice_analysis)
     return text if voice_analysis.blank?
 
@@ -146,24 +159,29 @@ class ProcessIncomingMessageJob < ApplicationJob
   end
 
   def ack(participant, body, moment: :free_assistant, **extra)
-    response = Whatsapp::Client.new.send_text(to: participant.phone_e164, body: body)
-    Conversation.create!(
-      participant: participant,
-      day_number: participant.current_day,
-      moment: moment,
-      role: :assistant,
-      body: body,
-      whatsapp_message_id: response.wamid,
-      sent_at: response.success? ? Time.current : nil,
-      error_message: response.success? ? nil : response.error,
-      **extra
-    )
+    Outbound::Dispatcher.new(participant: participant, moment: moment).send_text(body: body, ai: extra)
   end
 
   def reject_non_text(participant)
-    Whatsapp::Client.new.send_text(
-      to: participant.phone_e164,
+    Outbound::Dispatcher.new(participant: participant, moment: :free_assistant).send_text(
       body: Setting.fetch("voice_message_reply_text").to_s
     )
+  end
+
+  def log_unknown_inbound(message)
+    phone = message.from.start_with?("+") ? message.from : "+#{message.from}"
+    preview = message.text.to_s.truncate(200).presence
+
+    Rails.logger.warn("[UnknownInbound] phone=#{phone} type=#{message.type} wamid=#{message.wamid}")
+
+    UnknownInbound.create!(
+      phone: phone,
+      wamid: message.wamid,
+      message_type: message.type,
+      body_preview: preview,
+      received_at: Time.zone.at(message.timestamp.to_i)
+    )
+  rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid
+    # duplicate webhook delivery — already logged
   end
 end

@@ -35,14 +35,7 @@ module Participants
         media_mime_type: media.mime_type,
         audio_duration_seconds: duration&.to_i,
         transcription: transcription.text,
-        voice_analysis: analysis.analysis.merge(
-          "_meta" => {
-            "model" => analysis.model,
-            "tokens_input" => analysis.tokens_input,
-            "tokens_output" => analysis.tokens_output,
-            "skipped_reason" => analysis.skipped_reason
-          }.compact
-        ),
+        voice_analysis: normalize_voice_analysis(analysis),
         body: transcription.text,
         tokens_input: (@conversation.tokens_input.to_i + analysis.tokens_input.to_i),
         tokens_output: (@conversation.tokens_output.to_i + analysis.tokens_output.to_i)
@@ -53,6 +46,22 @@ module Participants
       Rails.logger.error("AudioProcessor error: #{e.class}: #{e.message}")
       @conversation.update(error_message: "audio: #{e.class}: #{e.message}")
       Result.new(error: e.message)
+    end
+
+    private
+
+    def normalize_voice_analysis(analysis)
+      expected_keys = %w[tone primary_emotion secondary_emotions energy_level pace
+                         volume vocal_qualities sentiment confidence key_observations]
+      raw = analysis.analysis.is_a?(Hash) ? analysis.analysis : { "raw" => analysis.analysis.to_s }
+      normalized = raw.slice(*expected_keys)
+      normalized["_meta"] = {
+        "model" => analysis.model,
+        "tokens_input" => analysis.tokens_input,
+        "tokens_output" => analysis.tokens_output,
+        "skipped_reason" => analysis.skipped_reason
+      }.compact
+      normalized
     end
   end
 end

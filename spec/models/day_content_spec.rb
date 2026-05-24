@@ -22,6 +22,11 @@ RSpec.describe DayContent, type: :model do
     Conversation.delete_all
     DailyReport.delete_all
     Participant.delete_all
+    PromptAnalysis.delete_all
+    PromptExecution.delete_all
+    PromptVersion.delete_all
+    PromptTemplate.delete_all
+    MethodologyInsight.delete_all
     Program.delete_all
     load Rails.root.join("db/seeds/day_contents.rb")
     expect(Program.count).to eq(3)

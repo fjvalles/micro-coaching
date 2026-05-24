@@ -10,84 +10,286 @@
     </div>
   <% end %>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-    <div class="form-group">
-      <%= f.label :program_id, "Programa", class: "form-label" %>
-      <%= f.collection_select :program_id, @programs, :id, :name, { prompt: "Selecciona un programa" }, { class: "form-select", required: true } %>
+  <div class="form-layout-columns">
+    <!-- Columna Principal (Izquierda) -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      
+      <!-- Card 1: Información Personal y Profesional -->
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <h3 class="card-title">Información Personal y Profesional</h3>
+        </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="form-grid-2col">
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :name, "Nombre Completo", class: "form-label" %>
+              <%= f.text_field :name, class: "form-input", placeholder: "Ej. Juan Pérez", required: true %>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :email, "Correo Electrónico (Opcional)", class: "form-label" %>
+              <%= f.email_field :email, class: "form-input", placeholder: "juan@example.com" %>
+            </div>
+          </div>
+
+          <div class="form-grid-2col">
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :phone_e164, "Teléfono (E.164)", class: "form-label" %>
+              <%= f.text_field :phone_e164, class: "form-input", placeholder: "+56912345678", required: true %>
+              <p class="form-help">Formato internacional con +. Ejemplo: +56912345678</p>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :program_id, "Programa Asignado", class: "form-label" %>
+              <%= f.collection_select :program_id, @programs, :id, :name, { prompt: "Selecciona un programa" }, { class: "form-select", required: true } %>
+            </div>
+          </div>
+
+          <div class="form-grid-2col">
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :company, "Empresa / Organización (Opcional)", class: "form-label" %>
+              <%= f.text_field :company, class: "form-input", placeholder: "Ej. Fintech S.A." %>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :role, "Cargo / Puesto (Opcional)", class: "form-label" %>
+              <%= f.text_field :role, class: "form-input", placeholder: "Ej. Director de Operaciones" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Mapa de Energía Interactivo -->
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <h3 class="card-title">Mapa de Energía Semanal</h3>
+            <p class="form-card-title-desc">Configura los niveles de energía estimados del participante de 1 a 5.</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="energy-form-grid">
+            <% 
+              weekdays = [
+                { id: "lunes", label: "Lunes" },
+                { id: "martes", label: "Martes" },
+                { id: "miercoles", label: "Miércoles" },
+                { id: "jueves", label: "Jueves" },
+                { id: "viernes", label: "Viernes" },
+                { id: "sabado", label: "Sábado" },
+                { id: "domingo", label: "Domingo" }
+              ]
+            %>
+            <% weekdays.each do |day| %>
+              <div class="energy-form-row">
+                <span class="energy-form-day-label"><%= day[:label] %></span>
+                
+                <!-- Mañana -->
+                <div class="energy-form-select-group">
+                  <span class="energy-select-icon morning" title="Mañana">☀️</span>
+                  <select id="energy-<%= day[:id] %>-morning" class="form-select" style="padding: 6px 12px; font-size: 13px;">
+                    <option value="0">Sin datos</option>
+                    <option value="1">1 - Muy bajo</option>
+                    <option value="2">2 - Bajo</option>
+                    <option value="3">3 - Normal</option>
+                    <option value="4">4 - Alto</option>
+                    <option value="5">5 - Muy alto</option>
+                  </select>
+                </div>
+                
+                <!-- Tarde -->
+                <div class="energy-form-select-group">
+                  <span class="energy-select-icon evening" title="Tarde/Noche">🌙</span>
+                  <select id="energy-<%= day[:id] %>-evening" class="form-select" style="padding: 6px 12px; font-size: 13px;">
+                    <option value="0">Sin datos</option>
+                    <option value="1">1 - Muy bajo</option>
+                    <option value="2">2 - Bajo</option>
+                    <option value="3">3 - Normal</option>
+                    <option value="4">4 - Alto</option>
+                    <option value="5">5 - Muy alto</option>
+                  </select>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          <!-- Hidden Original JSON textarea inside a details block -->
+          <details class="energy-map-raw-details" style="margin-top: 24px;">
+            <summary style="font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none;">
+              <svg class="chevron-icon" style="width: 16px; height: 16px; transition: transform 0.2s;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+              Editar JSON original directamente (Avanzado)
+            </summary>
+            <div style="margin-top: 12px;">
+              <%= f.text_area :energy_map, 
+                    value: (participant.energy_map.is_a?(Hash) ? JSON.pretty_generate(participant.energy_map) : participant.energy_map), 
+                    class: "form-textarea", 
+                    id: "participant-energy-map-raw",
+                    style: "font-family: monospace; font-size: 13px; min-height: 150px; background-color: var(--bg-secondary); margin-bottom: 0;", 
+                    placeholder: "{\n  \"lunes\": [3, 4]\n}" %>
+              <p class="form-help">Modificar este JSON actualizará los selectores superiores automáticamente si es una sintaxis válida.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Card 3: Notas Conductuales -->
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <h3 class="card-title">Análisis Conductual y Notas</h3>
+        </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :initial_pattern, "Patrón Inicial Detectado", class: "form-label" %>
+            <%= f.text_area :initial_pattern, class: "form-textarea", style: "min-height: 100px; margin-bottom: 0;", placeholder: "Describe el patrón de comportamiento reactivo observado al inicio del programa..." %>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :closing_manifesto, "Manifiesto de Cierre", class: "form-label" %>
+            <%= f.text_area :closing_manifesto, class: "form-textarea", style: "min-height: 100px; margin-bottom: 0;", placeholder: "Texto final o de cierre del programa generado al completar el día 14..." %>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="form-group">
-      <%= f.label :name, "Nombre del Participante", class: "form-label" %>
-      <%= f.text_field :name, class: "form-input", placeholder: "Ej. Juan Pérez", required: true %>
+    <!-- Columna Lateral (Derecha) -->
+    <div style="display: flex; flex-direction: column; gap: 24px;" class="sticky-sidebar-card">
+      
+      <!-- Card 4: Configuración y Tiempos -->
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <h3 class="card-title">Configuración del Programa</h3>
+        </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :status, "Estado del Participante", class: "form-label" %>
+            <%= f.select :status, Participant.statuses.keys.map { |s| [translate_status(s), s] }, {}, { class: "form-select" } %>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :current_day, "Día Actual", class: "form-label" %>
+            <%= f.number_field :current_day, class: "form-input", min: 0 %>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :timezone, "Zona Horaria", class: "form-label" %>
+            <%= f.text_field :timezone, class: "form-input", placeholder: "America/Santiago", required: true %>
+            <p class="form-help">Ej. America/Santiago</p>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :response_mode, "Modo de Respuesta (IA / Manual)", class: "form-label" %>
+            <%= f.select :response_mode,
+                [ [ "Heredar (programa/global)", "" ], [ "Manual", "manual" ], [ "Sugerencia IA", "suggest" ], [ "Aprobación IA", "approve" ], [ "Automático", "auto" ] ],
+                {}, class: "form-select" %>
+            <p class="form-help">Vacío = hereda configuración global.</p>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :pending_checkin_at, "Check-in Pendiente Desde", class: "form-label" %>
+            <%= f.datetime_local_field :pending_checkin_at, class: "form-input" %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: Acciones -->
+      <div class="card form-card" style="background-color: var(--bg-secondary); margin-bottom: 0;">
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
+          <%= f.submit participant.new_record? ? "Crear Participante" : "Guardar Cambios", class: "btn btn-primary", style: "width: 100%;" %>
+          <%= link_to "Cancelar", participant.new_record? ? admin_participants_path : admin_participant_path(participant), class: "btn btn-secondary", style: "width: 100%;" %>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-    <div class="form-group">
-      <%= f.label :phone_e164, "Teléfono (Formato E.164)", class: "form-label" %>
-      <%= f.text_field :phone_e164, class: "form-input", placeholder: "+56912345678", required: true %>
-      <p class="form-help">Formato internacional con signo + al inicio. Ejemplo: +56912345678</p>
-    </div>
+  <!-- Script de sincronización interactiva para el Mapa de Energía -->
+  <script>
+    (function() {
+      function initEnergyMapEditor() {
+        const energyMapInput = document.getElementById("participant-energy-map-raw");
+        if (!energyMapInput || energyMapInput.dataset.initialized === "true") return;
+        energyMapInput.dataset.initialized = "true";
 
-    <div class="form-group">
-      <%= f.label :email, "Email (Opcional)", class: "form-label" %>
-      <%= f.email_field :email, class: "form-input", placeholder: "juan@example.com" %>
-    </div>
-  </div>
+        const days = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
+        const dayMappings = {
+          "lunes": ["lunes", "monday"],
+          "martes": ["martes", "tuesday"],
+          "miercoles": ["miercoles", "miércoles", "wednesday"],
+          "jueves": ["jueves", "thursday"],
+          "viernes": ["viernes", "friday"],
+          "sabado": ["sabado", "sábado", "saturday"],
+          "domingo": ["domingo", "sunday"]
+        };
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-    <div class="form-group">
-      <%= f.label :company, "Empresa (Opcional)", class: "form-label" %>
-      <%= f.text_field :company, class: "form-input", placeholder: "Ej. Comtraining" %>
-    </div>
+        function updateJsonFromSelects() {
+          let energyMap = {};
+          days.forEach(day => {
+            const morningVal = parseInt(document.getElementById("energy-" + day + "-morning").value) || 0;
+            const eveningVal = parseInt(document.getElementById("energy-" + day + "-evening").value) || 0;
+            if (morningVal > 0 || eveningVal > 0) {
+              energyMap[day] = [morningVal, eveningVal];
+            }
+          });
+          energyMapInput.value = JSON.stringify(energyMap, null, 2);
+        }
 
-    <div class="form-group">
-      <%= f.label :role, "Cargo / Rol (Opcional)", class: "form-label" %>
-      <%= f.text_field :role, class: "form-input", placeholder: "Ej. Gerente de RRHH" %>
-    </div>
-  </div>
+        function populateSelectsFromJson() {
+          try {
+            const val = energyMapInput.value.trim();
+            const energyMap = val ? JSON.parse(val) : {};
+            
+            let normalizedMap = {};
+            Object.keys(energyMap).forEach(k => {
+              const normK = k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              normalizedMap[normK] = energyMap[k];
+            });
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;">
-    <div class="form-group">
-      <%= f.label :status, "Estado", class: "form-label" %>
-      <%= f.select :status, Participant.statuses.keys.map { |s| [translate_status(s), s] }, {}, { class: "form-select" } %>
-    </div>
+            days.forEach(day => {
+              let values = null;
+              const keysToTry = dayMappings[day];
+              for (let key of keysToTry) {
+                if (normalizedMap[key]) {
+                  values = normalizedMap[key];
+                  break;
+                }
+              }
 
-    <div class="form-group">
-      <%= f.label :current_day, "Día Actual", class: "form-label" %>
-      <%= f.number_field :current_day, class: "form-input", min: 0 %>
-    </div>
+              const morningSelect = document.getElementById("energy-" + day + "-morning");
+              const eveningSelect = document.getElementById("energy-" + day + "-evening");
 
-    <div class="form-group">
-      <%= f.label :timezone, "Zona Horaria", class: "form-label" %>
-      <%= f.text_field :timezone, class: "form-input", placeholder: "America/Mexico_City", required: true %>
-      <p class="form-help">Ej. America/Mexico_City, America/Bogota</p>
-    </div>
-  </div>
+              if (morningSelect && eveningSelect) {
+                if (Array.isArray(values)) {
+                  morningSelect.value = values[0] || 0;
+                  eveningSelect.value = values[1] || 0;
+                } else if (typeof values === 'number') {
+                  morningSelect.value = values;
+                  eveningSelect.value = 0;
+                } else {
+                  morningSelect.value = 0;
+                  eveningSelect.value = 0;
+                }
+              }
+            });
+          } catch (e) {
+            // Ignorar errores temporales mientras el usuario edita el JSON directamente
+          }
+        }
 
-  <div class="form-group">
-    <%= f.label :initial_pattern, "Patrón Inicial Detectado", class: "form-label" %>
-    <%= f.text_area :initial_pattern, class: "form-textarea", placeholder: "Resumen inicial del patrón reactivo del participante..." %>
-  </div>
+        days.forEach(day => {
+          const morningSelect = document.getElementById("energy-" + day + "-morning");
+          const eveningSelect = document.getElementById("energy-" + day + "-evening");
+          if (morningSelect) morningSelect.addEventListener("change", updateJsonFromSelects);
+          if (eveningSelect) eveningSelect.addEventListener("change", updateJsonFromSelects);
+        });
 
-  <div class="form-group">
-    <%= f.label :energy_map, "Mapa de Energía (JSON)", class: "form-label" %>
-    <%= f.text_area :energy_map, value: (participant.energy_map.is_a?(Hash) ? JSON.pretty_generate(participant.energy_map) : participant.energy_map), class: "form-textarea", style: "font-family: monospace; font-size: 13px;", placeholder: "{\n  \"reactivity_triggers\": []\n}" %>
-    <p class="form-help">Debe ser un formato JSON válido.</p>
-  </div>
+        populateSelectsFromJson();
 
-  <div class="form-group">
-    <%= f.label :closing_manifesto, "Manifiesto de Cierre", class: "form-label" %>
-    <%= f.text_area :closing_manifesto, class: "form-textarea", placeholder: "Texto final o de cierre del programa..." %>
-  </div>
+        energyMapInput.addEventListener("input", populateSelectsFromJson);
+      }
 
-  <div class="form-group">
-    <%= f.label :pending_checkin_at, "Check-in Pendiente Desde", class: "form-label" %>
-    <%= f.datetime_local_field :pending_checkin_at, class: "form-input" %>
-  </div>
-
-  <div class="card-footer" style="padding-left: 0; padding-right: 0; background-color: transparent; border-top: none; margin-top: 24px;">
-    <%= link_to "Cancelar", admin_participants_path, class: "btn btn-secondary" %>
-    <%= f.submit participant.new_record? ? "Crear Participante" : "Guardar Cambios", class: "btn btn-primary" %>
-  </div>
+      // Inicialización compatible con Turbo
+      document.addEventListener("DOMContentLoaded", initEnergyMapEditor);
+      document.addEventListener("turbo:load", initEnergyMapEditor);
+      // Ejecución inmediata en caso de renderizado directo
+      initEnergyMapEditor();
+    })();
+  </script>
 <% end %>

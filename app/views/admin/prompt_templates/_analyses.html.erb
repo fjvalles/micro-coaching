@@ -1,0 +1,130 @@
+<% if @analyses.empty? %>
+  <div class="empty-state" style="padding: 40px; background-color: var(--bg-secondary); border-radius: var(--radius-lg); border: 1.5px dashed var(--border);">
+    <svg style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 12px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21m0 0l-.813-5.096L9 21zm0 0h1m-9-6.078a11.947 11.947 0 011-2.94a11.947 11.947 0 01-1-2.94M12 3v1m6 16h3m-3-4h3m-9-4h.01M9 16h.01"/>
+    </svg>
+    <h4 style="font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 6px;">Aún no hay análisis de IA para este prompt</h4>
+    <p style="color: var(--text-muted); font-size: 13px; max-width: 420px; margin: 0 auto 16px;">
+      El análisis de IA evalúa las ejecuciones de prompts recientes de los participantes y proporciona fortalezas, riesgos y sugerencias optimizadas para mejorar la efectividad.
+    </p>
+    <%= button_to "Lanzar Primer Análisis", analyze_admin_prompt_template_path(@template), method: :post, class: "btn btn-primary btn-sm", data: { turbo_confirm: "¿Encolar análisis de IA sobre las ejecuciones recientes?" } %>
+  </div>
+<% else %>
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <% @analyses.each do |a| %>
+      <div class="card" style="margin-bottom: 0; border-color: var(--border);">
+        <!-- Analysis Block Header -->
+        <div class="card-header" style="background-color: var(--bg-secondary); padding: 14px 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-weight: 700; font-size: 14px; color: var(--text-main);">
+                Análisis: <%= a.created_at.strftime("%d %b, %Y — %H:%M") %>
+              </span>
+              <span class="badge badge-neutral" style="font-size: 11.5px; font-weight: 600;">
+                <%= a.model_used %>
+              </span>
+            </div>
+            <div style="font-size: 12.5px; color: var(--text-muted); display: flex; gap: 12px;">
+              <span><strong>Muestra:</strong> <%= a.executions_sampled %> ejecuciones</span>
+              <span><strong>Tokens:</strong> <%= a.tokens_input %>↓ / <%= a.tokens_output %>↑</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-body" style="padding: 20px;">
+          <!-- Findings Grid -->
+          <% findings = a.findings || {} %>
+          <% if findings.is_a?(Hash) && (findings["strengths"].present? || findings["weaknesses"].present? || findings["risks"].present?) %>
+            <div class="findings-container">
+              <!-- Strengths -->
+              <% if findings["strengths"].present? %>
+                <div class="findings-block strengths">
+                  <div class="findings-block-title">
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Fortalezas
+                  </div>
+                  <ul class="findings-list">
+                    <% Array(findings["strengths"]).each do |s| %>
+                      <li><%= s %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              <% end %>
+
+              <!-- Weaknesses -->
+              <% if findings["weaknesses"].present? %>
+                <div class="findings-block weaknesses">
+                  <div class="findings-block-title">
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Debilidades
+                  </div>
+                  <ul class="findings-list">
+                    <% Array(findings["weaknesses"]).each do |w| %>
+                      <li><%= w %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              <% end %>
+
+              <!-- Risks -->
+              <% if findings["risks"].present? %>
+                <div class="findings-block risks">
+                  <div class="findings-block-title">
+                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    Riesgos
+                  </div>
+                  <ul class="findings-list">
+                    <% Array(findings["risks"]).each do |r| %>
+                      <li><%= r %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+
+          <!-- Rationale Callout -->
+          <% if a.rationale.present? %>
+            <div style="background-color: var(--bg-secondary); border-left: 4px solid var(--brand); border-radius: var(--radius-sm); padding: 14px 18px; margin: 16px 0; font-size: 13.5px; line-height: 1.6; color: #334155;">
+              <strong style="color: var(--text-main); display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Racional / Explicación del Análisis</strong>
+              <%= a.rationale %>
+            </div>
+          <% end %>
+
+          <!-- Suggested Body Editor -->
+          <% if a.suggested_body.present? %>
+            <div style="border-top: 1px solid var(--border); padding-top: 18px; margin-top: 18px;">
+              <details style="cursor: pointer;">
+                <summary style="font-size: 13px; color: var(--brand); font-weight: 600; outline: none;">
+                  Ver Cuerpo del Prompt Sugerido por la IA
+                </summary>
+                
+                <div class="editor-preview-container" style="cursor: default; margin-top: 10px;">
+                  <div class="editor-header" style="background-color: #334155; border-bottom-color: #475569;">
+                    <span class="editor-title" style="color: #cbd5e1;">suggested_prompt_body.md</span>
+                    <div class="editor-actions-btns">
+                      <button onclick="navigator.clipboard.writeText(document.getElementById('prompt-suggested-<%= a.id %>').innerText); alert('Copiado');" class="btn btn-sm btn-secondary" style="padding: 1px 6px; font-size: 10px; background: transparent; border-color: #64748b; color: #cbd5e1;">
+                        Copiar
+                      </button>
+                    </div>
+                  </div>
+                  <div class="editor-body" id="prompt-suggested-<%= a.id %>" style="max-height: 240px; font-size: 12.5px; background-color: #1e293b;"><%= a.suggested_body %></div>
+                </div>
+                
+                <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+                  <%= button_to "Aplicar Sugerencia como Nueva Versión", apply_suggestion_admin_prompt_template_path(@template, analysis_id: a.id), method: :post, class: "btn btn-primary btn-sm", data: { turbo_confirm: "¿Reemplazar el body actual por la sugerencia de este análisis de IA?" } %>
+                </div>
+              </details>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

@@ -4,6 +4,8 @@ require "tempfile"
 
 module Openai
   class VoiceAnalyzer
+    include Openai::Retryable
+
     Result = Struct.new(
       :analysis, :prompt_used, :tokens_input, :tokens_output, :model, :skipped_reason,
       keyword_init: true
@@ -62,9 +64,8 @@ module Openai
         ] }
       ]
 
-      client = ::OpenAI::Client.new(access_token: @api_key, request_timeout: 60)
       response = with_retries do
-        client.chat(parameters: {
+        http_client.chat(parameters: {
           model: @model,
           modalities: [ "text" ],
           messages: messages,
@@ -75,6 +76,18 @@ module Openai
       content = response.dig("choices", 0, "message", "content").to_s.strip
       parsed  = (JSON.parse(content) rescue { "raw" => content })
       usage   = response["usage"] || {}
+
+      Openai::PromptLogger.record(
+        key: "voice_analyzer", name: "Análisis paralingüístico de voz",
+        description: "Infiere tono/emoción/energía desde audio del participante.",
+        system_body: ANALYSIS_INSTRUCTION,
+        messages: [ { role: "system", content: ANALYSIS_INSTRUCTION } ],
+        output_body: content,
+        model_used: response["model"] || @model,
+        tokens_input: usage["prompt_tokens"].to_i,
+        tokens_output: usage["completion_tokens"].to_i,
+        moment: "voice_analysis"
+      )
 
       Result.new(
         analysis: parsed,
@@ -90,6 +103,10 @@ module Openai
     def skipped(reason)
       Result.new(analysis: {}, prompt_used: nil, tokens_input: 0, tokens_output: 0,
                  model: @model, skipped_reason: reason)
+    end
+
+    def http_client
+      @http_client ||= ::OpenAI::Client.new(access_token: @api_key, request_timeout: 60)
     end
 
     # gpt-4o-audio-preview accepts only wav/mp3. WhatsApp voice notes are audio/ogg (opus).
@@ -109,37 +126,24 @@ module Openai
     end
 
     def transcode_to_mp3(bytes)
-      input  = Tempfile.new([ "wa_in", ".bin" ], binmode: true)
-      output = Tempfile.new([ "wa_out", ".mp3" ], binmode: true)
-      input.write(bytes); input.flush
-      output.close
+      Tempfile.open([ "wa_in", ".bin" ], binmode: true) do |input|
+        input.write(bytes)
+        input.flush
 
-      _stdout, stderr, status = Open3.capture3(
-        "ffmpeg", "-y", "-i", input.path, "-vn", "-ac", "1", "-ar", "16000",
-        "-b:a", "32k", output.path
-      )
+        output_path = "#{input.path}.mp3"
+        _stdout, stderr, status = Open3.capture3(
+          "ffmpeg", "-y", "-i", input.path, "-vn", "-ac", "1", "-ar", "16000",
+          "-b:a", "32k", output_path
+        )
 
-      if status.success?
-        File.binread(output.path)
-      else
-        Rails.logger.warn("ffmpeg failed: #{stderr}")
-        nil
-      end
-    ensure
-      input&.close; input&.unlink
-      File.unlink(output.path) if output && File.exist?(output.path)
-    end
-
-    def with_retries(max: nil)
-      max ||= Setting.fetch("openai_retry_max") || 3
-      attempt = 0
-      begin
-        attempt += 1
-        yield
-      rescue Faraday::TooManyRequestsError, Faraday::ServerError, Faraday::TimeoutError => e
-        raise e if attempt >= max
-        sleep(0.5 * (2**attempt))
-        retry
+        if status.success?
+          File.binread(output_path)
+        else
+          Rails.logger.warn("ffmpeg failed: #{stderr}")
+          nil
+        end
+      ensure
+        File.unlink(output_path) if defined?(output_path) && File.exist?(output_path.to_s)
       end
     end
   end

@@ -1,0 +1,1732 @@
+<% content_for :title, "Documentación Técnica" %>
+<% content_for :hide_help_button, "true" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <span>Técnico</span>
+<% end %>
+
+<% content_for :header_actions do %>
+  <a href="/sidekiq" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+    <svg style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+    Sidekiq
+  </a>
+<% end %>
+
+<style>
+  /* ── TOC Nav Grid ── */
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .toc-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--text-main);
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    cursor: pointer;
+  }
+  .toc-card:hover {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-light);
+    color: var(--brand-text);
+  }
+  .toc-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .toc-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--brand-light);
+    color: var(--brand-text);
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ── Section accordion ── */
+  .docs-sections { display: flex; flex-direction: column; gap: 10px; }
+
+  .docs-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .docs-section[open] { border-color: var(--brand); }
+  .docs-section[open] .docs-section-summary { background: var(--brand-light); }
+
+  .docs-section-summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .docs-section-summary::-webkit-details-marker { display: none; }
+  .docs-section-summary:hover { background: #f8faff; }
+
+  .docs-section-icon { font-size: 20px; flex-shrink: 0; }
+  .docs-section-info { flex: 1; min-width: 0; }
+  .docs-section-title { display: block; font-weight: 600; font-size: 15px; color: var(--text-main); }
+  .docs-section-desc  { display: block; font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  .docs-section-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+  .docs-section-tag {
+    font-size: 11px; font-weight: 600; padding: 2px 8px;
+    border-radius: 99px; white-space: nowrap;
+  }
+  .tag-domain    { background: #e0e7ff; color: #4338ca; }
+  .tag-infra     { background: #ecfdf5; color: #065f46; }
+  .tag-security  { background: #fef2f2; color: #991b1b; }
+  .tag-ops       { background: #fffbeb; color: #92400e; }
+  .tag-dev       { background: #f0f9ff; color: #0c4a6e; }
+  .tag-risk      { background: #fff7ed; color: #9a3412; }
+
+  .docs-section-chevron {
+    width: 18px; height: 18px; color: var(--text-muted);
+    transition: transform 0.2s; flex-shrink: 0;
+  }
+  .docs-section[open] .docs-section-chevron { transform: rotate(180deg); }
+
+  /* ── Section body ── */
+  .docs-section-body {
+    padding: 24px 28px;
+    border-top: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  /* ── Markdown-like styles inside body ── */
+  .docs-section-body h2 {
+    font-size: 18px; font-weight: 700; color: var(--text-main);
+    margin: 28px 0 12px; padding-bottom: 8px;
+    border-bottom: 2px solid var(--brand-light);
+  }
+  .docs-section-body h2:first-child { margin-top: 0; }
+  .docs-section-body h3 {
+    font-size: 15px; font-weight: 600; color: var(--text-main);
+    margin: 20px 0 8px;
+  }
+  .docs-section-body h4 {
+    font-size: 13px; font-weight: 600; color: var(--text-muted);
+    margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .docs-section-body p {
+    font-size: 14px; line-height: 1.7; color: #374151; margin-bottom: 12px;
+  }
+  .docs-section-body ul, .docs-section-body ol {
+    margin: 8px 0 12px 20px; font-size: 14px; line-height: 1.7; color: #374151;
+  }
+  .docs-section-body li { margin-bottom: 4px; }
+  .docs-section-body code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 12px; background: #f1f5f9; color: #7c3aed;
+    padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;
+  }
+  .docs-section-body pre {
+    background: #0f172a; color: #e2e8f0;
+    padding: 16px 20px; border-radius: var(--radius-md);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 12.5px; line-height: 1.6; overflow-x: auto; margin: 12px 0;
+  }
+  .docs-section-body pre code {
+    background: none; color: inherit; border: none; padding: 0; font-size: inherit;
+  }
+
+  /* ── Tables ── */
+  .docs-table-wrap { overflow-x: auto; margin: 12px 0; }
+  .docs-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  .docs-table th {
+    text-align: left; padding: 10px 14px;
+    background: #f8fafc; color: var(--text-muted);
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border);
+  }
+  .docs-table td {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    vertical-align: top; line-height: 1.5;
+  }
+  .docs-table tr:last-child td { border-bottom: none; }
+  .docs-table tr:hover td { background: #fafbff; }
+
+  /* ── Risk badges ── */
+  .risk { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+  .risk-critical { background: #fef2f2; color: #991b1b; }
+  .risk-high     { background: #fff7ed; color: #9a3412; }
+  .risk-medium   { background: #fffbeb; color: #92400e; }
+  .risk-low      { background: #f0fdf4; color: #166534; }
+
+  /* ── ADR cards ── */
+  .adr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin-top: 8px; }
+  .adr-card {
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 18px; background: #fafbff;
+  }
+  .adr-num { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--brand); letter-spacing: 0.08em; }
+  .adr-title { font-size: 15px; font-weight: 700; color: var(--text-main); margin: 4px 0 10px; }
+  .adr-card p { font-size: 13px; color: #374151; margin-bottom: 6px; line-height: 1.55; }
+  .adr-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-top: 10px; margin-bottom: 2px; }
+
+  /* ── Mermaid ── */
+  .mermaid-wrap {
+    background: #fafbff; border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 20px; margin: 16px 0; overflow-x: auto; text-align: center;
+  }
+
+  /* ── Quick-start steps ── */
+  .steps { counter-reset: step; display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+  .step {
+    display: flex; gap: 14px; padding: 14px 16px;
+    background: #fafbff; border: 1px solid var(--border); border-radius: var(--radius-md);
+  }
+  .step-num {
+    counter-increment: step;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--brand); color: white;
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .step-content { flex: 1; }
+  .step-content p { margin: 0; font-size: 13px; color: #374151; }
+  .step-content pre { margin: 8px 0 0; }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-radius: var(--radius-md); padding: 14px 16px; margin: 12px 0;
+    font-size: 13px; line-height: 1.55; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-warn { background: var(--warning-bg); border: 1px solid var(--warning-border); color: #78350f; }
+  .callout-info { background: var(--info-bg); border: 1px solid var(--info-border); color: #0c4a6e; }
+  .callout-danger { background: var(--danger-bg); border: 1px solid var(--danger-border); color: #7f1d1d; }
+  .callout-ok { background: var(--success-bg); border: 1px solid var(--success-border); color: #064e3b; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+</style>
+
+<%# ── TOC Navigation ── %>
+<div class="toc-grid">
+  <a class="toc-card" href="#sec-overview">
+    <span class="toc-num">1</span><span class="toc-icon">🌐</span>Visión General
+  </a>
+  <a class="toc-card" href="#sec-architecture">
+    <span class="toc-num">2</span><span class="toc-icon">🏗️</span>Arquitectura
+  </a>
+  <a class="toc-card" href="#sec-domain">
+    <span class="toc-num">3</span><span class="toc-icon">🗂️</span>Modelo de Dominio
+  </a>
+  <a class="toc-card" href="#sec-flows">
+    <span class="toc-num">4</span><span class="toc-icon">🔄</span>Flujos Críticos
+  </a>
+  <a class="toc-card" href="#sec-data">
+    <span class="toc-num">5</span><span class="toc-icon">🗄️</span>Capa de Datos
+  </a>
+  <a class="toc-card" href="#sec-api">
+    <span class="toc-num">6</span><span class="toc-icon">🔌</span>APIs y Contratos
+  </a>
+  <a class="toc-card" href="#sec-infra">
+    <span class="toc-num">7</span><span class="toc-icon">⚙️</span>Infra y Despliegue
+  </a>
+  <a class="toc-card" href="#sec-security">
+    <span class="toc-num">8</span><span class="toc-icon">🔒</span>Seguridad
+  </a>
+  <a class="toc-card" href="#sec-testing">
+    <span class="toc-num">9</span><span class="toc-icon">🧪</span>Testing
+  </a>
+  <a class="toc-card" href="#sec-debt">
+    <span class="toc-num">10</span><span class="toc-icon">⚠️</span>Deuda Técnica
+  </a>
+  <a class="toc-card" href="#sec-adrs">
+    <span class="toc-num">11</span><span class="toc-icon">📋</span>ADRs
+  </a>
+  <a class="toc-card" href="#sec-onboarding">
+    <span class="toc-num">12</span><span class="toc-icon">🚀</span>Onboarding
+  </a>
+</div>
+
+<div class="docs-sections">
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 1. VISIÓN GENERAL %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-overview" open>
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">🌐</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">1 · Visión General del Sistema</span>
+      <span class="docs-section-desc">Propósito, actores, bounded contexts y glosario.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-domain">Dominio</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+
+    <h2>Problema y Propósito</h2>
+    <p>
+      <strong>Impulso by Comtraining</strong> entrega un programa de cambio conductual de 14 días completamente por WhatsApp.
+      Reemplaza el contenido post-capacitación estático con una cadencia diaria personalizada por IA: mensaje matinal → IAReto → check-in nocturno.
+      Funciona en paralelo para múltiples participantes en diferentes zonas horarias, sin intervención humana en modo <code>auto</code>.
+    </p>
+    <p>
+      <strong>Problema central:</strong> la capacitación corporativa tiene una tasa de transferencia mínima — las habilidades aprendidas en un taller se olvidan en días.
+      Impulso cierra esa brecha con un touchpoint diario en WhatsApp, eliminando la fricción y manteniendo el momentum de coaching sin requerir un coach dedicado por participante.
+    </p>
+
+    <h2>Actores Principales</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Actor</th><th>Rol</th><th>Canal</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Participante</strong></td><td>Receptor del programa de 14 días</td><td>WhatsApp (móvil)</td></tr>
+          <tr><td><strong>Admin</strong></td><td>Operador del programa (equipo Comtraining)</td><td>Panel web <code>/admin</code></td></tr>
+          <tr><td><strong>Meta Cloud API</strong></td><td>Entrega de mensajes / relay de inbounds</td><td>Webhook push + REST API</td></tr>
+          <tr><td><strong>OpenAI</strong></td><td>Generación de contenido IA</td><td>REST API (<code>ruby-openai</code>)</td></tr>
+          <tr><td><strong>Sidekiq</strong></td><td>Ejecutor de jobs asincrónicos</td><td>Interno — Redis-backed</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Bounded Contexts</h2>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="mermaid-contexts">
+graph TB
+  subgraph DC["Program Delivery"]
+    DC1[DayContent / Programa]
+    DC2[DailyCadence / Cron]
+    DC3[DayAdvancer]
+    DC4[Enroller]
+  end
+  subgraph AO["Admin Operations"]
+    AO1[ParticipantMgmt]
+    AO2[PendingResponses]
+    AO3[Settings / Kill-switches]
+    AO4[AuditLogs]
+  end
+  subgraph AI["AI / Prompt Management"]
+    AI1[PromptTemplate]
+    AI2[PromptVersion]
+    AI3[PromptExecution]
+    AI4[PromptCritic]
+  end
+  subgraph MSG["Messaging Pipeline"]
+    MSG1[Whatsapp::Client]
+    MSG2[InboundParser]
+    MSG3[Outbound::Dispatcher]
+    MSG4[MessageClassifier]
+  end
+  subgraph PC["Participant Context"]
+    PC1[ConversationHistory]
+    PC2[EnergyMap JSONB]
+    PC3[DailyReport]
+    PC4[VoiceAnalysis JSONB]
+  end
+  DC --> MSG
+  MSG --> PC
+  AO --> DC
+  AI --> DC
+      </div>
+    </div>
+
+    <h2>Glosario</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Término</th><th>Definición</th></tr></thead>
+        <tbody>
+          <tr><td><code>IAReto</code></td><td>Reto de mitad de mañana enviado 30 min después del despertar.</td></tr>
+          <tr><td><code>Wake hour</code></td><td>Hora local configurable (default 07:00) en que se dispara el mensaje matinal.</td></tr>
+          <tr><td><code>Check-in</code></td><td>Preguntas de reflexión enviadas a las 20:00 hora local del participante.</td></tr>
+          <tr><td><code>Initial pattern</code></td><td>Primera respuesta libre del participante — capturada como baseline de coaching.</td></tr>
+          <tr><td><code>Energy map</code></td><td>Campo JSONB que acumula señales de energía/estado del participante.</td></tr>
+          <tr><td><code>Moment</code></td><td>Enum que clasifica qué representa cada <code>Conversation</code> en el flujo.</td></tr>
+          <tr><td><code>Response mode</code></td><td>4 niveles de control humano: <code>auto / approve / suggest / manual</code>.</td></tr>
+          <tr><td><code>PendingResponse</code></td><td>Mensaje saliente encolado esperando acción del admin (modos no-auto).</td></tr>
+          <tr><td><code>PromptExecution</code></td><td>Registro de una llamada OpenAI: input, output, tokens, latencia.</td></tr>
+          <tr><td><code>Program manifesto</code></td><td>System prompt compartido prepended a todas las llamadas IA para prompt caching.</td></tr>
+          <tr><td><code>DayContent</code></td><td>Contenido por día de un programa: morning template, IAReto, check-in questions, AI system prompt.</td></tr>
+          <tr><td><code>Ventana 24h</code></td><td>Política Meta: mensajes free-text solo válidos dentro de 24h del último inbound.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</details>
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 2. ARQUITECTURA %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-architecture">
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">🏗️</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">2 · Arquitectura</span>
+      <span class="docs-section-desc">Monolito Rails con service layer. Container diagram, patrones y tradeoffs.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-infra">Infra</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+
+    <h2>Patrón: Monolito Rails con Service Layer</h2>
+    <p>Capas de arriba a abajo:</p>
+    <pre>Controllers / Jobs  →  Service Objects  →  Models  →  PostgreSQL / Redis</pre>
+
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="mermaid-arch">
+graph TB
+  subgraph External["Externo"]
+    WA[WhatsApp User]
+    META[Meta Cloud API]
+    OPENAI[OpenAI API]
+    GDRIVE[Google Drive]
+    RESEND[Resend SMTP]
+  end
+  subgraph App["Rails App - Puma"]
+    CTRL[Controllers\nWebhooks + Admin + Home]
+    JOBS[Sidekiq Jobs]
+    SVC[Service Objects\nopenai / whatsapp / participants / outbound]
+    MDL[Models\nActiveRecord]
+  end
+  subgraph Data["Datos"]
+    PG[(PostgreSQL 16\n15 tablas)]
+    REDIS[(Redis 7\nQueues + Cache)]
+  end
+  WA --> META --> CTRL
+  CTRL --> JOBS
+  JOBS --> SVC
+  SVC --> META
+  SVC --> OPENAI
+  SVC --> GDRIVE
+  App --> RESEND
+  MDL --> PG
+  JOBS --> REDIS
+  CTRL --> REDIS
+      </div>
+    </div>
+
+    <h2>Patrones Arquitectónicos Clave</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Patrón</th><th>Dónde</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Fan-out jobs</strong></td><td><code>MorningWakeJob → MorningWakeForParticipantJob</code></td><td>Aísla fallas por participante; cada uno tiene su propio budget de retries en Sidekiq.</td></tr>
+          <tr><td><strong>Idempotency guard</strong></td><td><code>IdempotentOutbound</code> concern</td><td>El cron corre hourly; previene mensajes duplicados en retry.</td></tr>
+          <tr><td><strong>Result structs</strong></td><td>Todos los services retornan <code>Struct</code> tipado</td><td>Sin leakage de estado implícito; callers no inspeccionan internals.</td></tr>
+          <tr><td><strong>Kill-switches</strong></td><td><code>whatsapp_send_enabled</code>, <code>openai_dry_run_global</code></td><td>Circuit-breaker equivalente para APIs externas vía <code>Setting</code>.</td></tr>
+          <tr><td><strong>Typed KV store</strong></td><td><code>Setting::SCHEMA</code></td><td>Config en runtime sin deploy; TTL de 5 min via Redis.</td></tr>
+          <tr><td><strong>Soft delete</strong></td><td><code>discard</code> gem en <code>Participant</code>, <code>Conversation</code>, etc.</td><td>Preserva audit trail completo.</td></tr>
+          <tr><td><strong>Prompt caching</strong></td><td><code>ProgramManifesto</code> prepended a todos los system prompts</td><td>Reduce costo OpenAI 5-10x en llamadas repetidas.</td></tr>
+          <tr><td><strong>Human-in-the-loop</strong></td><td><code>ResponseMode</code> + <code>PendingResponse</code></td><td>Remover supervisión humana progresivamente a medida que crece la confianza.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Estructura de Carpetas — Service Layer</h2>
+    <pre>app/services/
+├── openai/
+│   ├── client.rb                 ★ Wraps ruby-openai con retries + dry-run
+│   ├── retryable.rb              Mixin: backoff exponencial en 429/5xx/timeout
+│   ├── program_manifesto.rb      System prompt compartido para caching
+│   ├── morning_message_generator.rb
+│   ├── free_response_generator.rb
+│   ├── checkin_summarizer.rb
+│   ├── manifesto_generator.rb
+│   ├── audio_transcriber.rb
+│   ├── voice_analyzer.rb         gpt-4o-mini-audio-preview + ffmpeg
+│   ├── prompt_logger.rb          ★ Registra cada llamada AI
+│   ├── prompt_critic.rb          Mejora de prompts con IA
+│   └── pattern_clusterer.rb      Agrupador de patrones de participantes con LLM
+├── whatsapp/
+│   ├── client.rb                 ★ Net::HTTP + retry + kill-switch
+│   ├── inbound_parser.rb         Parsea payload de Meta webhook
+│   ├── signature_verifier.rb     Validación HMAC-SHA256
+│   ├── template_sender.rb
+│   └── media_fetcher.rb
+├── outbound/
+│   └── dispatcher.rb             ★ Punto de decisión auto vs queue
+├── participants/
+│   ├── enroller.rb
+│   ├── day_advancer.rb
+│   ├── message_classifier.rb
+│   └── audio_processor.rb        Fetch + transcribe + analyze pipeline
+├── backups/
+│   ├── database_dumper.rb
+│   └── google_drive_uploader.rb
+├── methodology/
+│   └── insight_builder.rb        Constructor nocturno de insights del sistema
+└── response_mode.rb              Resolución de precedencia: participante > programa > global</pre>
+
+    <h2>Tradeoffs Principales</h2>
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <span><strong>Queue única en Sidekiq.</strong> Todos los jobs comparten <code>:default</code>. Un flood de inbounds puede starvar los jobs de cron, causando que participantes pierdan su mensaje matinal.</span>
+    </div>
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <span><strong>AI síncrona en jobs.</strong> Los workers Sidekiq hacen llamadas bloqueantes a OpenAI. Si OpenAI tiene latencia elevada, la queue se acumula. Mitigado por <code>Openai::Retryable</code>.</span>
+    </div>
+    <div class="callout callout-ok">
+      <span class="callout-icon">✅</span>
+      <span><strong>Monolito correcto para la escala actual.</strong> Elimina overhead de sistemas distribuidos. Fast iteration en producto early-stage. Deploy como un único container Docker.</span>
+    </div>
+
+  </div>
+</details>
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 3. MODELO DE DOMINIO %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-domain">
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">🗂️</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">3 · Modelo de Dominio</span>
+      <span class="docs-section-desc">Entidades, invariantes, estado del participante y momentos de conversación.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-domain">Dominio</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+
+    <h2>Diagrama Entidad-Relación</h2>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="mermaid-erd">
+erDiagram
+    PROGRAM {
+        uuid id PK
+        string name
+        string slug UK
+        text manifesto
+        integer total_days
+        boolean active
+        string response_mode
+    }
+    DAY_CONTENT {
+        uuid id PK
+        uuid program_id FK
+        integer day_number
+        integer phase "see|choose|anchor"
+        string title
+        text morning_template
+        text iareto_text
+        text checkin_questions
+        text ai_system_prompt
+        string template_name_whatsapp
+    }
+    PARTICIPANT {
+        uuid id PK
+        uuid program_id FK
+        string name
+        string phone_e164 UK
+        integer status "pending|active|completed|paused"
+        integer current_day
+        string timezone
+        text initial_pattern
+        jsonb energy_map
+        datetime pending_checkin_at
+        datetime discarded_at
+        string company
+        string role
+        string response_mode
+    }
+    CONVERSATION {
+        uuid id PK
+        uuid participant_id FK
+        integer day_number
+        integer moment
+        integer role "user|assistant|system"
+        text body
+        string whatsapp_message_id UK
+        text prompt_used
+        string model_used
+        integer tokens_input
+        integer tokens_output
+        text transcription
+        jsonb voice_analysis
+        datetime sent_at
+        datetime delivered_at
+        datetime read_at
+        datetime discarded_at
+    }
+    DAILY_REPORT {
+        uuid id PK
+        uuid participant_id FK
+        integer day_number
+        text raw_text
+        text ai_summary
+        text ai_key_pattern
+    }
+    PENDING_RESPONSE {
+        uuid id PK
+        uuid participant_id FK
+        uuid conversation_id FK
+        uuid approved_by_id FK
+        string status "pending|approved|sent|rejected"
+        string mode
+        string delivery_kind "text|template"
+        text draft_body
+    }
+    PROMPT_TEMPLATE {
+        uuid id PK
+        uuid program_id FK
+        string key
+        integer day_number
+        text current_body
+        integer current_version
+    }
+    PROMPT_VERSION {
+        uuid id PK
+        uuid prompt_template_id FK
+        integer version
+        text body
+        string origin "service|day_content|admin|analysis"
+    }
+    SETTING {
+        uuid id PK
+        string key UK
+        text value
+        string value_type
+        string category
+    }
+
+    PROGRAM ||--o{ DAY_CONTENT : "contenido por día"
+    PROGRAM ||--o{ PARTICIPANT : "inscribe"
+    PARTICIPANT ||--o{ CONVERSATION : "intercambia"
+    PARTICIPANT ||--o{ DAILY_REPORT : "genera"
+    PARTICIPANT ||--o{ PENDING_RESPONSE : "tiene encolados"
+    PENDING_RESPONSE }o--|| CONVERSATION : "vinculado a inbound"
+    PROMPT_TEMPLATE ||--o{ PROMPT_VERSION : "versionado"
+      </div>
+    </div>
+
+    <h2>Ciclo de Vida del Participante</h2>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="mermaid-lifecycle">
+stateDiagram-v2
+    [*] --> pending : Participant.create!
+    pending --> active : Enroller call\ncurrent_day=1, enrolled_at, started_at
+    active --> active : DayAdvancer avanza current_day 1..total_days
+    active --> completed : Check-in día N == total_days\ncurrent_day=total_days+1\nManifiesto generado
+    active --> paused : Admin — acción manual
+    paused --> active : Admin — restaurar
+    active --> discarded : Soft-delete admin
+    completed --> discarded : Soft-delete admin
+      </div>
+    </div>
+
+    <h2>Momentos de Conversación</h2>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="mermaid-moments">
+graph LR
+    WJ[SendWelcomeJob] -->|moment: welcome| W[welcome]
+    WQJ[SendWelcomeQuestionJob] -->|reescribe| W
+    MWJ[MorningWakeJob] -->|moment: morning_wake| MW[morning_wake]
+    MW --> |wait: delay_min| IA[iareto]
+    CEJ[CheckinEveningJob] -->|moment: checkin_question| CQ[checkin_question]
+    CQ -->|participante responde 20-23h| CR[checkin_response]
+    PROC[ProcessIncomingMessageJob] -->|default| FU[free_user]
+    FU -->|FreeResponseGenerator| FA[free_assistant]
+    CR -->|CheckinSummarizer ack| FA
+    ADV[DayAdvancer día N=total| -->|ManifestoGenerator| MAN[manifesto]
+      </div>
+    </div>
+
+    <h2>Invariantes Críticos</h2>
+    <ul>
+      <li><code>phone_e164</code> es globalmente único — índice único en DB + validación en modelo.</li>
+      <li>Solo participantes <code>:active</code> reciben broadcasts de cron.</li>
+      <li>El día solo avanza si hubo <code>checkin_response</code> en la fecha local del participante.</li>
+      <li>Free-text replies solo dentro de la ventana 24h (política Meta).</li>
+      <li>Toda llamada AI queda registrada en <code>PromptExecution</code> — fallas del logger son silenciosas (<code>rescue</code>).</li>
+      <li><code>DayContent</code> siempre pertenece a un programa — no existen huérfanos.</li>
+      <li>El <code>day_number</code> se stampa en cada <code>Conversation</code> al momento del evento.</li>
+    </ul>
+
+  </div>
+</details>
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 4. FLUJOS CRÍTICOS %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-flows">
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">🔄</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">4 · Flujos Críticos End-to-End</span>
+      <span class="docs-section-desc">Inbound processing, cadencia diaria, avance de día, response mode.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-domain">Dominio</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+
+    <h2>Flujo 1 — Mensaje Entrante (Inbound)</h2>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="mermaid-inbound">
+sequenceDiagram
+    participant WA as WhatsApp User
+    participant META as Meta Cloud API
+    participant CTRL as WhatsappController
+    participant JOB as ProcessIncomingMessageJob
+    participant CL as MessageClassifier
+    participant AI as OpenAI
+    participant DISP as Outbound::Dispatcher
+    participant CLIENT as Whatsapp::Client
+
+    WA->>META: envía mensaje
+    META->>CTRL: POST /webhooks/whatsapp (X-Hub-Signature-256)
+    CTRL->>CTRL: SignatureVerifier.valid?
+    Note over CTRL: 401 si firma inválida
+    CTRL->>JOB: ProcessIncomingMessageJob.perform_later(payload)
+    CTRL-->>META: 200 OK inmediato
+
+    JOB->>JOB: InboundParser.parse → {messages, statuses}
+    JOB->>JOB: update Conversation delivered_at / read_at
+    JOB->>JOB: Lookup Participant por phone_e164
+    alt teléfono desconocido
+        JOB->>JOB: UnknownInbound.create!
+    else audio
+        JOB->>JOB: AudioProcessor: fetch + transcribe + analyze
+    else texto
+        JOB->>JOB: Conversation.create!(moment: :free_user)
+        JOB->>CL: classify(participant)
+        alt initial_pattern_answer
+            JOB->>JOB: participant.update!(initial_pattern: text)
+            JOB->>DISP: send_text ack bienvenida
+        else checkin_response
+            JOB->>AI: CheckinSummarizer.call
+            JOB->>JOB: DailyReport.create!
+            JOB->>DISP: send_text ack gracias
+        else free_user
+            JOB->>AI: FreeResponseGenerator.call
+            JOB->>DISP: send_text(body)
+        end
+        DISP->>CLIENT: send_text / send_template
+        CLIENT->>META: POST /messages
+        META-->>WA: entrega mensaje
+    end
+      </div>
+    </div>
+
+    <h2>Flujo 2 — Cadencia Diaria (Morning Wake)</h2>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="mermaid-morning">
+sequenceDiagram
+    participant CRON as sidekiq-cron (hourly)
+    participant WAKE as MorningWakeJob
+    participant WP as MorningWakeForParticipantJob
+    participant AI as OpenAI
+    participant DISP as Outbound::Dispatcher
+    participant META as Meta Cloud API
+    participant IAR as SendIaretoJob
+
+    CRON->>WAKE: perform cada :00 h
+    WAKE->>WAKE: Setting.fetch("wake_hour") = 7
+    loop cada Participant active
+        WAKE->>WAKE: local_time.hour == 7?
+        alt sí
+            WAKE->>WP: perform_later(participant_id)
+        end
+    end
+
+    WP->>WP: already_handled? (idempotency)
+    alt no enviado hoy
+        WP->>AI: MorningMessageGenerator.call
+        AI-->>WP: mensaje personalizado
+        WP->>DISP: send_template([name, ai_body])
+        DISP->>META: POST /messages template
+        WP->>IAR: set(wait: iareto_delay_min).perform_later
+    end
+
+    Note over IAR: Corre 30 min después
+    IAR->>IAR: already_handled?
+    IAR->>IAR: in_24h_window?
+    alt dentro de ventana
+        IAR->>META: send_text(iareto_text)
+    else fuera de ventana
+        IAR->>META: send_template(iareto_dia_NN)
+    end
+      </div>
+    </div>
+
+    <h2>Flujo 3 — Response Mode (Human-in-the-Loop)</h2>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="mermaid-responsemode">
+flowchart TD
+    A[IA genera contenido] --> B{ResponseMode.for participant}
+    B -->|auto| C[Outbound::Dispatcher.send]
+    C --> D[Whatsapp::Client → Meta API]
+    D --> E[Conversation.create!]
+    B -->|approve| F[PendingResponse.create! status:pending]
+    B -->|suggest| F
+    B -->|manual| G[PendingResponse con draft vacío]
+    F --> H[PendingResponseMailerJob → email admin]
+    G --> H
+    H --> I[Admin revisa /admin/pending_responses]
+    I -->|approve| J[SendApprovedJob]
+    J --> D
+    I -->|reject| K[status: rejected]
+    I -->|edit + send| J
+      </div>
+    </div>
+
+    <p><strong>Precedencia ResponseMode</strong> (de mayor a menor): <code>participant.response_mode → participant.program.response_mode → Setting.fetch("response_mode") → "auto"</code></p>
+
+    <h2>Flujo 4 — Clasificación de Mensajes</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Tipo</th><th>Condición</th><th>Efecto</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>initial_pattern_answer</code></td>
+            <td><code>initial_pattern.blank?</code> + existe <code>Conversation(moment: :welcome)</code></td>
+            <td>Set <code>initial_pattern = text</code>, reescribe moment a <code>:welcome</code>, ack "Mañana empieza tu primer día."</td>
+          </tr>
+          <tr>
+            <td><code>checkin_response</code></td>
+            <td>Hora local en <code>20..23</code> + <code>pending_checkin_at</code> hoy + sin <code>checkin_response</code> previo</td>
+            <td>Reescribe a <code>:checkin_response</code>, llama <code>CheckinSummarizer</code>, crea <code>DailyReport</code>.</td>
+          </tr>
+          <tr>
+            <td><code>free_user</code></td>
+            <td>Cualquier otro caso (default)</td>
+            <td>Llama <code>FreeResponseGenerator</code>, ack con <code>moment: :free_assistant</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</details>
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 5. CAPA DE DATOS %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-data">
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">🗄️</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">5 · Capa de Datos</span>
+      <span class="docs-section-desc">Tablas, índices críticos, hotspots y riesgos de escalabilidad.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-infra">Infra</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+
+    <p>PostgreSQL 16. Todas las tablas usan UUID PKs (<code>pgcrypto</code>). Todos los timestamps en UTC. Schema versión: <code>2026_05_24_181914</code>.</p>
+
+    <h2>Resumen de Tablas</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Tabla</th><th>Volumen est.</th><th>Consideración principal</th></tr></thead>
+        <tbody>
+          <tr><td><code>participants</code></td><td>Bajo (decenas → cientos)</td><td>Unique en <code>phone_e164</code>; soft-delete.</td></tr>
+          <tr><td><code>conversations</code></td><td><strong>Alto</strong> (mensajes diarios por participante)</td><td>Hotspot — cada inbound/outbound escribe aquí. Índice <code>(participant_id, day_number)</code>.</td></tr>
+          <tr><td><code>daily_reports</code></td><td>Medio (1/día/participante)</td><td>Índice <code>(participant_id, day_number)</code>.</td></tr>
+          <tr><td><code>day_contents</code></td><td>Muy bajo (~42 filas, 3 programas)</td><td>Read-heavy, rara escritura.</td></tr>
+          <tr><td><code>pending_responses</code></td><td>Medio</td><td>Índice <code>(participant_id, status)</code> crítico para la queue del admin.</td></tr>
+          <tr><td><code>prompt_templates</code></td><td>Bajo (fijo por programa/día)</td><td>Registro único para configuración de prompts.</td></tr>
+          <tr><td><code>prompt_versions</code></td><td>Medio (crece con ediciones)</td><td>Historial de modificaciones de prompts para auditoría y rollback.</td></tr>
+          <tr><td><code>prompt_executions</code></td><td><strong>Alto — crece ilimitado</strong></td><td>Sin estrategia de purga. Riesgo de storage a largo plazo.</td></tr>
+          <tr><td><code>prompt_analyses</code></td><td>Bajo (on-demand)</td><td>Reportes de crítica y mejora generados por IA.</td></tr>
+          <tr><td><code>methodology_insights</code></td><td>Bajo (1/día por scope)</td><td>Vistas consolidadas para el dashboard de metodología.</td></tr>
+          <tr><td><code>settings</code></td><td>~30 filas fijas</td><td>Cacheado en Redis 5 min. Lectura muy frecuente.</td></tr>
+          <tr><td><code>versions</code> (paper_trail)</td><td>Alto — audit trail</td><td>Crece con cada cambio de <code>Participant</code>, <code>Program</code>, <code>DayContent</code>.</td></tr>
+          <tr><td><code>unknown_inbounds</code></td><td>Variable</td><td>Unique en <code>wamid</code> previene writes duplicados.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Índices Críticos</h2>
+    <pre>-- Chequeo de idempotencia (path caliente — se llama en cada job)
+INDEX conversations(participant_id, day_number)
+INDEX conversations(moment)
+INDEX conversations(discarded_at)
+
+-- Actualizaciones de estado de entrega
+INDEX conversations(whatsapp_message_id) UNIQUE WHERE whatsapp_message_id IS NOT NULL
+
+-- Queue admin
+INDEX pending_responses(participant_id, status)
+INDEX pending_responses(status)
+
+-- Deduplicación de audio
+INDEX conversations(media_id) UNIQUE WHERE media_id IS NOT NULL
+
+-- Config (cache miss → DB)
+INDEX settings(key) UNIQUE
+
+-- Unicidad de prompt templates
+UNIQUE INDEX idx_prompt_templates_unique(key, program_id, day_number)</pre>
+
+    <h2>Riesgos de N+1</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Punto</th><th>Descripción</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>MorningWakeJob</code></td>
+            <td>Itera <code>Participant.kept.active.find_each</code> llamando <code>participant.program</code> (1 query/participante sin eager load).</td>
+            <td><span class="risk risk-medium">🟡 Medio</span></td>
+          </tr>
+          <tr>
+            <td>Dashboard admin</td>
+            <td>Múltiples queries de agregación; no están batcheadas.</td>
+            <td><span class="risk risk-low">🟢 Bajo</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Configuración Runtime (Setting)</h2>
+    <p>El modelo <code>Setting</code> tiene un <code>SCHEMA</code> tipado con validaciones, defaults y categorías. Lectura: <code>Setting.fetch(key)</code> con cache Redis 5 min. Los kill-switches más importantes:</p>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Key</th><th>Tipo</th><th>Default</th><th>Efecto</th></tr></thead>
+        <tbody>
+          <tr><td><code>whatsapp_send_enabled</code></td><td>boolean</td><td>true</td><td>Deshabilita todos los envíos WhatsApp.</td></tr>
+          <tr><td><code>openai_dry_run_global</code></td><td>boolean</td><td>false</td><td>Deshabilita todas las llamadas OpenAI; retorna stubs.</td></tr>
+          <tr><td><code>audio_processing_enabled</code></td><td>boolean</td><td>true</td><td>Procesa o ignora mensajes de audio.</td></tr>
+          <tr><td><code>openai_voice_analysis_enabled</code></td><td>boolean</td><td>true</td><td>Análisis paralingüístico on/off (transcripción sigue).</td></tr>
+          <tr><td><code>response_mode</code></td><td>string</td><td>auto</td><td>Modo global: auto / approve / suggest / manual.</td></tr>
+          <tr><td><code>wake_hour</code></td><td>integer</td><td>7</td><td>Hora local del mensaje matinal (0–23).</td></tr>
+          <tr><td><code>iareto_delay_minutes</code></td><td>integer</td><td>30</td><td>Minutos entre despertar e IAReto.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</details>
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 6. APIS Y CONTRATOS %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-api">
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">🔌</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">6 · APIs y Contratos</span>
+      <span class="docs-section-desc">Webhook WhatsApp, outbound Meta API, OpenAI, y rutas admin.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-dev">Dev</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+
+    <h2>Webhook WhatsApp (Inbound)</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>GET</code></td>
+            <td><code>/webhooks/whatsapp</code></td>
+            <td>Verificación. Meta envía <code>hub.verify_token</code> → app responde <code>hub.challenge</code>.</td>
+          </tr>
+          <tr>
+            <td><code>POST</code></td>
+            <td><code>/webhooks/whatsapp</code></td>
+            <td>Recibe mensajes y status updates. Valida <code>X-Hub-Signature-256</code> con <code>META_APP_SECRET</code>. Encola <code>ProcessIncomingMessageJob</code>. Responde 200 inmediato.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Payload mensaje entrante</h3>
+    <pre><code>{
+  "object": "whatsapp_business_account",
+  "entry": [{
+    "changes": [{
+      "value": {
+        "messages": [{
+          "id": "&lt;wamid&gt;", "from": "+521234567890",
+          "timestamp": "1716000000", "type": "text",
+          "text": { "body": "Hola" }
+        }],
+        "statuses": [{
+          "id": "&lt;wamid&gt;", "status": "delivered",
+          "timestamp": "...", "recipient_id": "..."
+        }]
+      }
+    }]
+  }]
+}</code></pre>
+
+    <h2>WhatsApp Outbound (Meta Cloud API)</h2>
+    <p>Base URL: <code>https://graph.facebook.com/{META_API_VERSION}/{META_PHONE_NUMBER_ID}/messages</code></p>
+    <p>Auth: <code>Bearer {META_ACCESS_TOKEN}</code>. Retry: 3 intentos, backoff exponencial en 429 y 5xx.</p>
+
+    <h3>Mensaje de texto (free-form)</h3>
+    <pre><code>{
+  "messaging_product": "whatsapp",
+  "to": "+521234567890",
+  "type": "text",
+  "text": { "preview_url": false, "body": "Mensaje generado por IA..." }
+}</code></pre>
+
+    <h3>Mensaje de template</h3>
+    <pre><code>{
+  "messaging_product": "whatsapp",
+  "to": "+521234567890",
+  "type": "template",
+  "template": {
+    "name": "despertar_dia_01",
+    "language": { "code": "es_MX" },
+    "components": [{
+      "type": "body",
+      "parameters": [
+        { "type": "text", "text": "María" },
+        { "type": "text", "text": "Cuerpo generado por IA..." }
+      ]
+    }]
+  }
+}</code></pre>
+
+    <h2>OpenAI — Contratos</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Servicio</th><th>Modelo</th><th>Temperatura</th><th>Output</th></tr></thead>
+        <tbody>
+          <tr><td><code>MorningMessageGenerator</code></td><td><code>gpt-4.1-mini</code></td><td>0.75</td><td>Texto libre ≤ 4 frases</td></tr>
+          <tr><td><code>FreeResponseGenerator</code></td><td><code>gpt-4.1-mini</code></td><td>0.75</td><td>Texto libre</td></tr>
+          <tr><td><code>CheckinSummarizer</code></td><td><code>gpt-4.1-mini</code></td><td>0.3</td><td>JSON: <code>{"summary":"...","key_pattern":"..."}</code></td></tr>
+          <tr><td><code>ManifestoGenerator</code></td><td><code>gpt-4.1-mini</code></td><td>0.75</td><td>Texto libre (manifiesto de cierre)</td></tr>
+          <tr><td><code>AudioTranscriber</code></td><td><code>gpt-4o-mini-transcribe</code></td><td>—</td><td>Texto transcrito</td></tr>
+          <tr><td><code>VoiceAnalyzer</code></td><td><code>gpt-4o-mini-audio-preview</code></td><td>—</td><td>JSON paralingüístico (tono, emoción, energía, ritmo)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Todas las llamadas usan <code>ProgramManifesto</code> como primer bloque del system prompt para prompt caching (≥1024 tokens). <code>CheckinSummarizer</code> usa <code>response_format: { type: "json_object" }</code> con fallback a texto raw si falla el parse.</p>
+
+    <h2>Rutas Admin (Requieren sesión Devise)</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><code>GET</code></td><td><code>/admin</code></td><td>Dashboard con métricas KPI.</td></tr>
+          <tr><td><code>CRUD</code></td><td><code>/admin/participants</code></td><td>Gestión de participantes.</td></tr>
+          <tr><td><code>POST</code></td><td><code>/admin/participants/:id/enroll</code></td><td>Activa participante + dispara bienvenida.</td></tr>
+          <tr><td><code>GET/PATCH</code></td><td><code>/admin/pending_responses/:id/approve</code></td><td>Aprueba respuesta encolada.</td></tr>
+          <tr><td><code>POST</code></td><td><code>/admin/prompt_templates/:id/analyze</code></td><td>Encola <code>AnalyzePromptJob</code> → <code>PromptCritic</code>.</td></tr>
+          <tr><td><code>POST</code></td><td><code>/admin/prompt_templates/:id/apply_suggestion</code></td><td>Aplica sugerencia IA como nueva versión.</td></tr>
+          <tr><td><code>GET</code></td><td><code>/admin/audit_log</code></td><td>PaperTrail — cambios auditados.</td></tr>
+          <tr><td><code>GET</code></td><td><code>/admin/finances</code></td><td>Dashboard de costos (hosting, Meta, OpenAI, ads).</td></tr>
+          <tr><td><code>GET</code></td><td><code>/sidekiq</code></td><td>Sidekiq Web — protegido por Devise session.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</details>
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 7. INFRA Y DESPLIEGUE %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-infra">
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">⚙️</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">7 · Infraestructura y Despliegue</span>
+      <span class="docs-section-desc">Docker, variables de entorno, cron jobs, CI/CD y estado del deployment.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-infra">Infra</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+
+    <div class="callout callout-danger">
+      <span class="callout-icon">🚨</span>
+      <span><strong>Deployment no configurado.</strong> El Dockerfile está listo pero no existe configuración de orquestación (Kamal / Heroku / Render). Pendiente antes de ir a producción escalada.</span>
+    </div>
+
+    <h2>Docker — Multi-Stage Build</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Stage</th><th>Base</th><th>Qué hace</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>build</strong></td>
+            <td><code>ruby:4.0.2-slim</code> + Node.js</td>
+            <td>Compila gems, <code>yarn install</code>, precompila assets + bootsnap.</td>
+          </tr>
+          <tr>
+            <td><strong>final</strong></td>
+            <td><code>ruby:4.0.2-slim</code></td>
+            <td>Copia solo artefactos. Corre como user <code>rails</code> (uid 1000, no-root). Expone puerto 3000.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Paquetes de sistema incluidos:</strong> <code>ffmpeg</code> (análisis de voz), <code>libjemalloc2</code> (allocator), <code>postgresql-client</code> (pg_dump para backups), <code>libvips</code>.</p>
+
+    <h2>Cron Jobs (sidekiq-cron)</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Job</th><th>Schedule</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><code>MorningWakeJob</code></td><td><code>0 * * * *</code> (hourly)</td><td>Fan-out a participantes cuya hora local == <code>wake_hour</code>.</td></tr>
+          <tr><td><code>CheckinEveningJob</code></td><td><code>0 * * * *</code> (hourly)</td><td>Fan-out a participantes cuya hora local == <code>checkin_hour</code> (20).</td></tr>
+          <tr><td><code>AdvanceDayJob</code></td><td><code>0 6 * * *</code> (06:00 UTC daily)</td><td>Avanza <code>current_day</code> a participantes con check-in de hoy.</td></tr>
+          <tr><td><code>DailyBackupJob</code></td><td><code>0 3 * * *</code> (03:00 UTC daily)</td><td><code>pg_dump</code> → Google Drive → purga backups &gt;7 días.</td></tr>
+          <tr><td><code>RefreshMethodologyInsightsJob</code></td><td><code>30 3 * * *</code> (03:30 UTC daily)</td><td>Materializa insights metodológicos (KPIs, clusters) en la base de datos.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Variables de Entorno Requeridas</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Variable</th><th>Propósito</th><th>Notas</th></tr></thead>
+        <tbody>
+          <tr><td><code>OPENAI_API_KEY</code></td><td>Acceso OpenAI</td><td>Requerida al boot.</td></tr>
+          <tr><td><code>META_PHONE_NUMBER_ID</code></td><td>ID número Meta Cloud API</td><td>Requerida al boot.</td></tr>
+          <tr><td><code>META_ACCESS_TOKEN</code></td><td>Token de acceso Meta</td><td>Token long-lived, sin auto-refresh.</td></tr>
+          <tr><td><code>META_APP_SECRET</code></td><td>Firma HMAC webhook</td><td>Crítico para seguridad de inbounds.</td></tr>
+          <tr><td><code>META_WEBHOOK_VERIFY_TOKEN</code></td><td>Challenge de verificación</td><td></td></tr>
+          <tr><td><code>RESEND_API_KEY</code></td><td>Email SMTP para notificaciones admin</td><td></td></tr>
+          <tr><td><code>GOOGLE_SERVICE_ACCOUNT_JSON</code></td><td>Credenciales backup Google Drive</td><td>JSON completo como string.</td></tr>
+          <tr><td><code>GOOGLE_DRIVE_BACKUP_FOLDER_ID</code></td><td>Carpeta destino backups</td><td>Compartida con service account (rol Editor).</td></tr>
+          <tr><td><code>APP_HOST</code></td><td>Dominio producción</td><td>Default: <code>impulso.comtraining.cl</code></td></tr>
+          <tr><td><code>RAILS_MASTER_KEY</code></td><td>Descifra credentials.yml.enc</td><td></td></tr>
+          <tr><td><code>DATABASE_URL</code></td><td>Conexión PostgreSQL</td><td></td></tr>
+          <tr><td><code>REDIS_URL</code></td><td>Conexión Redis</td><td>Default: <code>redis://localhost:6379/0</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>CI/CD — GitHub Actions</h2>
+    <div class="mermaid-wrap">
+      <div class="mermaid" id="mermaid-ci">
+graph LR
+    PR[PR / push main] --> BRAKEMAN[scan_ruby\nbrakeman --no-pager]
+    PR --> LINT[lint\nrubocop -f github]
+    BRAKEMAN --> GATE{¿Todo pasa?}
+    LINT --> GATE
+    GATE -->|sí| MERGE[Listo para merge]
+    GATE -->|no| FAIL[CI falla]
+      </div>
+    </div>
+
+    <div class="callout callout-danger">
+      <span class="callout-icon">🚨</span>
+      <span><strong>RSpec NO corre en CI.</strong> Los tests existen y están bien escritos, pero no hay gate de merge. Código roto puede llegar a main silenciosamente. Agregar job <code>test</code> al CI es la prioridad P0.</span>
+    </div>
+
+  </div>
+</details>
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 8. SEGURIDAD %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-security">
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">🔒</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">8 · Seguridad</span>
+      <span class="docs-section-desc">Autenticación, rate limiting, PII, vulnerabilidades identificadas.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-security">Seguridad</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+
+    <h2>Autenticación</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Superficie</th><th>Mecanismo</th><th>Notas</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Panel admin (<code>/admin/**</code>)</td>
+            <td>Devise: <code>database_authenticatable + lockable + recoverable</code></td>
+            <td>Sin <code>registerable</code> — admins solo via console o seeds. Lockable bloquea tras intentos fallidos.</td>
+          </tr>
+          <tr>
+            <td>Webhook (<code>/webhooks/whatsapp</code>)</td>
+            <td>HMAC-SHA256 (<code>Whatsapp::SignatureVerifier</code>)</td>
+            <td><code>secure_compare</code> previene timing attacks. 401 en mismatch.</td>
+          </tr>
+          <tr>
+            <td>Sidekiq Web</td>
+            <td>Montado dentro de <code>authenticate :admin_user</code></td>
+            <td>Hereda sesión Devise.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Rate Limiting — Rack::Attack</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Regla</th><th>Límite</th><th>Objetivo</th></tr></thead>
+        <tbody>
+          <tr><td><code>webhooks/whatsapp/ip</code></td><td>60 POST/min por IP</td><td>Abuso del webhook público.</td></tr>
+          <tr><td><code>admin/login/ip</code></td><td>5 intentos / 20s por IP</td><td>Brute-force contra admin.</td></tr>
+          <tr><td><code>admin/login/email</code></td><td>10 intentos / 5min por email</td><td>Credential stuffing.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Store: Redis (<code>redis://localhost:6379/1</code>).</p>
+
+    <h2>PII y Datos Personales</h2>
+    <ul>
+      <li><code>phone_e164</code> almacenado en texto plano — sin cifrado at-rest.</li>
+      <li>Cuerpos de mensajes (<code>conversations.body</code>) sin cifrar.</li>
+      <li><code>voice_analysis</code> JSONB puede contener datos de emoción inferida (sensible).</li>
+      <li>Archivos de audio descargados temporalmente en memoria — <strong>no persisten a disco</strong>.</li>
+      <li>Política de privacidad bajo Ley N° 19.628 (Chile) almacenada en <code>Setting("privacy_policy")</code>.</li>
+    </ul>
+
+    <h2>Prompt Injection</h2>
+    <div class="callout callout-ok">
+      <span class="callout-icon">✅</span>
+      <span><code>CheckinSummarizer</code> envuelve el input del usuario en etiquetas <code>&lt;user_input&gt;</code> con instrucción explícita de ignorar comandos dentro de ellas. Mitigación básica implementada.</span>
+    </div>
+
+    <h2>Evaluación de Vulnerabilidades</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Riesgo</th><th>Severidad</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td>Prompt injection en input de usuario</td><td><span class="risk risk-medium">🟡 Medio</span></td><td>Mitigado parcialmente con etiquetas en CheckinSummarizer</td></tr>
+          <tr><td>Sin RBAC — todos los admins tienen acceso igual</td><td><span class="risk risk-low">🟢 Bajo (escala actual)</span></td><td>Aceptado — equipo pequeño</td></tr>
+          <tr><td>PII no cifrado at-rest</td><td><span class="risk risk-medium">🟡 Medio</span></td><td>Pendiente</td></tr>
+          <tr><td><code>META_ACCESS_TOKEN</code> long-lived, sin rotación</td><td><span class="risk risk-medium">🟡 Medio</span></td><td>Pendiente — documentar procedimiento</td></tr>
+          <tr><td>CI sin gate de tests</td><td><span class="risk risk-critical">🔴 Crítico</span></td><td>Pendiente — P0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</details>
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 9. TESTING %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-testing">
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">🧪</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">9 · Estrategia de Testing</span>
+      <span class="docs-section-desc">RSpec + FactoryBot + VCR + WebMock. Cobertura por capa y gaps.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-dev">Dev</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+
+    <h2>Cobertura por Capa</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Capa</th><th>Estado</th><th>Notas</th></tr></thead>
+        <tbody>
+          <tr><td>Models (7 specs)</td><td>✅ Bueno</td><td>Validaciones, associations, scopes, enums.</td></tr>
+          <tr><td>Services (12 specs)</td><td>✅ Bueno</td><td>Todos los servicios principales cubiertos.</td></tr>
+          <tr><td>Jobs (5 de ~13 specs)</td><td>🟡 Parcial</td><td>Faltan: <code>SendIaRetoJob</code>, <code>GenerateAndSendManifestoJob</code>, <code>DailyBackupJob</code>, etc.</td></tr>
+          <tr><td>Request specs (7)</td><td>🟡 Parcial</td><td>Happy path + auth checks. Sin edge cases.</td></tr>
+          <tr><td>Mailers</td><td>❌ Sin tests</td><td><code>PendingResponseMailer</code> no testeado.</td></tr>
+          <tr><td>Helpers (2)</td><td>✅</td><td></td></tr>
+          <tr><td>Query objects (1)</td><td>✅</td><td><code>DayContentsQuery</code>.</td></tr>
+          <tr><td>E2E</td><td>❌ Ninguno</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Configuración</h2>
+    <ul>
+      <li><strong>WebMock</strong> — bloquea todo HTTP externo; permite localhost.</li>
+      <li><strong>VCR</strong> — directorio configurado (<code>spec/vcr_cassettes/</code>); sin cassettes grabados todavía.</li>
+      <li><strong>OpenAI stubs</strong> — todos los <code>#call</code> de generators stubeados con <code>allow_any_instance_of(...).to receive(:call)</code>.</li>
+      <li><strong>Time</strong> — usar <code>travel_to</code> de Rails (no Timecop).</li>
+      <li><strong>Bullet</strong> — detecta N+1 en dev y tests; una consulta N+1 hace fallar el test.</li>
+    </ul>
+
+    <h2>Gaps Prioritarios</h2>
+    <ol>
+      <li><span class="risk risk-critical">🔴</span> <strong>RSpec no corre en CI</strong> — brecha más crítica.</li>
+      <li><span class="risk risk-high">🟠</span> 8 de 13 jobs sin specs.</li>
+      <li><span class="risk risk-medium">🟡</span> Sin specs de mailer.</li>
+      <li><span class="risk risk-low">🟢</span> Sin tests de carga ni performance.</li>
+    </ol>
+
+  </div>
+</details>
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 10. DEUDA TÉCNICA %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-debt">
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">⚠️</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">10 · Deuda Técnica y Riesgos</span>
+      <span class="docs-section-desc">Inventario priorizado de riesgos, antipatrones y mejoras necesarias.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-risk">Riesgo</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Problema</th>
+            <th>Severidad</th>
+            <th>Impacto</th>
+            <th>Recomendación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><strong>RSpec no corre en CI</strong></td>
+            <td><span class="risk risk-critical">🔴 Crítico</span></td>
+            <td>Código roto llega a main silenciosamente.</td>
+            <td>Agregar job <code>test</code> al <code>ci.yml</code> con RSpec + PostgreSQL service.</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><strong>Queue única en Sidekiq</strong></td>
+            <td><span class="risk risk-high">🟠 Alto</span></td>
+            <td>Flood de inbounds starva los cron jobs de morning/evening.</td>
+            <td>Crear queues <code>critical</code>, <code>cron</code>, <code>default</code> con prioridades distintas.</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><strong>Bug de timezone UTC+5+</strong></td>
+            <td><span class="risk risk-high">🟠 Alto</span></td>
+            <td><code>AdvanceDayJob</code> (06:00 UTC) puede correr después del morning wake en zonas este, creando drift de día.</td>
+            <td>Mover <code>AdvanceDayJob</code> a 00:00 UTC o validar cobertura de zonas.</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><strong>Deployment no configurado</strong></td>
+            <td><span class="risk risk-high">🟠 Alto</span></td>
+            <td>No se puede escalar sin resolver orquestación.</td>
+            <td>Elegir Fly.io / Render / Kamal y configurar pipeline.</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><strong>PII no cifrado at-rest</strong></td>
+            <td><span class="risk risk-medium">🟡 Medio</span></td>
+            <td>Riesgo de cumplimiento con Ley 19.628.</td>
+            <td>Cifrar <code>phone_e164</code> y <code>conversations.body</code> con <code>attr_encrypted</code>.</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><strong><code>prompt_executions</code> crece ilimitado</strong></td>
+            <td><span class="risk risk-medium">🟡 Medio</span></td>
+            <td>Storage bloat en meses de operación.</td>
+            <td>Agregar job de purga TTL (ej. retener 90 días).</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td><strong><code>versions</code> (paper_trail) crece ilimitado</strong></td>
+            <td><span class="risk risk-medium">🟡 Medio</span></td>
+            <td>Misma situación que prompt_executions.</td>
+            <td>Scheduled job para purgar versiones &gt; N meses.</td></tr>
+          <tr>
+            <td>8</td>
+            <td><strong><code>energy_map</code> JSONB nunca se escribe</strong></td>
+            <td><span class="risk risk-medium">🟡 Medio</span></td>
+            <td>Feature referenciada en schema y prompts pero sin código que la llene.</td>
+            <td>Implementar actualización desde <code>CheckinSummarizer</code> o eliminar el campo.</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td><strong><code>META_ACCESS_TOKEN</code> sin rotación</strong></td>
+            <td><span class="risk risk-medium">🟡 Medio</span></td>
+            <td>Token long-lived = ventana de brecha más larga.</td>
+            <td>Documentar procedimiento de rotación manual; considerar system user tokens.</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td><strong>Tailwind en Procfile.dev pero no instalado</strong></td>
+            <td><span class="risk risk-low">🟢 Bajo</span></td>
+            <td>Confusión en onboarding de dev.</td>
+            <td>Remover línea <code>css: bin/rails tailwindcss:watch</code> del Procfile.dev.</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td><strong><code>inactivity_pause_days</code> setting sin implementar</strong></td>
+            <td><span class="risk risk-low">🟢 Bajo</span></td>
+            <td>UI del admin promete behavior que no existe.</td>
+            <td>Implementar o eliminar del <code>Setting::SCHEMA</code>.</td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td><strong><code>max_free_messages_per_day</code> sin implementar</strong></td>
+            <td><span class="risk risk-low">🟢 Bajo</span></td>
+            <td>Sin tope en mensajes libres = riesgo de costo runaway.</td>
+            <td>Implementar contador en <code>ProcessIncomingMessageJob</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Quick Wins (menos de 1 sprint cada uno)</h2>
+    <ol>
+      <li><strong>Agregar RSpec a CI</strong> — 2 líneas en <code>ci.yml</code>; gate de calidad inmediato.</li>
+      <li><strong>Agregar 3 queues en Sidekiq</strong> — 30 min de config; previene starvation.</li>
+      <li><strong>Remover Tailwind de Procfile.dev</strong> — 1 línea.</li>
+      <li><strong>Implementar o eliminar <code>energy_map</code></strong> — claridad de modelo.</li>
+      <li><strong>Agregar <code>bin/check-doc-refs</code> a CI</strong> — previene docs rotas tras refactor.</li>
+    </ol>
+
+  </div>
+</details>
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 11. ADRs %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-adrs">
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">📋</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">11 · Architecture Decision Records</span>
+      <span class="docs-section-desc">Por qué se tomaron las decisiones de diseño más importantes.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-domain">Dominio</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+    <div class="adr-grid">
+
+      <div class="adr-card">
+        <div class="adr-num">ADR-001</div>
+        <div class="adr-title">Rails Monolito vs Microservicios</div>
+        <p><strong>Decisión:</strong> Monolito único. Sidekiq como proceso separado, mismo codebase.</p>
+        <div class="adr-label">✅ Por qué</div>
+        <p>Escala actual (decenas de participantes). Cero overhead de sistemas distribuidos. Iteración rápida en producto early-stage.</p>
+        <div class="adr-label">⚠️ Tradeoff</div>
+        <p>Bottleneck a ~10K+ participantes. <code>AdvanceDayJob</code> itera todos los activos en un solo pass.</p>
+      </div>
+
+      <div class="adr-card">
+        <div class="adr-num">ADR-002</div>
+        <div class="adr-title">Net::HTTP para WhatsApp Client</div>
+        <p><strong>Decisión:</strong> <code>Net::HTTP</code> stdlib en lugar de HTTParty o Faraday.</p>
+        <div class="adr-label">✅ Por qué</div>
+        <p>Es una sola POST con retry explícito. Sin dependencia extra. Control total sobre el comportamiento de retry.</p>
+        <div class="adr-label">⚠️ Nota</div>
+        <p><code>httparty</code> y <code>faraday-retry</code> están en el Gemfile pero no se usan en este cliente — decisión tardía.</p>
+      </div>
+
+      <div class="adr-card">
+        <div class="adr-num">ADR-003</div>
+        <div class="adr-title">4 Templates WhatsApp para 14 Días</div>
+        <p><strong>Decisión:</strong> <code>bienvenida</code>, <code>despertar_dia_NN</code>, <code>iareto_dia_NN</code>, <code>checkin_dia_NN</code>. Contenido IA en parámetro <code>{{2}}</code>.</p>
+        <div class="adr-label">✅ Por qué</div>
+        <p>Meta exige aprobación manual por template. 4 vs 42+ ciclos de aprobación.</p>
+        <div class="adr-label">⚠️ Tradeoff</div>
+        <p>El nombre del template aún enumera por día. La personalización real va dentro del parámetro aprobado.</p>
+      </div>
+
+      <div class="adr-card">
+        <div class="adr-num">ADR-004</div>
+        <div class="adr-title">ProgramManifesto como Anchor de Prompt Cache</div>
+        <p><strong>Decisión:</strong> Prepend del manifesto (≥1024 tokens) como primer bloque en todos los system prompts.</p>
+        <div class="adr-label">✅ Por qué</div>
+        <p>OpenAI cachea prefijos ≥1024 tokens por ~5 min. Reducción de costo 5-10x en llamadas repetidas.</p>
+        <div class="adr-label">⚠️ Tradeoff</div>
+        <p>Ligera restricción de diseño de prompts: el manifesto siempre va primero.</p>
+      </div>
+
+      <div class="adr-card">
+        <div class="adr-num">ADR-005</div>
+        <div class="adr-title">PromptExecution como Tabla Separada</div>
+        <p><strong>Decisión:</strong> <code>prompt_executions</code> independiente de <code>conversations</code>.</p>
+        <div class="adr-label">✅ Por qué</div>
+        <p>No toda ejecución produce Conversation (voice_analyzer, prompt_critic). TTL/purge independientes. Cardinalidad ortogonal.</p>
+        <div class="adr-label">⚠️ Tradeoff</div>
+        <p>Crece ilimitado. Sin estrategia de purga implementada todavía.</p>
+      </div>
+
+      <div class="adr-card">
+        <div class="adr-num">ADR-006</div>
+        <div class="adr-title">Response Mode como Jerarquía de 4 Niveles</div>
+        <p><strong>Decisión:</strong> <code>auto / approve / suggest / manual</code> con precedencia participante → programa → global.</p>
+        <div class="adr-label">✅ Por qué</div>
+        <p>Confianza gradual: empezar en manual durante piloto, escalar a auto a medida que crece la confianza. Override por participante permite A/B testing.</p>
+        <div class="adr-label">⚠️ Tradeoff</div>
+        <p>Espacio de estados complejo. El admin debe revisar activamente la queue — sin push en tiempo real.</p>
+      </div>
+
+      <div class="adr-card">
+        <div class="adr-num">ADR-007</div>
+        <div class="adr-title">Ruby 4.0.2 vs 3.3.x</div>
+        <p><strong>Decisión:</strong> Usar Ruby 4.0.2 (único disponible vía asdf).</p>
+        <div class="adr-label">✅ Por qué</div>
+        <p>Rails 7.2 es compatible. Sin tiempo para instalar 3.3. Si producción requiere 3.3, solo cambiar <code>.tool-versions</code>.</p>
+        <div class="adr-label">⚠️ Consecuencias</div>
+        <p>Ruby 4.0 rompió <code>RedisCacheStore</code> (workaround en <code>rack_attack.rb</code>). <code>commonmarker</code> (Rust) no compila → switch a <code>kramdown</code> (pure Ruby).</p>
+      </div>
+
+      <div class="adr-card">
+        <div class="adr-num">ADR-008</div>
+        <div class="adr-title">Panel Admin Nativo vs Avo/ActiveAdmin</div>
+        <p><strong>Decisión:</strong> Controladores y vistas Rails nativos bajo <code>namespace :admin</code>.</p>
+        <div class="adr-label">✅ Por qué</div>
+        <p>Avo Community no incluye dashboards ni acciones custom sin licencia Pro. Panel nativo da control total de UX, acciones custom y design system propio.</p>
+        <div class="adr-label">⚠️ Tradeoff</div>
+        <p>Más código a mantener. La recompensa: UX superior y sin dependencia de licencia.</p>
+      </div>
+
+    </div>
+  </div>
+</details>
+
+<%# ══════════════════════════════════════════════════════════ %>
+<%# 12. ONBOARDING %>
+<%# ══════════════════════════════════════════════════════════ %>
+<details class="docs-section" id="sec-onboarding">
+  <summary class="docs-section-summary">
+    <span class="docs-section-icon">🚀</span>
+    <div class="docs-section-info">
+      <span class="docs-section-title">12 · Onboarding — Guía para Nuevos Ingenieros</span>
+      <span class="docs-section-desc">Setup local, comandos esenciales, archivos clave y convenciones del proyecto.</span>
+    </div>
+    <div class="docs-section-meta">
+      <span class="docs-section-tag tag-dev">Dev</span>
+    </div>
+    <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  </summary>
+  <div class="docs-section-body">
+
+    <h2>Setup Local</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <p><strong>Instalar prerequisitos</strong></p>
+          <pre>brew install asdf postgresql@16 redis ffmpeg
+brew services start postgresql@16
+brew services start redis
+asdf plugin add ruby && asdf install ruby 4.0.2
+asdf plugin add nodejs && asdf install</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <p><strong>Instalar dependencias</strong></p>
+          <pre>asdf exec bundle install
+yarn install</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <p><strong>Configurar entorno</strong></p>
+          <pre>cp .env.example .env
+# Completar todas las variables requeridas en .env</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <p><strong>Base de datos y seeds</strong></p>
+          <pre>asdf exec bundle exec rails db:create db:migrate db:seed</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <p><strong>Levantar servidor</strong></p>
+          <pre>asdf exec bundle exec foreman start -f Procfile.dev</pre>
+          <p>Panel admin: <code>http://localhost:3000/admin</code> · Sidekiq: <code>http://localhost:3000/sidekiq</code></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <p><strong>Correr tests</strong></p>
+          <pre>asdf exec bundle exec rspec                           # suite completa
+asdf exec bundle exec rspec spec/models/               # solo models
+asdf exec bundle exec rspec spec/services/             # solo services</pre>
+        </div>
+      </div>
+    </div>
+
+    <h2>Comandos de Debugging Frecuentes</h2>
+    <pre># ¿Por qué un participante no recibió su mensaje?
+p = Participant.find_by(phone_e164: "+521234567890")
+p.local_time.hour           # hora local actual
+Setting.fetch("wake_hour")  # hora configurada
+p.day_content               # ¿existe DayContent para current_day?
+p.conversations.kept.where(moment: :morning_wake, day_number: p.current_day)
+  .where("created_at >= ?", p.local_time.beginning_of_day).exists?
+
+# Ver timeline de conversaciones
+Conversation.kept.where(participant: p).chronological.each { |c|
+  puts "#{c.moment} (#{c.role}) D#{c.day_number}: #{c.body.to_s.truncate(80)}"
+}
+
+# Probar generación de IA sin gastar tokens
+Setting.set("openai_dry_run_global", true)
+Openai::MorningMessageGenerator.new(participant: p, day_content: p.day_content).call(dry_run: true)
+
+# Inscribir participante de prueba
+Participants::Enroller.new(name: "Test", phone_e164: "+56912345678", timezone: "America/Santiago").call
+
+# Ejecutar job manualmente (no usar perform_later en consola)
+MorningWakeForParticipantJob.new.perform(participant.id)</pre>
+
+    <h2>Archivos Clave</h2>
+    <div class="docs-table-wrap">
+      <table class="docs-table">
+        <thead><tr><th>Archivo</th><th>Por qué importa</th></tr></thead>
+        <tbody>
+          <tr><td><code>docs/business-rules.md</code></td><td>⭐ Fuente canónica de reglas. Leer primero.</td></tr>
+          <tr><td><code>docs/decisions.md</code></td><td>Por qué las cosas son como son.</td></tr>
+          <tr><td><code>app/jobs/process_incoming_message_job.rb</code></td><td>Flujo inbound completo — el job más complejo.</td></tr>
+          <tr><td><code>app/services/outbound/dispatcher.rb</code></td><td>Punto único de decisión de envío.</td></tr>
+          <tr><td><code>app/services/response_mode.rb</code></td><td>Lógica de precedencia del response mode.</td></tr>
+          <tr><td><code>app/models/setting.rb</code></td><td>Toda la configuración runtime del sistema.</td></tr>
+          <tr><td><code>config/schedule.yml</code></td><td>Definición de todos los cron jobs.</td></tr>
+          <tr><td><code>db/schema.rb</code></td><td>Fuente de verdad de la estructura de BD.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Convenciones del Proyecto</h2>
+    <ul>
+      <li><strong>Siempre usar <code>asdf exec</code></strong> — nunca <code>bundle exec</code> ni <code>rails</code> suelto.</li>
+      <li><strong>Siempre scopes <code>.kept</code></strong> en queries de <code>Participant</code> y <code>Conversation</code>.</li>
+      <li><strong>Verificar idempotencia</strong> antes de cualquier job outbound — usar <code>IdempotentOutbound</code>.</li>
+      <li><strong>Services retornan Structs tipados</strong> — nunca raise para fallas de business logic; retornar Struct con campo de error.</li>
+      <li><strong>Loggear en <code>PromptLogger</code></strong> después de cada llamada OpenAI — rescue silencioso, nunca bloquear el flujo.</li>
+      <li><strong>Validar contra <code>docs/business-rules.md</code></strong> — si el código contradice el doc, uno de los dos está mal.</li>
+      <li><strong>Rubocop tras cada cambio:</strong> <code>asdf exec bundle exec rubocop -A &lt;archivos&gt;</code>.</li>
+      <li><strong>UUID PKs en toda tabla nueva</strong> con <code>id: :uuid, default: "gen_random_uuid()"</code>.</li>
+    </ul>
+
+  </div>
+</details>
+
+
+
+</div><%# end .docs-sections %>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+(function() {
+  function initMermaid() {
+    if (typeof mermaid === 'undefined') return;
+
+    var isDark = document.documentElement.classList.contains('dark') ||
+                 window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: isDark ? 'dark' : 'neutral',
+      securityLevel: 'loose',
+      fontFamily: 'Inter, -apple-system, sans-serif',
+      fontSize: 13
+    });
+
+    // Convert markdown code blocks from @sections
+    document.querySelectorAll('.docs-section-body pre code.language-mermaid, .docs-section-body.md pre code').forEach(function(code) {
+      var text = code.textContent.trim();
+      if (!text.match(/^(graph|sequenceDiagram|stateDiagram|erDiagram|flowchart|C4Context|C4Container)/)) return;
+      var wrap = document.createElement('div');
+      wrap.className = 'mermaid-wrap';
+      var div = document.createElement('div');
+      div.className = 'mermaid';
+      div.textContent = text;
+      wrap.appendChild(div);
+      code.closest('pre').replaceWith(wrap);
+    });
+
+    try {
+      mermaid.init(undefined, document.querySelectorAll('div.mermaid:not([data-processed])'));
+    } catch(e) {
+      console.warn('Mermaid init error:', e);
+    }
+  }
+
+  // TOC smooth scroll
+  document.querySelectorAll('a.toc-card[href^="#"]').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = document.querySelector(a.getAttribute('href'));
+      if (!target) return;
+      target.setAttribute('open', '');
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  document.addEventListener('turbo:load', initMermaid);
+  if (document.readyState !== 'loading') initMermaid();
+  else document.addEventListener('DOMContentLoaded', initMermaid);
+})();
+</script>

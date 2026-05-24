@@ -104,4 +104,8 @@ class HomeController < ApplicationController
       redirect_to root_path
     end
   end
+
+  def privacidad
+    @privacy_policy = Setting.fetch("privacy_policy")
+  end
 end

@@ -29,6 +29,19 @@ RSpec.describe "Admin::Docs", type: :request do
       expect(response.body).to include("Análisis DVF")
     end
 
+    it "renders the technical documentation view" do
+      get "/admin/docs/technical"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Documentación Técnica")
+      expect(response.body).not_to include("Documentos de Referencia (Markdown)")
+    end
+
+    it "renders the strategy documentation view" do
+      get "/admin/docs/strategy"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Estrategia")
+    end
+
     it "renders commercial strategy markdown as HTML" do
       get "/admin/docs/commercial-strategy"
       expect(response).to have_http_status(:ok)

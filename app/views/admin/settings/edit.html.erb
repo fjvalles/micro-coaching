@@ -7,73 +7,112 @@
   <span><%= @setting.key %></span>
 <% end %>
 
-<div class="card">
-  <div class="card-body">
-    <%= form_with(model: [:admin, @setting], local: true) do |f| %>
-      <% if @setting.errors.any? %>
-        <div style="background-color: var(--danger-bg); border: 1px solid var(--danger-border); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px; color: var(--danger);">
-          <h4 style="font-weight: 600; margin-bottom: 8px;">Por favor corrige los siguientes errores:</h4>
-          <ul style="padding-left: 20px;">
-            <% @setting.errors.full_messages.each do |msg| %>
-              <li><%= msg %></li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
+<%= form_with(model: [:admin, @setting], local: true) do |f| %>
+  <% if @setting.errors.any? %>
+    <div style="background-color: var(--danger-bg); border: 1px solid var(--danger-border); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px; color: var(--danger);">
+      <h4 style="font-weight: 600; margin-bottom: 8px;">Por favor corrige los siguientes errores:</h4>
+      <ul style="padding-left: 20px;">
+        <% @setting.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 
-      <div class="form-group">
-        <label class="form-label">Clave</label>
-        <div style="font-family: monospace; font-size: 14px; background-color: var(--bg-secondary); padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--border); color: var(--text-muted);">
-          <%= @setting.key %>
-          <span style="float: right; font-family: inherit; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
-            <%= @setting.category %> · <%= @setting.value_type %>
-          </span>
+  <div class="form-layout-columns">
+    <!-- Columna Principal (Izquierda) -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      
+      <!-- Card 1: Detalles de la Configuración -->
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <h3 class="card-title">Configuración</h3>
         </div>
-        <p class="form-help">La clave, categoría y tipo se definen en <code>Setting::SCHEMA</code> y no se editan desde aquí.</p>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Clave Única</label>
+            <div style="font-family: monospace; font-size: 14px; background-color: var(--bg-secondary); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border); color: var(--text-main); font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
+              <span><%= @setting.key %></span>
+              <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background-color: white; border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; color: var(--text-muted);">
+                <%= @setting.category %> · <%= @setting.value_type %>
+              </span>
+            </div>
+            <p class="form-help">La clave, categoría y tipo están definidos en el código y no pueden modificarse desde aquí.</p>
+          </div>
+
+          <% if @setting.description.present? %>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Descripción</label>
+              <div style="font-size: 14px; color: var(--text-main); line-height: 1.6; background-color: var(--bg-app); border: 1px solid var(--border); padding: 12px 16px; border-radius: var(--radius-md);">
+                <%= @setting.description %>
+              </div>
+            </div>
+          <% end %>
+        </div>
       </div>
 
-      <% if @setting.description.present? %>
-        <div class="form-group">
-          <label class="form-label">Descripción</label>
-          <div style="font-size: 14px; color: var(--text-main); margin-bottom: 12px;">
-            <%= @setting.description %>
+      <!-- Card 2: Editar Valor -->
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <h3 class="card-title">Modificar Valor</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :value, "Valor Actual", class: "form-label" %>
+
+            <% case @setting.value_type %>
+            <% when "boolean" %>
+              <%= f.hidden_field :value, value: "0" %>
+              <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; background-color: var(--bg-app); border: 1px solid var(--border); padding: 14px 16px; border-radius: var(--radius-md);">
+                <%= f.check_box :value, { checked: @setting.typed_value, style: "width: 18px; height: 18px; accent-color: var(--brand); cursor: pointer;" }, "1", "0" %>
+                <span>Activado (true). Desmarcado equivale a false.</span>
+              </label>
+
+            <% when "integer" %>
+              <%= f.number_field :value, step: 1, class: "form-input", style: "font-family: monospace; font-size: 14px;", required: true %>
+
+            <% when "float" %>
+              <%= f.number_field :value, step: "any", class: "form-input", style: "font-family: monospace; font-size: 14px;", required: true %>
+
+            <% when "string" %>
+              <%= f.text_field :value, class: "form-input", style: "font-family: monospace; font-size: 14px;", required: true %>
+
+            <% else # text, json %>
+              <%= f.text_area :value, class: "form-textarea", style: "min-height: 240px; font-family: monospace; font-size: 13px; line-height: 1.5; margin-bottom: 0;", required: true %>
+            <% end %>
           </div>
         </div>
-      <% end %>
+      </div>
+    </div>
 
-      <div class="form-group">
-        <%= f.label :value, "Valor", class: "form-label" %>
-
-        <% case @setting.value_type %>
-        <% when "boolean" %>
-          <%= f.hidden_field :value, value: "0" %>
-          <label style="display: flex; align-items: center; gap: 10px; font-size: 14px;">
-            <%= f.check_box :value, { checked: @setting.typed_value }, "1", "0" %>
-            <span>Activado (true). Desmarcado = false.</span>
-          </label>
-
-        <% when "integer" %>
-          <%= f.number_field :value, step: 1, class: "form-input", style: "font-family: monospace;", required: true %>
-
-        <% when "float" %>
-          <%= f.number_field :value, step: "any", class: "form-input", style: "font-family: monospace;", required: true %>
-
-        <% when "string" %>
-          <%= f.text_field :value, class: "form-input", style: "font-family: monospace;", required: true %>
-
-        <% else # text, json %>
-          <%= f.text_area :value, class: "form-textarea", style: "min-height: 240px; font-family: monospace;", required: true %>
-        <% end %>
-
-        <% if (entry = @setting.schema_entry) && entry[:default].present? %>
-          <p class="form-help">Default del schema: <code><%= entry[:default].to_s.truncate(120) %></code></p>
-        <% end %>
+    <!-- Columna Lateral (Derecha) -->
+    <div style="display: flex; flex-direction: column; gap: 24px;" class="sticky-sidebar-card">
+      
+      <!-- Card 3: Valores Predeterminados -->
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <h3 class="card-title">Ayuda Contextual</h3>
+        </div>
+        <div class="card-body">
+          <% if (entry = @setting.schema_entry) && entry[:default].present? %>
+            <div class="form-group" style="margin-bottom: 0;">
+              <span class="form-label" style="font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Predeterminado del Schema</span>
+              <pre style="font-size: 12px; font-family: monospace; background-color: var(--bg-secondary); border: 1px solid var(--border); padding: 10px 12px; border-radius: var(--radius-sm); color: var(--text-main); margin-top: 6px; overflow-x: auto; white-space: pre-wrap; max-height: 120px;"><%= entry[:default].to_s %></pre>
+              <p class="form-help" style="margin-top: 8px;">Este es el valor de fábrica si la base de datos se restablece.</p>
+            </div>
+          <% else %>
+            <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5;">Esta configuración no cuenta con un valor predeterminado explícito en el esquema base.</p>
+          <% end %>
+        </div>
       </div>
 
-      <div class="card-footer" style="padding-left: 0; padding-right: 0; background-color: transparent; border-top: none; margin-top: 24px;">
-        <%= link_to "Cancelar", admin_settings_path, class: "btn btn-secondary" %>
-        <%= f.submit "Guardar Cambios", class: "btn btn-primary" %>
+      <!-- Card 4: Acciones -->
+      <div class="card form-card" style="background-color: var(--bg-secondary); margin-bottom: 0;">
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
+          <%= f.submit "Guardar Cambios", class: "btn btn-primary", style: "width: 100%;" %>
+          <%= link_to "Cancelar", admin_settings_path, class: "btn btn-secondary", style: "width: 100%;" %>
+        </div>
       </div>
-    <% end %>
+    </div>
   </div>
-</div>
+<% end %>

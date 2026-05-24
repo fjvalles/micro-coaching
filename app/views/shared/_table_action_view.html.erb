@@ -1,0 +1,17 @@
+<%#
+  Locals:
+    path        - string, target URL/path (required)
+    title       - string, tooltip/accessible name (default: "Ver")
+    class_name  - string, additional CSS classes (default: nil)
+%>
+<%
+  path = local_assigns.fetch(:path)
+  title = local_assigns.fetch(:title, "Ver")
+  class_name = local_assigns.fetch(:class_name, nil)
+%>
+<a href="<%= path %>" class="btn btn-secondary btn-sm <%= class_name %>" title="<%= title %>" aria-label="<%= title %>" style="padding: 6px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0;">
+  <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+  </svg>
+</a>

@@ -26,9 +26,13 @@ El panel se organiza en una barra lateral dividida en dos grupos de navegación:
 | **Participantes** | El núcleo de la administración de usuarios. | Inscribir nuevos usuarios, pausar, archivar, auditar chat. |
 | **Mensajes** | Historial crudo de la base de datos de mensajes. | Ver metadatos de tokens y estado de entrega de Meta. |
 | **Reportes Diarios** | Resúmenes cognitivos del check-in nocturno. | Leer los patrones de comportamiento detectados por la IA. |
+| **Prompts IA** | Gestión del registro y versiones de prompts de OpenAI. | Ver historial de versiones, editar comportamiento cognitivo. |
+| **Pendientes** | Moderación y aprobación manual de respuestas de IA. | Revisar respuestas automáticas, editar y autorizar envíos. |
 | **Configuración** | Parámetros del sistema modificables en vivo. | Cambiar la hora de despertar o el retraso del IAReto. |
 | **Administradores** | Gestión del equipo de soporte. | Agregar o eliminar usuarios con acceso al panel. |
+| **Auditoría** | Registro detallado de cambios sobre recursos. | Ver historial de versiones y auditoría de campos (PaperTrail). |
 | **Sidekiq ↗** | Consola técnica de tareas en segundo plano. | Monitorear colas de envíos retrasados o reintentos de red. |
+
 
 ---
 
@@ -93,3 +97,34 @@ La sección **Configuración** expone variables globales de negocio almacenadas 
 > [!TIP]
 > **Cambios sin Deploy:**
 > Si cambias el `wake_hour` de `7` a `8` en la interfaz, el cambio toma efecto en el siguiente ciclo de hora de Sidekiq de forma inmediata. No requiere que los programadores reinicien la aplicación ni hagan un nuevo deploy de código.
+
+### 4.3 Historial de Mensajes (Conversations)
+Esta sección muestra el registro completo e inmutable de los mensajes intercambiados con los participantes vía WhatsApp.
+* **Auditoría de Costos:** Cada mensaje saliente generado por la IA muestra el desglose de tokens de entrada/salida y el modelo utilizado.
+* **Trazabilidad de Entrega:** Puedes revisar el estado de entrega en tiempo real de Meta (ej: *enviado*, *entregado*, *leído*, o *fallido* con el código de error correspondiente).
+
+### 4.4 Reportes Diarios y Patrones de IA
+El sistema genera resúmenes diarios a partir de las respuestas de los participantes al check-in nocturno.
+* **Resumen Cognitivo:** La IA sintetiza el estado emocional y progreso de cada participante para los tutores.
+* **Detección de Patrones:** Analiza las respuestas del participante y extrae un patrón clave de comportamiento diario para personalizar las interacciones del día siguiente.
+
+### 4.5 Prompts de IA y Plantillas
+Aquí se gestiona el comportamiento cognitivo de los asistentes inteligentes.
+* **Edición de Prompts de Sistema:** Permite editar los prompts de OpenAI de cada fase (`see`, `choose`, `anchor`) para modificar la personalidad y pedagogía de la IA.
+* **Control de Versiones:** Cada cambio genera una nueva versión, permitiendo auditar y restaurar prompts anteriores si el comportamiento de la IA diverge del deseado.
+
+### 4.6 Respuestas Pendientes de Moderación
+Cuando el sistema opera bajo modo de moderación manual, los mensajes generados por la IA no se envían automáticamente.
+* **Aprobación Obligatoria:** Los mensajes quedan encolados en estado `pending_action`.
+* **Acciones de Soporte:** Un administrador puede revisar la respuesta generada por la IA, editarla para corregir detalles pedagógicos o de redacción, y aprobarla para encolar el envío definitivo.
+
+### 4.7 Administradores y Miembros del Equipo
+Administración de cuentas con acceso restringido al panel.
+* **Seguridad:** Utiliza Devise para la autenticación segura.
+* **Gestión del Equipo:** Permite crear nuevos operadores de soporte y dar de baja a usuarios que ya no pertenecen al equipo.
+
+### 4.8 Auditoría y Registro de Versiones
+Trazabilidad de seguridad para todas las acciones dentro del panel.
+* **PaperTrail:** El sistema registra de manera automática cualquier creación, actualización o borrado en los modelos clave.
+* **Transparencia:** Puedes auditar qué administrador modificó un participante, un programa, o una configuración del sistema, junto con los valores anteriores y posteriores de cada campo.
+

@@ -1,5 +1,19 @@
 <% content_for :title, "Inicio" %>
 
+<%
+  _mode_labels = { "manual" => "Manual", "suggest" => "Sugerencia IA", "approve" => "Aprobación IA", "auto" => "Automático" }
+  _current_mode = Setting.fetch("response_mode")
+  _pending_count = PendingResponse.kept.pending_action.count
+%>
+<div style="display:flex; align-items:center; gap:8px; margin-bottom:24px; font-size:13px; color:var(--text-muted);">
+  Modo de respuesta:
+  <strong style="color:var(--text-main);"><%= _mode_labels[_current_mode] || _current_mode %></strong>
+  <%= link_to "Cambiar →", admin_settings_path, style: "color:var(--brand); text-decoration:none;" %>
+  <% if _pending_count.positive? %>
+    <%= link_to "#{_pending_count} pendientes", admin_pending_responses_path, class: "badge badge-warning", style: "text-decoration:none; margin-left:4px;" %>
+  <% end %>
+</div>
+
 <div class="stats-grid">
   <!-- Card 1: Active Participants -->
   <div class="stat-card">

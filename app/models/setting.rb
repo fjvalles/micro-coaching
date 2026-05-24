@@ -1,6 +1,6 @@
 class Setting < ApplicationRecord
   VALUE_TYPES  = %w[string text integer float boolean json].freeze
-  CATEGORIES   = %w[timing openai whatsapp program admin general].freeze
+  CATEGORIES   = %w[timing openai whatsapp program admin general finances].freeze
   CACHE_PREFIX = "setting:".freeze
   CACHE_TTL    = 5.minutes
 
@@ -34,7 +34,7 @@ class Setting < ApplicationRecord
       validate: ->(v) { (1..30).cover?(v) || "debe estar entre 1 y 30" }
     },
     "default_timezone" => {
-      type: :string, category: "timing", default: "America/Mexico_City",
+      type: :string, category: "timing", default: "America/Santiago",
       description: "Zona horaria fallback cuando el participante no tiene una asignada.",
       validate: ->(v) { ActiveSupport::TimeZone[v].present? || "zona horaria inválida" }
     },
@@ -126,10 +126,15 @@ class Setting < ApplicationRecord
     },
 
     # ── program ────────────────────────────────────────────────────────────
+    "response_mode" => {
+      type: :string, category: "program", default: "auto",
+      description: "Modo de respuesta global: auto (IA envía sola), approve (IA genera, admin aprueba), suggest (admin escribe con sugerencia IA), manual (admin responde todo).",
+      validate: ->(v) { %w[auto approve suggest manual].include?(v.to_s) || "debe ser auto, approve, suggest o manual" }
+    },
     "program_manifesto" => {
       type: :text, category: "program",
       default: <<~TEXT,
-        Eres parte de Piloto Automático: un programa de 14 días que acompaña a la persona a
+        Eres parte de un programa de 14 días que acompaña a la persona a
         salir del modo reactivo a través de tres fases — VER (días 1–4), ELEGIR (días 5–10) y
         ANCLAR (días 11–14). Principios:
 
@@ -143,6 +148,107 @@ class Setting < ApplicationRecord
         Tu salida llega por WhatsApp, así que evita listas largas y formato markdown.
       TEXT
       description: "System prompt global prepended a todas las llamadas OpenAI (fallback si Program#manifesto está vacío)."
+    },
+    "privacy_policy" => {
+      type: :text, category: "program",
+      default: <<~TEXT,
+        La presente Política de Privacidad describe cómo **Comtraining** ("nosotros", "el Responsable") recopila, usa, almacena y protege los datos personales de quienes participan en el programa de coaching **Impulso**, impartido a través de la plataforma de mensajería WhatsApp. Esta política se rige por la **Ley N.° 19.628 sobre Protección de la Vida Privada** de Chile y sus modificaciones vigentes.
+
+        #### 1. Responsable del tratamiento
+        **Comtraining**
+        País de constitución: Chile
+        Correo de contacto: [info@comtraining.cl](mailto:info@comtraining.cl)
+        Sitio web: [https://www.comtraining.cl](https://www.comtraining.cl)
+
+        Para consultas relacionadas con el tratamiento de sus datos personales puede escribirnos al correo indicado en la sección 9 de este documento.
+
+        #### 2. Datos personales que recopilamos
+        Recopilamos únicamente los datos necesarios para prestar el servicio de coaching:
+        * **Datos de identificación y contacto:** nombre completo, número de teléfono de WhatsApp, correo electrónico corporativo, cargo/rol de liderazgo y empresa u organización.
+        * **Mensajes de texto:** conversaciones enviadas y recibidas a través de WhatsApp durante el programa (14 días).
+        * **Datos de seguimiento del programa:** respuestas a los retos diarios, resúmenes del check-in, mapas de energía generados y avance del programa.
+        * **Mensajes de audio:** si envía mensajes de voz, estos se descargan de forma temporal, se transcriben a texto y se analizan para extraer tono/emoción para el proceso de coaching, tras lo cual el archivo de audio se elimina.
+
+        No usamos cookies de rastreo ni herramientas de analítica de terceros en nuestra plataforma.
+
+        #### 3. Finalidades del tratamiento
+        Sus datos son tratados para las siguientes finalidades:
+        * **Prestación del servicio:** enviar mensajes de coaching programados, procesar respuestas, realizar transcripción/análisis de audios y generar retroalimentación personalizada.
+        * **Generación de contenido personalizado:** construir mensajes y resúmenes de check-in adaptados al progreso individual del participante.
+        * **Seguimiento del programa:** registrar el avance por día, detectar ventanas de check-in y avanzar la fase del programa.
+        * **Administración interna:** gestión del panel de operaciones por parte del equipo de Comtraining.
+        * **Reportes para empresas:** proveer a las organizaciones patrocinadoras un análisis consolidado y anónimo de adherencia y barreras operacionales detectadas, garantizando la confidencialidad individual.
+
+        No utilizamos sus datos para fines publicitarios, ni los vendemos, cedemos ni arrendamos a terceros con fines comerciales propios.
+
+        #### 4. Compartición de datos y transferencias internacionales
+        Para prestar el servicio utilizamos las siguientes plataformas externas, con las cuales sus datos pueden ser compartidos:
+
+        **4.1 OpenAI, Inc. (Estados Unidos)**
+        Los mensajes que usted envía son procesados por los modelos de lenguaje de OpenAI (como gpt-4o-mini o equivalentes) para la generación de respuestas personalizadas y análisis de audios. Esto implica una transferencia internacional de datos hacia servidores ubicados en Estados Unidos. OpenAI trata estos datos conforme a los términos de uso de su API, que prohíben el entrenamiento de modelos con datos de clientes.
+
+        **4.2 Meta Platforms (WhatsApp Cloud API)**
+        La comunicación con los participantes se realiza a través de WhatsApp Cloud API, operada por Meta Platforms, Inc. (EE. UU.) y Meta Platforms Ireland Limited (UE/EEE). Meta procesa metadatos de mensajería conforme a su Política de privacidad de WhatsApp Business.
+
+        Ninguno de estos proveedores tiene autorización para usar sus datos con fines distintos a la prestación del servicio contratado.
+
+        #### 5. Plazo de conservación de los datos
+        Los datos personales se conservan mientras el participante esté activo en el programa y por un período adicional de **12 meses** tras la finalización, con el fin de atender eventuales consultas, repeticiones de programa o auditorías de servicio. Transcurrido ese plazo, los datos de las conversaciones se eliminan o anonimizan de nuestra base de datos.
+
+        #### 6. Derechos del titular
+        De conformidad con la **Ley N.° 19.628**, usted tiene los siguientes derechos respecto de sus datos personales:
+        * **Acceso:** solicitar información sobre qué datos suyos tratamos y con qué finalidad.
+        * **Rectificación:** solicitar la corrección de datos inexactos o desactualizados.
+        * **Cancelación (eliminación):** solicitar la supresión de sus datos cuando ya no sean necesarios para la finalidad para la que fueron recopilados.
+        * **Oposición:** oponerse al tratamiento de sus datos en determinadas circunstancias.
+
+        Para ejercer cualquiera de estos derechos, escríbanos al correo indicado en la sección 9. Responderemos a su solicitud en un plazo no superior a 30 días hábiles.
+
+        #### 7. Seguridad de los datos
+        Comtraining adopta medidas técnicas y organizativas para proteger sus datos personales frente a accesos no autorizados, pérdida o divulgación indebida:
+        * Acceso al panel de administración protegido con credenciales de administrador individuales.
+        * Verificación criptográfica (HMAC-SHA256) de cada mensaje entrante de WhatsApp para prevenir suplantación.
+        * Base de datos alojada en entorno con credenciales separadas por entorno y comunicación segura.
+        * Claves de API almacenadas como variables de entorno seguras.
+
+        #### 8. Cambios a esta política
+        Podemos actualizar esta Política de Privacidad para reflejar cambios en el servicio, en la legislación aplicable o en nuestras prácticas internas. Cuando realicemos cambios materiales, se lo notificaremos a través de WhatsApp o por correo electrónico con al menos **15 días de anticipación**.
+
+        #### 9. Contacto
+        Para ejercer sus derechos, realizar consultas o presentar reclamos relacionados con el tratamiento de sus datos personales, puede contactarnos en:
+
+        **Comtraining**
+        Correo electrónico: [info@comtraining.cl](mailto:info@comtraining.cl)
+        País: Chile
+      TEXT
+      description: "Texto completo de la Política de Privacidad de Impulso (Markdown)."
+    },
+
+    # ── finances ───────────────────────────────────────────────────────────
+    "cost_hosting_monthly_usd" => {
+      type: :float, category: "finances", default: 0.0,
+      description: "Costo mensual de hosting/servidor en USD.",
+      validate: ->(v) { v >= 0 || "debe ser >= 0" }
+    },
+    "cost_email_monthly_usd" => {
+      type: :float, category: "finances", default: 0.0,
+      description: "Costo mensual de envío de correos (Postmark, SendGrid, etc.) en USD.",
+      validate: ->(v) { v >= 0 || "debe ser >= 0" }
+    },
+    "cost_meta_api_monthly_usd" => {
+      type: :float, category: "finances", default: 0.0,
+      description: "Costo mensual estimado de Meta/WhatsApp Cloud API (conversaciones de negocio) en USD.",
+      validate: ->(v) { v >= 0 || "debe ser >= 0" }
+    },
+    "cost_ads_monthly_usd" => {
+      type: :float, category: "finances", default: 0.0,
+      description: "Gasto mensual en publicidad (Meta Ads, Google Ads, etc.) en USD.",
+      validate: ->(v) { v >= 0 || "debe ser >= 0" }
+    },
+    "cost_other_monthly_usd" => {
+      type: :float, category: "finances", default: 0.0,
+      description: "Otros costos mensuales fijos en USD (dominio, herramientas, etc.).",
+      validate: ->(v) { v >= 0 || "debe ser >= 0" }
     }
   }.freeze
 

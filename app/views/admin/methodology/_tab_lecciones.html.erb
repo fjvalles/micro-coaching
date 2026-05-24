@@ -1,0 +1,58 @@
+<% if @cluster_insight.blank? %>
+  <div class="card" style="padding: 24px; text-align: center; color: var(--text-muted);">
+    <p>Sin clusters aún. Encola un recálculo con el botón <strong>Recalcular insights</strong> de arriba.</p>
+    <p style="font-size: 12px; margin-top: 8px;">Los clusters de patrones se construyen agrupando los <code>ai_key_pattern</code> de los últimos 80 reportes diarios mediante un LLM.</p>
+  </div>
+<% else %>
+  <%
+    clusters = @cluster_insight.payload["clusters"] || []
+    total    = @cluster_insight.payload["total_reports_analyzed"].to_i
+  %>
+  <div style="margin-bottom: 20px; color: var(--text-muted); font-size: 13px;">
+    Última actualización: <strong><%= time_ago_in_words(@cluster_insight.generated_at) %> atrás</strong>
+    · Reportes analizados: <strong><%= total %></strong>
+    · Clusters detectados: <strong><%= clusters.size %></strong>
+  </div>
+
+  <% if clusters.empty? %>
+    <p style="color: var(--text-muted);">El último análisis no produjo clusters (¿pocos reportes disponibles?).</p>
+  <% else %>
+    <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));">
+      <% clusters.each do |c| %>
+        <div class="card" style="padding: 18px; margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+            <h4 style="color: var(--brand); margin: 0; font-size: 15px;"><%= c["theme"] %></h4>
+            <span class="badge badge-info"><%= c["frequency"] %></span>
+          </div>
+
+          <% phases = c["phase_distribution"] || {} %>
+          <% if phases.any? %>
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">
+              Distribución:
+              <% phases.each do |phase, n| %>
+                <span style="margin-right: 8px;"><strong><%= phase %></strong>: <%= n %></span>
+              <% end %>
+            </div>
+          <% end %>
+
+          <% Array(c["sample_phrases"]).each do |phrase| %>
+            <blockquote style="margin: 6px 0; padding: 6px 10px; border-left: 3px solid var(--border); color: var(--text-muted); font-size: 13px; font-style: italic;">
+              <%= phrase %>
+            </blockquote>
+          <% end %>
+
+          <% report_ids = Array(c["daily_report_ids"]) %>
+          <% if report_ids.any? %>
+            <div style="margin-top: 12px; font-size: 12px;">
+              <span style="color: var(--text-muted);">Reportes origen:</span>
+              <% report_ids.first(6).each_with_index do |rid, i| %>
+                <%= link_to "##{i + 1}", admin_daily_report_path(rid), style: "color: var(--brand); margin-right: 6px; text-decoration: none;" %>
+              <% end %>
+              <% if report_ids.size > 6 %><span style="color: var(--text-muted);">(+<%= report_ids.size - 6 %>)</span><% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

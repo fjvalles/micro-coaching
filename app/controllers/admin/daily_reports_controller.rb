@@ -32,12 +32,17 @@ module Admin
         scope = scope.where(ai_key_pattern: params[:key_pattern])
       end
 
-      # Filter by reported_at preset
-      if params[:date_preset].present?
-        case params[:date_preset]
-        when "today"   then scope = scope.where(reported_at: Time.current.beginning_of_day..)
-        when "last_7"  then scope = scope.where(reported_at: 7.days.ago..)
-        when "last_30" then scope = scope.where(reported_at: 30.days.ago..)
+      # Filter by reported_at date range
+      if params[:reported_from].present?
+        begin
+          scope = scope.where("reported_at >= ?", Time.zone.parse(params[:reported_from]).beginning_of_day)
+        rescue ArgumentError, TypeError
+        end
+      end
+      if params[:reported_to].present?
+        begin
+          scope = scope.where("reported_at <= ?", Time.zone.parse(params[:reported_to]).end_of_day)
+        rescue ArgumentError, TypeError
         end
       end
 

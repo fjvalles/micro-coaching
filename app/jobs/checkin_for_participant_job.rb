@@ -1,4 +1,5 @@
 class CheckinForParticipantJob < ApplicationJob
+  include IdempotentOutbound
   queue_as :default
 
   def perform(participant_id)
@@ -6,33 +7,28 @@ class CheckinForParticipantJob < ApplicationJob
     day_content = participant.day_content
     return unless day_content
 
-    already = participant.conversations.kept
-                .where(moment: :checkin_question, day_number: participant.current_day)
-                .where("created_at >= ?", participant.local_time.beginning_of_day)
-                .exists?
-    return if already
+    return if already_handled?(participant: participant, moment: :checkin_question, day_number: participant.current_day)
 
     questions = day_content.checkin_questions.to_s
     body = "Check-in del día #{day_content.day_number} — #{day_content.title}\n\n#{questions}"
 
-    if participant.in_24h_window?
-      response = Whatsapp::Client.new.send_text(to: participant.phone_e164, body: body)
-      Conversation.create!(
-        participant: participant, day_number: participant.current_day,
-        moment: :checkin_question, role: :assistant, body: body,
-        whatsapp_message_id: response.wamid,
-        sent_at: response.success? ? Time.current : nil,
-        error_message: response.success? ? nil : response.error
-      )
+    dispatcher = Outbound::Dispatcher.new(
+      participant: participant, moment: :checkin_question, day_number: day_content.day_number
+    )
+    result = if participant.in_24h_window?
+               dispatcher.send_text(body: body)
     else
-      Whatsapp::TemplateSender.new(
-        participant: participant,
-        template_name: "checkin_dia_%02d" % day_content.day_number,
-        moment: :checkin_question, day_number: day_content.day_number,
-        variables: [participant.name, *questions.split("\n").first(3)]
-      ).call
+               dispatcher.send_template(
+                 template_name: "checkin_dia_%02d" % day_content.day_number,
+                 variables: [ participant.name, *questions.split("\n").first(3) ],
+                 body_preview: body
+               )
     end
 
-    participant.update!(pending_checkin_at: Time.current)
+    if result.delivered?
+      PaperTrail.request(whodunnit: "ai:CheckinJob", controller_info: { source: "ai" }) do
+        participant.update!(pending_checkin_at: Time.current)
+      end
+    end
   end
 end

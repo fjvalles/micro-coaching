@@ -1,0 +1,50 @@
+<% content_for :title, "Estrategia" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <span>Estrategia</span>
+<% end %>
+
+<div class="docs-sections">
+  <% @sections.each_with_index do |doc, i| %>
+    <details class="docs-section" <%= i == 0 ? "open" : "" %>>
+      <summary class="docs-section-summary">
+        <div class="docs-section-info">
+          <span class="docs-section-title"><%= doc[:title] %></span>
+          <span class="docs-section-desc"><%= doc[:description] %></span>
+        </div>
+        <div class="docs-section-meta">
+          <span class="docs-section-file"><%= doc[:path] %></span>
+          <span class="docs-section-date"><%= l(doc[:mtime].to_date, format: :long) rescue doc[:mtime].strftime("%Y-%m-%d") %></span>
+        </div>
+        <svg class="docs-section-chevron" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </summary>
+      <div class="docs-section-body md">
+        <%= doc[:html] %>
+      </div>
+    </details>
+  <% end %>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+(function() {
+  function initMermaid() {
+    if (typeof mermaid === 'undefined') return;
+    mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+    document.querySelectorAll('.docs-section-body pre code.language-mermaid').forEach(function(code, i) {
+      var div = document.createElement('div');
+      div.className = 'mermaid';
+      div.id = 'mermaid-strat-' + i;
+      div.textContent = code.textContent;
+      code.parentElement.replaceWith(div);
+    });
+    try { mermaid.init(undefined, document.querySelectorAll('.mermaid')); } catch(e) {}
+  }
+  document.addEventListener('turbo:load', initMermaid);
+  if (document.readyState !== 'loading') initMermaid();
+  else document.addEventListener('DOMContentLoaded', initMermaid);
+})();
+</script>

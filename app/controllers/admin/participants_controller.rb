@@ -5,21 +5,7 @@ module Admin
     def index
       # Support search
       query = params[:q]
-      scope = Participant.all # Include discarded ones in search/admin view if needed, or filter by tab
-
-      # Soft-delete scopes (kept vs discarded)
-      status_filter = params[:status] || "kept"
-
-      if status_filter == "discarded"
-        scope = scope.discarded
-      else
-        scope = scope.kept
-      end
-
-      # Filter by status enum
-      if params[:status_enum].present?
-        scope = scope.where(status: params[:status_enum])
-      end
+      scope = Participant.kept
 
       # Filter by program
       if params[:program_id].present?
@@ -42,23 +28,35 @@ module Admin
           .where(day_contents: { phase: DayContent.phases[params[:phase]] })
       end
 
-      # Filter by pending check-in (awaiting response)
-      if params[:pending_checkin].present?
-        scope = params[:pending_checkin] == "yes" ? scope.where.not(pending_checkin_at: nil) : scope.where(pending_checkin_at: nil)
+      # Filter by company
+      if params[:company].present?
+        if params[:company] == "none"
+          scope = scope.where(company: [ nil, "" ])
+        else
+          scope = scope.where(company: params[:company])
+        end
       end
 
-      # Filter by timezone
-      if params[:timezone].present?
-        scope = scope.where(timezone: params[:timezone])
+      # Filter by response mode
+      if params[:response_mode].present?
+        if params[:response_mode] == "blank"
+          scope = scope.where(response_mode: [ nil, "" ])
+        else
+          scope = scope.where(response_mode: params[:response_mode])
+        end
       end
 
-      # Filter by enrolled date preset (today/7d/30d/never)
-      if params[:enrolled_preset].present?
-        case params[:enrolled_preset]
-        when "today"   then scope = scope.where(enrolled_at: Time.current.beginning_of_day..)
-        when "last_7"  then scope = scope.where(enrolled_at: 7.days.ago..)
-        when "last_30" then scope = scope.where(enrolled_at: 30.days.ago..)
-        when "never"   then scope = scope.where(enrolled_at: nil)
+      # Filter by enrolled date range
+      if params[:enrolled_from].present?
+        begin
+          scope = scope.where("enrolled_at >= ?", Time.zone.parse(params[:enrolled_from]).beginning_of_day)
+        rescue ArgumentError, TypeError
+        end
+      end
+      if params[:enrolled_to].present?
+        begin
+          scope = scope.where("enrolled_at <= ?", Time.zone.parse(params[:enrolled_to]).end_of_day)
+        rescue ArgumentError, TypeError
         end
       end
 
@@ -68,7 +66,8 @@ module Admin
       end
 
       @programs = Program.ordered
-      @timezones = Participant.kept.distinct.pluck(:timezone).compact.sort
+      @companies = Participant.kept.distinct.pluck(:company).compact_blank.sort
+      @day_contents_lookup = DayContent.all.each_with_object({}) { |dc, h| h[[ dc.program_id, dc.day_number ]] = dc.phase }
       @participants = scope.includes(:program).order(created_at: :desc)
     end
 
@@ -78,7 +77,7 @@ module Admin
     end
 
     def new
-      @participant = Participant.new(program_id: params[:program_id], status: :pending, current_day: 0, timezone: "America/Mexico_City")
+      @participant = Participant.new(program_id: params[:program_id], status: :pending, current_day: 0, timezone: (Setting.fetch("default_timezone") || "America/Santiago"))
       @programs = Program.all.order(:name)
     end
 
@@ -152,7 +151,7 @@ module Admin
       params.require(:participant).permit(
         :program_id, :name, :phone_e164, :email, :company, :role, :status,
         :current_day, :timezone, :initial_pattern, :energy_map,
-        :closing_manifesto, :pending_checkin_at
+        :closing_manifesto, :pending_checkin_at, :response_mode
       )
     end
   end

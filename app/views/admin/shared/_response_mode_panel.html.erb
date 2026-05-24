@@ -1,0 +1,43 @@
+<%
+  current_global = Setting.fetch("response_mode")
+  modes = [
+    [ "manual",  "Manual", "Admin responde todo. IA desactivada." ],
+    [ "suggest", "Sugerencia IA", "Admin redacta; IA propone borrador editable." ],
+    [ "approve", "Aprobación IA", "IA genera; admin aprueba antes de enviar." ],
+    [ "auto",    "Automático", "IA envía sin intervención (modo actual)." ]
+  ]
+  pending_count = PendingResponse.kept.pending_action.count
+%>
+
+<div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--brand);">
+  <div class="card-header">
+    <h3 class="card-title">Modo de respuesta global</h3>
+    <% if pending_count.positive? %>
+      <%= link_to admin_pending_responses_path, class: "badge badge-warning", style: "text-decoration:none;" do %>
+        <%= pending_count %> pendientes →
+      <% end %>
+    <% else %>
+      <span class="badge badge-neutral">Sin pendientes</span>
+    <% end %>
+  </div>
+  <div class="card-body">
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+      Define cómo se generan y envían las respuestas a participantes. Programas y participantes pueden sobrescribir este valor.
+    </p>
+    <%= form_with url: admin_update_response_mode_path, method: :post, local: true do |f| %>
+      <%= hidden_field_tag :scope, "global" %>
+      <div style="display:flex; flex-wrap:wrap; gap:12px;">
+        <% modes.each do |key, label, desc| %>
+          <label style="flex:1; min-width:200px; border:1px solid <%= current_global == key ? 'var(--brand)' : 'var(--border)' %>; padding:12px; border-radius:8px; cursor:pointer; <%= 'background: var(--bg-subtle);' if current_global == key %>">
+            <input type="radio" name="mode" value="<%= key %>" <%= 'checked' if current_global == key %> style="margin-right:8px;">
+            <strong><%= label %></strong>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;"><%= desc %></div>
+          </label>
+        <% end %>
+      </div>
+      <div style="margin-top:16px;">
+        <%= f.submit "Guardar modo global", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

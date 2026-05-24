@@ -1,0 +1,141 @@
+<% content_for :title, @template.label %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_prompt_templates_path %>">Prompts</a>
+  <span>/</span>
+  <span><%= @template.label %></span>
+<% end %>
+
+<% content_for :header_actions do %>
+  <%= link_to "Editar prompt", edit_admin_prompt_template_path(@template), class: "btn btn-secondary" %>
+  <%= button_to "Analizar con IA", analyze_admin_prompt_template_path(@template), method: :post, class: "btn btn-primary", data: { turbo_confirm: "¿Encolar análisis de IA sobre las ejecuciones recientes?" } %>
+<% end %>
+
+<!-- MINI DASHBOARD DE MÉTRICAS DEL PROMPT -->
+<div class="stats-grid" style="margin-bottom: 24px;">
+  <!-- Identificador / Key -->
+  <div class="stat-card">
+    <div class="stat-header">
+      <span>Identificador (Key)</span>
+      <svg style="width: 16px; height: 16px; color: var(--brand);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m-2 4a2 2 0 012 2m-2-4h.01M17 7h.01M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+    </div>
+    <div class="stat-value" style="font-size: 15px; font-family: monospace; font-weight: 700; margin-top: 6px; word-break: break-all;">
+      <%= @template.key %>
+    </div>
+    <span class="stat-desc" style="margin-top: 4px;">Origen: <%= @template.source %></span>
+  </div>
+
+  <!-- Programa y Día -->
+  <div class="stat-card">
+    <div class="stat-header">
+      <span>Ámbito / Alcance</span>
+      <svg style="width: 16px; height: 16px; color: var(--info);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+      </svg>
+    </div>
+    <div class="stat-value" style="font-size: 18px; margin-top: 4px;">
+      <%= @template.program ? "Programa: #{@template.program.slug.upcase}" : "Global" %>
+    </div>
+    <span class="stat-desc">
+      <%= @template.day_number ? "Aplica al Día #{@template.day_number}" : "Aplica a todos los días" %>
+    </span>
+  </div>
+
+  <!-- Versión Actual -->
+  <div class="stat-card">
+    <div class="stat-header">
+      <span>Versión Activa</span>
+      <svg style="width: 16px; height: 16px; color: var(--success);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+      </svg>
+    </div>
+    <div class="stat-value" style="color: var(--success);">
+      v<%= @template.current_version %>
+    </div>
+    <span class="stat-desc">Guardada en base de datos</span>
+  </div>
+
+  <!-- Ejecuciones Totales -->
+  <div class="stat-card">
+    <div class="stat-header">
+      <span>Rendimiento</span>
+      <svg style="width: 16px; height: 16px; color: var(--warning);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      </svg>
+    </div>
+    <div class="stat-value">
+      <%= @template.prompt_executions.count %>
+    </div>
+    <span class="stat-desc">Ejecuciones de IA registradas</span>
+  </div>
+</div>
+
+<% if @template.description.present? %>
+  <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--border-focus);">
+    <div class="card-body" style="padding: 16px 20px;">
+      <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5; font-style: italic;">
+        <strong>Descripción:</strong> <%= @template.description %>
+      </p>
+    </div>
+  </div>
+<% end %>
+
+<!-- EDITOR DEL BODY ACTUAL -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header" style="background-color: var(--bg-primary);">
+    <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+      <svg style="width: 18px; height: 18px; color: var(--text-muted);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      Cuerpo Activo del Prompt
+    </h3>
+  </div>
+  <div class="card-body" style="padding: 16px;">
+    <div class="editor-preview-container">
+      <div class="editor-header">
+        <span class="editor-title">active_prompt_v<%= @template.current_version %>.md</span>
+        <div class="editor-actions-btns">
+          <button onclick="navigator.clipboard.writeText(document.getElementById('prompt-body').innerText); alert('Código copiado al portapapeles');" class="btn btn-sm btn-secondary" style="padding: 2px 8px; font-size: 11px; background: transparent; border-color: #475569; color: #94a3b8;">
+            Copiar Contenido
+          </button>
+        </div>
+      </div>
+      <div class="editor-body" id="prompt-body" style="max-height: 280px;"><%= @template.current_body %></div>
+    </div>
+  </div>
+</div>
+
+<!-- NAVEGACIÓN DE PESTAÑAS REDISEÑADA -->
+<div class="card" style="margin-bottom: 32px;">
+  <div class="card-header" style="background-color: var(--bg-primary); padding: 0 16px; border-bottom: 1px solid var(--border);">
+    <div style="display: flex; gap: 8px;">
+      <% %w[executions versions analyses].each do |tab| %>
+        <% 
+          is_active = @tab == tab 
+          tab_label = case tab
+                      when "executions" then "Ejecuciones"
+                      when "versions" then "Historial de Versiones"
+                      when "analyses" then "Análisis de Calidad IA"
+                      end
+        %>
+        <a href="<%= admin_prompt_template_path(@template, tab: tab) %>" 
+           class="btn"
+           style="background: transparent; border: none; box-shadow: none; padding: 16px 20px; font-size: 13.5px; font-weight: 600; border-radius: 0; color: <%= is_active ? 'var(--brand)' : 'var(--text-muted)' %>; border-bottom: 3px solid <%= is_active ? 'var(--brand)' : 'transparent' %>; transition: all 0.2s; margin-bottom: -1px;">
+          <%= tab_label %>
+        </a>
+      <% end %>
+    </div>
+  </div>
+  <div class="card-body" style="padding: 24px;">
+    <% if @tab == "executions" %>
+      <%= render "executions" %>
+    <% elsif @tab == "versions" %>
+      <%= render "versions" %>
+    <% elsif @tab == "analyses" %>
+      <%= render "analyses" %>
+    <% end %>
+  </div>
+</div>

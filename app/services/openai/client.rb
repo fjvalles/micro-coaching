@@ -1,6 +1,8 @@
 module Openai
   class Client
-    Result = Struct.new(:content, :tokens_input, :tokens_output, :model, keyword_init: true)
+    include Openai::Retryable
+
+    Result = Struct.new(:content, :tokens_input, :tokens_output, :model, :latency_ms, keyword_init: true)
 
     DEFAULT_MODEL = "gpt-4.1-mini".freeze
 
@@ -16,13 +18,12 @@ module Openai
       if Setting.fetch("openai_dry_run_global")
         return Result.new(
           content: "[dry-run] OpenAI desactivado vía openai_dry_run_global.",
-          tokens_input: 0, tokens_output: 0, model: "dry-run"
+          tokens_input: 0, tokens_output: 0, model: "dry-run", latency_ms: 0
         )
       end
 
       raise ArgumentError, "OPENAI_API_KEY missing" if @api_key.blank?
 
-      client = ::OpenAI::Client.new(access_token: @api_key, request_timeout: 30)
       params = {
         model: @model,
         messages: messages,
@@ -31,7 +32,10 @@ module Openai
       }
       params[:response_format] = response_format if response_format
 
-      response = with_retries { client.chat(parameters: params) }
+      started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      response = with_retries { http_client.chat(parameters: params) }
+      latency_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
+
       content = response.dig("choices", 0, "message", "content").to_s.strip
       usage = response["usage"] || {}
 
@@ -39,23 +43,15 @@ module Openai
         content: content,
         tokens_input: usage["prompt_tokens"].to_i,
         tokens_output: usage["completion_tokens"].to_i,
-        model: response["model"] || @model
+        model: response["model"] || @model,
+        latency_ms: latency_ms
       )
     end
 
     private
 
-    def with_retries(max: nil)
-      max ||= Setting.fetch("openai_retry_max") || 3
-      attempt = 0
-      begin
-        attempt += 1
-        yield
-      rescue Faraday::TooManyRequestsError, Faraday::ServerError, Faraday::TimeoutError => e
-        raise e if attempt >= max
-        sleep(0.5 * (2**attempt))
-        retry
-      end
+    def http_client
+      @http_client ||= ::OpenAI::Client.new(access_token: @api_key, request_timeout: 30)
     end
   end
 end

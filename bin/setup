@@ -34,6 +34,15 @@ FileUtils.chdir APP_ROOT do
   puts "\n== Restarting application server =="
   system! "bin/rails restart"
 
+  puts "\n== Installing git hooks =="
+  if Dir.exist?(".git")
+    FileUtils.cp "bin/pre-push-hook", ".git/hooks/pre-push"
+    FileUtils.chmod 0755, ".git/hooks/pre-push"
+    puts "✓ Installed pre-push git hook."
+  else
+    puts "Warning: .git directory not found. Skipping git hook installation."
+  end
+
   # puts "\n== Configuring puma-dev =="
   # system "ln -nfs #{APP_ROOT} ~/.puma-dev/#{APP_NAME}"
   # system "curl -Is https://#{APP_NAME}.test/up | head -n 1"

@@ -1,0 +1,42 @@
+<% content_for :title, "Pendiente · #{@pending.participant.name}" %>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title"><%= @pending.participant.name %> — <%= @pending.moment %> (día <%= @pending.day_number %>)</h3>
+    <span class="badge badge-neutral">Modo: <%= @pending.mode %></span>
+  </div>
+  <div class="card-body">
+    <p><strong>Teléfono:</strong> <%= @pending.participant.phone_e164 %></p>
+    <p><strong>Entrega:</strong> <%= @pending.delivery_kind %><% if @pending.template_name.present? %> · template <code><%= @pending.template_name %></code><% end %></p>
+
+    <% last_inbound = @pending.participant.conversations.kept.where(role: :user).order(created_at: :desc).first %>
+    <% if last_inbound %>
+      <div style="background:var(--bg-subtle); padding:12px; border-radius:6px; margin:16px 0;">
+        <strong>Último mensaje del participante:</strong>
+        <p style="margin-top:8px; white-space:pre-wrap;"><%= last_inbound.body.presence || last_inbound.transcription %></p>
+      </div>
+    <% end %>
+
+    <%= form_with model: @pending, url: admin_pending_response_path(@pending), method: :patch, local: true do |f| %>
+      <div style="margin-bottom:12px;">
+        <label><strong>Borrador</strong></label>
+        <%= f.text_area :draft_body, rows: 8, style: "width:100%; font-family:inherit; padding:8px;" %>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <%= f.submit "Guardar cambios", class: "btn" %>
+        <%= button_to "Aprobar", approve_admin_pending_response_path(@pending), method: :post, class: "btn btn-primary" %>
+        <%= button_to "Aprobar y enviar ahora", send_now_admin_pending_response_path(@pending), method: :post, class: "btn btn-success" %>
+        <%= button_to "Rechazar", reject_admin_pending_response_path(@pending), method: :post, class: "btn btn-danger",
+                      data: { confirm: "¿Rechazar este borrador?" } %>
+        <%= link_to "Volver", admin_pending_responses_path, class: "btn" %>
+      </div>
+    <% end %>
+
+    <% if @pending.prompt_used.present? %>
+      <details style="margin-top:24px;">
+        <summary>Prompt IA usado (<%= @pending.model_used %> · <%= @pending.tokens_input %>/<%= @pending.tokens_output %> tokens)</summary>
+        <pre style="white-space:pre-wrap; font-size:11px; padding:12px; background:var(--bg-subtle);"><%= @pending.prompt_used %></pre>
+      </details>
+    <% end %>
+  </div>
+</div>

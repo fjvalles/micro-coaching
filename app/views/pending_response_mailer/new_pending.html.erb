@@ -1,0 +1,11 @@
+<h2>Respuesta pendiente</h2>
+<p><strong>Participante:</strong> <%= @participant.name %> (<%= @participant.phone_e164 %>)</p>
+<p><strong>Momento:</strong> <%= @pending.moment %> · Día <%= @pending.day_number %></p>
+<p><strong>Modo:</strong> <%= @pending.mode %></p>
+<% if @pending.draft_body.present? %>
+  <h3>Borrador IA</h3>
+  <pre><%= @pending.draft_body %></pre>
+<% else %>
+  <p><em>Sin borrador (modo manual). Redacta la respuesta en el panel.</em></p>
+<% end %>
+<p>Acción → admin / pending_responses</p>

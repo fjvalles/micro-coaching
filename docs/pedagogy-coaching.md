@@ -1,6 +1,6 @@
 # Metodología de Micro-Coaching y Pedagogía
 
-Impulso by Comtraining (codename interno: Piloto Automático) no es una app de productividad genérica ni un bot de autoayuda. Está diseñado en torno a principios científicos de **cambio de comportamiento**, **psicología cognitiva** y **micro-coaching de alta frecuencia**.
+Impulso by Comtraining no es una app de productividad genérica ni un bot de autoayuda. Está diseñado en torno a principios científicos de **cambio de comportamiento**, **psicología cognitiva** y **micro-coaching de alta frecuencia**.
 
 Esta guía detalla el marco teórico, el diseño de la experiencia del participante y los fundamentos pedagógicos del programa de 14 días.
 
@@ -14,7 +14,7 @@ Esta guía detalla el marco teórico, el diseño de la experiencia del participa
 
 El coaching tradicional suele sufrir de fricción y falta de adherencia: sesiones semanales largas donde el cliente olvida lo conversado al día siguiente. 
 
-Piloto Automático aborda esto mediante **micro-coaching**:
+El programa aborda esto mediante **micro-coaching**:
 * **Cero fricción de canal:** El programa ocurre en WhatsApp, el entorno natural del participante. No requiere descargar apps, recordar contraseñas ni aprender nuevas interfaces.
 * **Micro-ciclos de reflexión (Micro-Reflection Loops):** Interacciones diarias ultra-cortas que toman menos de 3 minutos, pero mantienen el foco y la autoconciencia activos constantemente.
 * **Priming y Cierre Diario:** La separación temporal de los estímulos matutinos y vespertinos respeta los ritmos circadianos del aprendizaje y la toma de decisiones.
@@ -106,7 +106,7 @@ sequenceDiagram
 
 ## 4. El Rol de la Inteligencia Artificial: Espejo, no Gurú
 
-El rol de la IA en Piloto Automático no es dar consejos moralistas ni resolver la vida del participante. Su rol está estrictamente delimitado a:
+El rol de la IA no es dar consejos moralistas ni resolver la vida del participante. Su rol está estrictamente delimitado a:
 
 1. **Espejo Reflexivo:** En el check-in diario, la IA procesa la respuesta del participante y devuelve una síntesis libre de juicio. Ayuda a que el participante se lea a sí mismo desde otra perspectiva.
 2. **Generador de Retos Contextuales:** La IA utiliza la respuesta inicial del participante (su `initial_pattern`) y sus reflexiones pasadas para generar un reto diario que calce con su nivel de energía y sus metas reales.
@@ -114,7 +114,68 @@ El rol de la IA en Piloto Automático no es dar consejos moralistas ni resolver 
 
 ---
 
-## 5. El Cierre Pedagógico: El Manifiesto del Día 15
+## 5. Marco Científico (Evidence-Based Coaching)
+
+La metodología no es opinión; está anclada en literatura revisada por pares. Los cuatro pilares teóricos que sostienen el diseño:
+
+### 5.1 BCT Taxonomy v1 — Behaviour Change Techniques (Michie et al., 2013)
+
+La taxonomía v1 cataloga **93 técnicas observables y replicables** de cambio de comportamiento. Cada touchpoint del programa activa un subconjunto específico:
+
+| Touchpoint | BCTs activadas |
+|------------|---------------|
+| **Welcome / `initial_pattern`** | `1.1 Goal setting (behaviour)`, `1.2 Problem solving`, `3.1 Social support (unspecified)` |
+| **Morning wake** | `5.1 Information about health consequences` (suave), `15.1 Verbal persuasion about capability`, `13.2 Framing/reframing` |
+| **IAReto (reto diario)** | `1.4 Action planning`, `8.1 Behavioural practice/rehearsal`, `8.3 Habit formation` (fase Anchor), `1.5 Review behaviour goals` |
+| **Check-in vespertino** | `2.3 Self-monitoring of behaviour`, `2.2 Feedback on behaviour`, `4.1 Instruction on how to perform the behaviour`, `13.5 Identity associated with changed behaviour` (fase Anchor) |
+| **DailyReport → admin** | `2.2 Feedback on behaviour` (loop hacia el coach humano), `2.7 Feedback on outcome of behaviour` |
+| **Manifiesto Día 15** | `13.5 Identity associated with changed behaviour`, `15.3 Focus on past success`, `15.4 Self-talk` |
+
+> [!NOTE]
+> **Por qué importa:** el reporte de intervenciones conductuales en literatura clínica usa BCT v1 como lingua franca. Mapear nuestros touchpoints a BCT hace el producto auditable y defendible frente a RR.HH., L&D y comités científicos.
+
+### 5.2 Fogg Behavior Model (B=MAP) y Tiny Habits
+
+BJ Fogg (Stanford Behavior Design Lab) demuestra que **Comportamiento = Motivación × Habilidad × Prompt** (B=MAP). Si el comportamiento no ocurre, falta uno de los tres factores.
+
+* **Prompt:** el mensaje de WhatsApp **ES** el prompt en el modelo de Fogg. La cadencia matutina/vespertina garantiza que el prompt llegue cuando hay capacidad de actuar.
+* **Habilidad:** el IAReto está calibrado para ser **diminuto** (tiny habit). No "medita 20 minutos"; sí "respira 10 segundos al abrir tu laptop". Investigación 2025: leaders que comenzaron con hábitos mínimos viables tuvieron **2.7× más probabilidad** de mantenerlos a largo plazo.
+* **Motivación:** se aprovechan "motivation waves" — bajamos la fricción del reto cuando la motivación es típicamente baja (lunes a.m., post-jornada).
+* **Ancla (fase Anchor):** la fórmula "después de X (rutina existente), haré Y (nuevo comportamiento)" es exactamente el patrón Tiny Habits de Fogg.
+
+### 5.3 Self-Determination Theory (SDT) — Deci & Ryan
+
+El cambio sostenible requiere tres nutrientes psicológicos: **autonomía**, **competencia**, **conexión**. Cómo lo respeta el diseño:
+
+* **Autonomía:** la IA nunca prescribe; pregunta. El participante elige sus propias respuestas y patrones a observar. El reto es una *propuesta*, no una orden.
+* **Competencia:** los retos están escalados al nivel del participante (vía `initial_pattern` y `energy_map`). Pequeñas victorias = sensación de progreso = adherencia.
+* **Conexión:** aunque la IA no reemplaza vínculo humano, el coach/admin puede intervenir desde el panel cuando un participante muestra patrones de bloqueo (ver fase Stuck en sección Metodología del admin).
+
+### 5.4 Motivational Interviewing + Transtheoretical Model (Etapas de Cambio)
+
+* **Motivational Interviewing (Miller & Rollnick):** la IA emplea preguntas abiertas, escucha reflexiva ("entiendo que…") y evita la trampa de la persuasión directa. El `CheckinSummarizer` está prompted para devolver síntesis sin juicio.
+* **Transtheoretical Model (Prochaska & DiClemente):** el programa de 14 días mapea las etapas:
+  * **Pre-contemplación → Contemplación:** días 1-3 (fase Ver inicial).
+  * **Contemplación → Preparación:** días 4-7 (fase Ver tardía + Elegir inicial).
+  * **Acción:** días 8-12 (fase Elegir + Anclar inicial).
+  * **Mantenimiento:** días 13-14 + Manifiesto.
+
+---
+
+## 6. El Loop de Mejora Continua del Sistema (Prompt Learning Loop)
+
+El sistema mismo es un sujeto de aprendizaje. Cada interacción alimenta un loop **Observe → Evaluate → Improve** documentado en detalle en [`docs/learning-system.md`](learning-system.md):
+
+* **Observe:** `Openai::PromptLogger` registra cada llamada IA (`PromptExecution`: mensajes renderizados, output, tokens, latencia). `DailyReport.ai_key_pattern` captura el patrón detectado por noche. `Conversation.voice_analysis` captura tono/energía cuando hay audio.
+* **Evaluate:** `Openai::PromptCritic` analiza muestras de `PromptExecution` y emite `PromptAnalysis` con findings (weaknesses, risks) + `suggested_body`. `Openai::PatternClusterer` agrupa `ai_key_pattern` recurrentes para detectar temas transversales.
+* **Improve:** el admin aplica sugerencias desde `/admin/prompt_templates`, generando una nueva `PromptVersion`. La sección `/admin/metodologia` muestra el **delta tokens/latencia antes vs después** para validar que el cambio funcionó. El loop se reinicia.
+
+> [!TIP]
+> **Loop recursivo:** el propio `PatternClusterer` queda registrado como `PromptTemplate` (key `methodology_pattern_clusterer`), por lo que `PromptCritic` puede analizar y mejorar el clusterer mismo. La metodología mejora la metodología.
+
+---
+
+## 7. El Cierre Pedagógico: El Manifiesto del Día 15
 
 El día después de terminar el programa (Día 15), el participante recibe un **Manifiesto Personalizado** generado por la IA. 
 

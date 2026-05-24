@@ -47,7 +47,7 @@ module Admin
     end
 
     def program_params
-      params.require(:program).permit(:name, :slug, :description, :manifesto, :total_days, :active)
+      params.require(:program).permit(:name, :slug, :description, :manifesto, :total_days, :active, :response_mode)
     end
   end
 end

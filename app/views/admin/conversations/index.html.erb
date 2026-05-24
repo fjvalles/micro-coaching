@@ -9,15 +9,71 @@
   current_query[:program_id] = params[:program_id] if params[:program_id].present?
   current_query[:day_number] = params[:day_number] if params[:day_number].present?
   current_query[:delivery_status] = params[:delivery_status] if params[:delivery_status].present?
-  current_query[:date_preset] = params[:date_preset] if params[:date_preset].present?
+  current_query[:created_from] = params[:created_from] if params[:created_from].present?
+  current_query[:created_to] = params[:created_to] if params[:created_to].present?
   current_query[:message_type] = params[:message_type] if params[:message_type].present?
   current_query[:ai_generated] = params[:ai_generated] if params[:ai_generated].present?
 
   clear_query = ->(key) { current_query.except(key) }
 
-  date_preset_labels = { "today" => "Hoy", "last_7" => "Últimos 7 días", "last_30" => "Últimos 30 días" }
   message_type_labels = { "template" => "Solo plantillas", "free" => "Solo libres" }
+
+  selected_created_range = []
+  if params[:created_from].present? || params[:created_to].present?
+    from_formatted = params[:created_from].present? ? Date.parse(params[:created_from]).strftime("%d/%m") : "..."
+    to_formatted = params[:created_to].present? ? Date.parse(params[:created_to]).strftime("%d/%m") : "..."
+    selected_created_range = ["#{from_formatted} a #{to_formatted}"]
+  end
 %>
+
+<div style="display:flex;gap:0;margin-bottom:1.5rem;border-bottom:1px solid var(--border);">
+  <%= link_to "Mensajes", admin_conversations_path,
+        style: "padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;text-decoration:none;border-bottom:2px solid #{params[:tab].blank? ? 'var(--brand)' : 'transparent'};color:#{params[:tab].blank? ? 'var(--brand)' : 'var(--text-muted)'};" %>
+  <%= link_to "Desconocidos", admin_conversations_path(tab: "unknown"),
+        style: "padding:0.5rem 1rem;font-size:0.875rem;font-weight:600;text-decoration:none;border-bottom:2px solid #{params[:tab] == 'unknown' ? 'var(--brand)' : 'transparent'};color:#{params[:tab] == 'unknown' ? 'var(--brand)' : 'var(--text-muted)'};" %>
+</div>
+
+<% if params[:tab] == "unknown" %>
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Números no registrados</h3>
+      <span style="font-size:0.8rem;color:var(--text-muted);"><%= @unknown_inbounds.size %> registros</span>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <% if @unknown_inbounds.empty? %>
+        <div class="empty-state">
+          <div class="empty-state-title">Sin registros</div>
+          <div class="empty-state-desc">Ningún número desconocido ha enviado mensajes.</div>
+        </div>
+      <% else %>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Teléfono</th>
+              <th>Tipo</th>
+              <th>Vista previa</th>
+              <th>Recibido</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @unknown_inbounds.each do |inbound| %>
+              <tr>
+                <td><code><%= inbound.phone %></code></td>
+                <td><%= inbound.message_type %></td>
+                <td style="color:var(--text-muted);max-width:350px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                  <%= inbound.body_preview.presence || "—" %>
+                </td>
+                <td style="white-space:nowrap;font-size:13px;color:var(--text-muted);">
+                  <%= inbound.received_at&.strftime("%d/%m/%Y %H:%M") %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
+    </div>
+  </div>
+<% else %>
 
 <% content_for :header_actions do %>
   <%= render "shared/search_field", id: "conversation-search", value: params[:q], form_id: "conversation-filters", placeholder: "Buscar mensajes...", style_type: :header %>
@@ -121,19 +177,24 @@
         </label>
       <% end %>
 
-      <!-- Date Preset Dropdown -->
+      <!-- Date Range Dropdown -->
       <%= render layout: "shared/filter_dropdown", locals: {
             label: "Periodo",
-            selected_values: Array(date_preset_labels[params[:date_preset]]).compact,
-            clear_url: admin_conversations_path(clear_query.call(:date_preset)),
-            is_active: params[:date_preset].present?
+            selected_values: selected_created_range,
+            clear_url: admin_conversations_path(current_query.except(:created_from, :created_to)),
+            is_active: params[:created_from].present? || params[:created_to].present?
           } do %>
-        <% date_preset_labels.each do |key, label| %>
-          <label class="filter-option">
-            <%= f.radio_button :date_preset, key, checked: params[:date_preset] == key, data: { auto_submit_filter: true } %>
-            <span><%= label %></span>
-          </label>
-        <% end %>
+        <div style="padding: 8px; display: flex; flex-direction: column; gap: 10px; min-width: 200px;">
+          <div>
+            <label class="form-label" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Desde</label>
+            <%= f.date_field :created_from, value: params[:created_from], class: "form-input", style: "padding: 6px 10px; font-size: 13px;" %>
+          </div>
+          <div>
+            <label class="form-label" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Hasta</label>
+            <%= f.date_field :created_to, value: params[:created_to], class: "form-input", style: "padding: 6px 10px; font-size: 13px;" %>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 4px; font-size: 12px; font-weight: 600;">Aplicar</button>
+        </div>
       <% end %>
 
       <!-- Message Type Dropdown -->
@@ -230,7 +291,7 @@
                   <%= l(c.created_at, format: :short) rescue c.created_at.strftime("%d/%m %H:%M") %>
                 </td>
                 <td class="table-actions">
-                  <a href="<%= admin_conversation_path(c) %>" class="btn btn-secondary btn-sm">Detalles</a>
+                  <%= render "shared/table_action_view", path: admin_conversation_path(c), title: "Ver detalles de mensaje" %>
                 </td>
               </tr>
             <% end %>
@@ -278,3 +339,4 @@
     <% end %>
   </div>
 </div>
+<% end %>

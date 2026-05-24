@@ -5,7 +5,10 @@ class CheckinEveningJob < ApplicationJob
     checkin_hour = Setting.fetch("checkin_hour").to_i
     Participant.kept.active.find_each do |participant|
       next unless participant.local_time.hour == checkin_hour
-      next if participant.current_day < 1 || participant.current_day > 14
+
+      total = participant.program&.total_days || 14
+      next if participant.current_day < 1 || participant.current_day > total
+
       CheckinForParticipantJob.perform_later(participant.id)
     end
   end

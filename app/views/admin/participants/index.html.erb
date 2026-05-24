@@ -3,18 +3,22 @@
 <%
   current_query = {}
   current_query[:q] = params[:q] if params[:q].present?
-  current_query[:status] = params[:status] if params[:status].present?
-  current_query[:status_enum] = params[:status_enum] if params[:status_enum].present?
   current_query[:program_id] = params[:program_id] if params[:program_id].present?
   current_query[:current_day] = params[:current_day] if params[:current_day].present?
   current_query[:phase] = params[:phase] if params[:phase].present?
-  current_query[:pending_checkin] = params[:pending_checkin] if params[:pending_checkin].present?
-  current_query[:timezone] = params[:timezone] if params[:timezone].present?
-  current_query[:enrolled_preset] = params[:enrolled_preset] if params[:enrolled_preset].present?
+  current_query[:enrolled_from] = params[:enrolled_from] if params[:enrolled_from].present?
+  current_query[:enrolled_to] = params[:enrolled_to] if params[:enrolled_to].present?
+  current_query[:company] = params[:company] if params[:company].present?
+  current_query[:response_mode] = params[:response_mode] if params[:response_mode].present?
 
   clear_query = ->(key) { current_query.except(key) }
 
-  enrolled_preset_labels = { "today" => "Hoy", "last_7" => "Últimos 7 días", "last_30" => "Últimos 30 días", "never" => "Nunca inscritos" }
+  selected_enrolled_range = []
+  if params[:enrolled_from].present? || params[:enrolled_to].present?
+    from_formatted = params[:enrolled_from].present? ? Date.parse(params[:enrolled_from]).strftime("%d/%m") : "..."
+    to_formatted = params[:enrolled_to].present? ? Date.parse(params[:enrolled_to]).strftime("%d/%m") : "..."
+    selected_enrolled_range = ["#{from_formatted} a #{to_formatted}"]
+  end
 %>
 
 <% content_for :header_actions do %>
@@ -23,42 +27,9 @@
   <%= render "shared/primary_button", path: new_admin_participant_path, text: "Nuevo participante", icon: :plus %>
 <% end %>
 
-<!-- Tabs / Filters Bar -->
-<div class="tabs-container">
-  <ul class="tabs-nav">
-    <li>
-      <a href="<%= admin_participants_path(clear_query.call(:status).merge(status: 'kept')) %>" class="tab-link <%= 'active' if params[:status] != 'discarded' %>">
-        Activos / Disponibles
-      </a>
-    </li>
-    <li>
-      <a href="<%= admin_participants_path(clear_query.call(:status).merge(status: 'discarded')) %>" class="tab-link <%= 'active' if params[:status] == 'discarded' %>">
-        Archivados
-      </a>
-    </li>
-  </ul>
-</div>
-
 <div style="margin-bottom: 24px;">
   <%= form_with url: admin_participants_path, method: :get, local: true, html: { id: "participant-filters", class: "filter-toolbar" } do |f| %>
-    <%= f.hidden_field :status, value: params[:status] %>
-
     <div class="filter-toolbar-row">
-      <!-- Status Enum Dropdown -->
-      <%= render layout: "shared/filter_dropdown", locals: {
-            label: "Estado",
-            selected_values: Array(params[:status_enum].presence).map { |st| translate_status(st) },
-            clear_url: admin_participants_path(clear_query.call(:status_enum)),
-            is_active: params[:status_enum].present?
-          } do %>
-        <% Participant.statuses.keys.each do |st| %>
-          <label class="filter-option">
-            <%= f.radio_button :status_enum, st, checked: params[:status_enum] == st, data: { auto_submit_filter: true } %>
-            <span><%= translate_status(st) %></span>
-          </label>
-        <% end %>
-      <% end %>
-
       <!-- Program Dropdown -->
       <%= render layout: "shared/filter_dropdown", locals: {
             label: "Programa",
@@ -108,62 +79,70 @@
         <% end %>
       <% end %>
 
-      <!-- Pending Check-in Dropdown -->
+      <!-- Company Dropdown -->
       <%= render layout: "shared/filter_dropdown", locals: {
-            label: "Check-in pendiente",
-            selected_values: params[:pending_checkin].present? ? [ params[:pending_checkin] == "yes" ? "Sí" : "No" ] : [],
-            clear_url: admin_participants_path(clear_query.call(:pending_checkin)),
-            is_active: params[:pending_checkin].present?
+            label: "Empresa",
+            selected_values: params[:company].present? ? (params[:company] == "none" ? ["Sin empresa"] : [params[:company]]) : [],
+            clear_url: admin_participants_path(clear_query.call(:company)),
+            is_active: params[:company].present?
           } do %>
         <label class="filter-option">
-          <%= f.radio_button :pending_checkin, "yes", checked: params[:pending_checkin] == "yes", data: { auto_submit_filter: true } %>
-          <span>Con check-in pendiente</span>
+          <%= f.radio_button :company, "none", checked: params[:company] == "none", data: { auto_submit_filter: true } %>
+          <span>Sin empresa</span>
         </label>
-        <label class="filter-option">
-          <%= f.radio_button :pending_checkin, "no", checked: params[:pending_checkin] == "no", data: { auto_submit_filter: true } %>
-          <span>Sin check-in pendiente</span>
-        </label>
-      <% end %>
-
-      <!-- Timezone Dropdown -->
-      <% if @timezones.any? %>
-        <%= render layout: "shared/filter_dropdown", locals: {
-              label: "Zona horaria",
-              selected_values: Array(params[:timezone].presence),
-              clear_url: admin_participants_path(clear_query.call(:timezone)),
-              is_active: params[:timezone].present?
-            } do %>
-          <% @timezones.each do |tz| %>
-            <label class="filter-option">
-              <%= f.radio_button :timezone, tz, checked: params[:timezone] == tz, data: { auto_submit_filter: true } %>
-              <span><%= tz %></span>
-            </label>
-          <% end %>
+        <% @companies.each do |comp| %>
+          <label class="filter-option">
+            <%= f.radio_button :company, comp, checked: params[:company] == comp, data: { auto_submit_filter: true } %>
+            <span><%= comp %></span>
+          </label>
         <% end %>
       <% end %>
 
-      <!-- Enrolled Preset Dropdown -->
+      <!-- Response Mode Dropdown -->
       <%= render layout: "shared/filter_dropdown", locals: {
-            label: "Inscripción",
-            selected_values: Array(enrolled_preset_labels[params[:enrolled_preset]]).compact,
-            clear_url: admin_participants_path(clear_query.call(:enrolled_preset)),
-            is_active: params[:enrolled_preset].present?
+            label: "Modo IA",
+            selected_values: params[:response_mode].present? ? (params[:response_mode] == "blank" ? ["Heredar"] : [translate_response_mode(params[:response_mode])]) : [],
+            clear_url: admin_participants_path(clear_query.call(:response_mode)),
+            is_active: params[:response_mode].present?
           } do %>
-        <% enrolled_preset_labels.each do |key, label| %>
+        <label class="filter-option">
+          <%= f.radio_button :response_mode, "blank", checked: params[:response_mode] == "blank", data: { auto_submit_filter: true } %>
+          <span>Heredar (programa/global)</span>
+        </label>
+        <% [["Manual", "manual"], ["Sugerencia IA", "suggest"], ["Aprobación IA", "approve"], ["Automático", "auto"]].each do |label, value| %>
           <label class="filter-option">
-            <%= f.radio_button :enrolled_preset, key, checked: params[:enrolled_preset] == key, data: { auto_submit_filter: true } %>
+            <%= f.radio_button :response_mode, value, checked: params[:response_mode] == value, data: { auto_submit_filter: true } %>
             <span><%= label %></span>
           </label>
         <% end %>
       <% end %>
 
-      <% if current_query.except(:status).any? %>
-        <%= link_to "Limpiar", admin_participants_path(status: params[:status]), class: "filter-reset-link" %>
+      <!-- Enrolled Date Range Dropdown -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Fecha Inscripción",
+            selected_values: selected_enrolled_range,
+            clear_url: admin_participants_path(current_query.except(:enrolled_from, :enrolled_to)),
+            is_active: params[:enrolled_from].present? || params[:enrolled_to].present?
+          } do %>
+        <div style="padding: 8px; display: flex; flex-direction: column; gap: 10px; min-width: 200px;">
+          <div>
+            <label class="form-label" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Desde</label>
+            <%= f.date_field :enrolled_from, value: params[:enrolled_from], class: "form-input", style: "padding: 6px 10px; font-size: 13px;" %>
+          </div>
+          <div>
+            <label class="form-label" style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Hasta</label>
+            <%= f.date_field :enrolled_to, value: params[:enrolled_to], class: "form-input", style: "padding: 6px 10px; font-size: 13px;" %>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 4px; font-size: 12px; font-weight: 600;">Aplicar</button>
+        </div>
+      <% end %>
+
+      <% if current_query.any? %>
+        <%= link_to "Limpiar", admin_participants_path, class: "filter-reset-link" %>
       <% end %>
     </div>
   <% end %>
 </div>
-
 
 <div class="card">
   <div class="card-body" style="padding: 0;">
@@ -173,16 +152,18 @@
           <thead>
             <tr>
               <th>Nombre</th>
+              <th>Empresa</th>
               <th>Programa</th>
               <th>Estado</th>
-              <th>Día / Fase</th>
-              <th>Zona Horaria</th>
+              <th>Día</th>
+              <th>Fase</th>
+              <th>Modo Respuesta IA</th>
               <th style="text-align: right;">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <% @participants.each do |p| %>
-              <tr style="<%= 'opacity: 0.7;' if p.discarded? %>">
+              <tr>
                 <td>
                   <a href="<%= admin_participant_path(p) %>" style="font-weight: 600; color: var(--brand); text-decoration: none;">
                     <%= p.name %>
@@ -190,6 +171,13 @@
                   <div style="font-size: 12px; color: var(--text-muted);"><%= p.phone_e164 %></div>
                   <% if p.email.present? %>
                     <div style="font-size: 12px; color: var(--text-muted);"><%= p.email %></div>
+                  <% end %>
+                </td>
+                <td>
+                  <% if p.company.present? %>
+                    <span style="font-weight: 500; color: var(--text-main);"><%= p.company %></span>
+                  <% else %>
+                    <span style="color: var(--text-muted); font-style: italic; font-size: 13px;">Sin empresa</span>
                   <% end %>
                 </td>
                 <td>
@@ -214,33 +202,41 @@
                   </span>
                 </td>
                 <td>
-                  <div style="font-weight: 500;">Día <%= p.current_day %></div>
-                  <% if p.status.to_sym == :active %>
-                    <div style="font-size: 11px;">
-                      <% phase_class = case p.phase
-                         when :see then 'badge-info'
-                         when :choose then 'badge-warning'
-                         when :anchor then 'badge-success'
-                         else 'badge-neutral'
-                         end %>
-                      <span class="badge <%= phase_class %>" style="font-size: 9px; padding: 1px 5px;"><%= translate_phase(p.phase).upcase %></span>
-                    </div>
-                  <% end %>
+                  <span style="font-weight: 500;">Día <%= p.current_day %></span>
                 </td>
-                <td style="font-size: 13px; color: var(--text-muted);"><%= p.timezone %></td>
+                <td>
+                  <% phase_val = @day_contents_lookup[[p.program_id, p.current_day]] || :pending %>
+                  <% phase_class = case phase_val
+                     when :see then 'badge-info'
+                     when :choose then 'badge-warning'
+                     when :anchor then 'badge-success'
+                     else 'badge-neutral'
+                     end %>
+                  <span class="badge <%= phase_class %>" style="font-size: 10px; padding: 2px 6px;">
+                    <%= translate_phase(phase_val).upcase %>
+                  </span>
+                </td>
+                <td>
+                  <% mode_badge_class = case p.response_mode
+                     when "auto" then 'badge-success'
+                     when "approve" then 'badge-info'
+                     when "suggest" then 'badge-warning'
+                     when "manual" then 'badge-neutral'
+                     else 'badge-neutral'
+                     end %>
+                  <span class="badge <%= mode_badge_class %>" style="font-size: 11px; font-weight: 500;">
+                    <%= translate_response_mode(p.response_mode) %>
+                  </span>
+                </td>
                 <td class="table-actions">
-                  <a href="<%= admin_participant_path(p) %>" class="btn btn-secondary btn-sm">Ver</a>
-                  <a href="<%= edit_admin_participant_path(p) %>" class="btn btn-secondary btn-sm">Editar</a>
+                  <%= render "shared/table_action_view", path: admin_participant_path(p), title: "Ver participante" %>
+                  <%= render "shared/table_action_edit", path: edit_admin_participant_path(p), title: "Editar participante" %>
                   
                   <% if p.pending? %>
-                    <%= button_to "Inscribir", enroll_admin_participant_path(p), method: :post, data: { confirm: "¿Inscribir a #{p.name} al programa? Se enviará el mensaje de bienvenida.", turbo_confirm: "¿Inscribir?" }, class: "btn btn-primary btn-sm" %>
+                    <%= render "shared/table_action_enroll", path: enroll_admin_participant_path(p), confirm: "¿Inscribir a #{p.name} al programa? Se enviará el mensaje de bienvenida.", title: "Inscribir participante" %>
                   <% end %>
 
-                  <% if p.discarded? %>
-                    <%= button_to "Restaurar", undiscard_admin_participant_path(p), method: :post, class: "btn btn-secondary btn-sm" %>
-                  <% else %>
-                    <%= button_to "Archivar", discard_admin_participant_path(p), method: :post, class: "btn btn-secondary btn-sm btn-danger" %>
-                  <% end %>
+                  <%= render "shared/table_action_archive", path: discard_admin_participant_path(p), confirm: "¿Estás seguro de archivar a #{p.name}?", title: "Archivar participante" %>
                 </td>
               </tr>
             <% end %>
@@ -250,9 +246,9 @@
     <% else %>
       <div class="empty-state">
         <div class="empty-state-title">No se encontraron participantes</div>
-        <div class="empty-state-desc">Intenta cambiando los filtros de búsqueda o estado.</div>
-        <% if params[:q].present? || params[:status_enum].present? %>
-          <a href="<%= admin_participants_path(status: params[:status]) %>" class="btn btn-secondary" style="margin-top: 16px;">Limpiar Filtros</a>
+        <div class="empty-state-desc">Intenta cambiando los filtros de búsqueda o restableciendo los filtros.</div>
+        <% if current_query.any? %>
+          <a href="<%= admin_participants_path %>" class="btn btn-secondary" style="margin-top: 16px;">Limpiar Filtros</a>
         <% end %>
       </div>
     <% end %>

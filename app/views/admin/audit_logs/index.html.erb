@@ -1,0 +1,48 @@
+<% content_for :title, "Auditoría" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <span>Auditoría</span>
+<% end %>
+
+<div style="margin-bottom:1.5rem;">
+  <%= form_with url: admin_audit_log_path, method: :get, local: true do |f| %>
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end;">
+      <div>
+        <%= f.label :item_type, "Tipo", style: "display:block;font-size:0.8rem;font-weight:600;color:var(--text-muted);margin-bottom:4px;" %>
+        <%= f.select :item_type,
+              [["Todos", ""], ["Participantes", "Participant"], ["Programas", "Program"], ["Días", "DayContent"]],
+              { selected: params[:item_type] },
+              class: "form-select", style: "min-width:140px;" %>
+      </div>
+      <div>
+        <%= f.label :source, "Origen", style: "display:block;font-size:0.8rem;font-weight:600;color:var(--text-muted);margin-bottom:4px;" %>
+        <%= f.select :source,
+              [["Todos", ""], ["Admin manual", "admin"], ["IA automático", "ai"]],
+              { selected: params[:source] },
+              class: "form-select", style: "min-width:150px;" %>
+      </div>
+      <div>
+        <%= f.label :event, "Acción", style: "display:block;font-size:0.8rem;font-weight:600;color:var(--text-muted);margin-bottom:4px;" %>
+        <%= f.select :event,
+              [["Todas", ""], ["Crear", "create"], ["Actualizar", "update"], ["Eliminar", "destroy"]],
+              { selected: params[:event] },
+              class: "form-select", style: "min-width:130px;" %>
+      </div>
+      <%= f.submit "Filtrar", class: "btn btn-secondary" %>
+      <% if params[:item_type].present? || params[:source].present? || params[:event].present? %>
+        <%= link_to "Limpiar", admin_audit_log_path, class: "btn btn-ghost" %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Historial de cambios (últimos 200)</h3>
+    <span style="font-size:0.8rem;color:var(--text-muted);"><%= @versions.size %> registros</span>
+  </div>
+  <div class="card-body" style="padding:0;">
+    <%= render "admin/audit_logs/versions_table", versions: @versions, show_item_col: true %>
+  </div>
+</div>

@@ -1,0 +1,67 @@
+<% content_for :title, "Respuestas pendientes" %>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Pendientes de acción (<%= @pendings.size %>)</h3>
+  </div>
+  <div class="card-body">
+    <% if @pendings.empty? %>
+      <p style="color:var(--text-muted);">No hay respuestas pendientes.</p>
+    <% else %>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Participante</th>
+            <th>Modo</th>
+            <th>Momento</th>
+            <th>Día</th>
+            <th>Borrador</th>
+            <th>Creado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @pendings.each do |p| %>
+            <tr>
+              <td><%= link_to p.participant.name, admin_participant_path(p.participant) %></td>
+              <td><span class="badge badge-neutral"><%= p.mode %></span></td>
+              <td><%= p.moment %></td>
+              <td><%= p.day_number %></td>
+              <td style="max-width:300px;">
+                <% if p.draft_body.present? %>
+                  <small><%= truncate(p.draft_body, length: 120) %></small>
+                <% else %>
+                  <em style="color:var(--text-muted);">— sin borrador (manual)</em>
+                <% end %>
+              </td>
+              <td><small><%= time_ago_in_words(p.created_at) %></small></td>
+              <td><%= link_to "Revisar", admin_pending_response_path(p), class: "btn btn-sm" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>
+
+<% if @history.any? %>
+  <div class="card" style="margin-top:24px;">
+    <div class="card-header"><h3 class="card-title">Historial reciente</h3></div>
+    <div class="card-body">
+      <table class="table">
+        <thead><tr><th>Participante</th><th>Estado</th><th>Modo</th><th>Momento</th><th>Acción</th></tr></thead>
+        <tbody>
+          <% @history.each do |p| %>
+            <tr>
+              <td><%= p.participant.name %></td>
+              <td><span class="badge <%= p.sent? ? 'badge-success' : 'badge-danger' %>"><%= p.status %></span></td>
+              <td><%= p.mode %></td>
+              <td><%= p.moment %></td>
+              <td><small><%= p.acted_at&.strftime("%d/%m %H:%M") %></small></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>

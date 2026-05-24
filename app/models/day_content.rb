@@ -1,4 +1,5 @@
 class DayContent < ApplicationRecord
+  has_paper_trail meta: { source: proc { PaperTrail.request.controller_info.to_h[:source] } }
   belongs_to :program
 
   enum :phase, { see: 0, choose: 1, anchor: 2 }
@@ -8,6 +9,8 @@ class DayContent < ApplicationRecord
   validates :day_number, uniqueness: { scope: :program_id }
   validates :title, presence: true
   validates :phase, presence: true
+
+  after_save :sync_prompt_template
 
   scope :ordered, -> { order(:day_number) }
   scope :active, -> { where(active: true) }
@@ -34,4 +37,29 @@ class DayContent < ApplicationRecord
       )
     end
   }
+
+  def prompt_template
+    PromptTemplate.find_by(key: "day_system_prompt", program_id: program_id, day_number: day_number)
+  end
+
+  private
+
+  def sync_prompt_template
+    return unless saved_change_to_attribute?(:ai_system_prompt)
+    body = ai_system_prompt.to_s
+    return if body.blank?
+
+    template = PromptTemplate.find_or_create_by!(
+      key: "day_system_prompt", program_id: program_id, day_number: day_number
+    ) do |t|
+      t.name = "System prompt día #{day_number}"
+      t.description = "Instrucciones específicas usadas por el generador del día."
+      t.current_body = body
+      t.current_version = 0
+      t.source = "day_content"
+    end
+    template.record_version!(body: body, origin: "day_content", change_note: "Editado desde DayContent")
+  rescue => e
+    Rails.logger.warn("DayContent#sync_prompt_template failed: #{e.message}")
+  end
 end

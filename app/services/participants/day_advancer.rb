@@ -22,7 +22,7 @@ module Participants
         complete!(total)
         :completed
       else
-        @participant.update!(current_day: @participant.current_day + 1)
+        with_ai_trail { @participant.update!(current_day: @participant.current_day + 1) }
         :advanced
       end
     end
@@ -30,8 +30,12 @@ module Participants
     private
 
     def complete!(total)
-      @participant.update!(status: :completed, completed_at: Time.current, current_day: total + 1)
+      with_ai_trail { @participant.update!(status: :completed, completed_at: Time.current, current_day: total + 1) }
       GenerateAndSendManifestoJob.perform_later(@participant.id)
+    end
+
+    def with_ai_trail(&block)
+      PaperTrail.request(whodunnit: "ai:DayAdvancer", controller_info: { source: "ai" }, &block)
     end
   end
 end

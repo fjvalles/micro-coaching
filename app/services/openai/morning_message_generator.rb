@@ -20,6 +20,15 @@ module Openai
         max_tokens: Setting.fetch("openai_max_tokens_morning"),
         temperature: Setting.fetch("openai_temperature_generative")
       )
+
+      Openai::PromptLogger.record(
+        key: "morning_message", name: "Mensaje de despertar",
+        description: "Mensaje matutino personalizado por día.",
+        system_body: system_prompt, messages: messages, response: response,
+        program: @participant.program, day_number: @participant.current_day,
+        participant: @participant, moment: "morning_wake", latency_ms: response.latency_ms
+      )
+
       Result.new(
         body: response.content,
         prompt_used: messages.to_json,
@@ -46,9 +55,9 @@ module Openai
       <<~PROMPT
         Participante: #{@participant.name}
         Día: #{@participant.current_day} (#{@participant.phase})
-        Patrón inicial: #{@participant.initial_pattern.presence || 'no declarado'}
+        Patrón inicial: #{@participant.initial_pattern.to_s.truncate(500).presence || 'no declarado'}
         Mapa de energía: #{(@participant.energy_map.presence || {}).to_json}
-        Último reporte (ayer): #{@participant.latest_report&.raw_text.presence || 'sin reporte previo'}
+        Último reporte (ayer): #{@participant.latest_report&.raw_text.to_s.truncate(500).presence || 'sin reporte previo'}
         Plantilla base (puedes reescribir manteniendo intención):
         #{@day_content.morning_template}
 

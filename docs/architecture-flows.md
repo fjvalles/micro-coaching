@@ -1,12 +1,12 @@
 # Arquitectura Técnica y Flujos de la Plataforma
 
-Esta guía describe la arquitectura de software, los flujos de datos asincrónicos, los sistemas de mensajería y la integración de IA en Piloto Automático.
+Esta guía describe la arquitectura de software, los flujos de datos asincrónicos, los sistemas de mensajería y la integración de IA.
 
 ---
 
 ## 1. Arquitectura de Alto Nivel
 
-Piloto Automático está construido como una aplicación monolítica Rails 7.2 con una base de datos PostgreSQL 16 y una cola de tareas asincrónicas en Redis 7 gestionada por Sidekiq.
+La aplicación está construida como una aplicación monolítica Rails 7.2 con una base de datos PostgreSQL 16 y una cola de tareas asincrónicas en Redis 7 gestionada por Sidekiq.
 
 ```mermaid
 graph LR
@@ -15,14 +15,14 @@ graph LR
     classDef db fill:#f1f5f9,stroke:#64748b,stroke-width:2px,color:#334155;
     classDef ai fill:#fae8ff,stroke:#d946ef,stroke-width:2px,color:#86198f;
 
-    Meta[Meta Cloud API] :::meta
-    OpenAI[OpenAI API] :::ai
+    Meta[Meta Cloud API]:::meta
+    OpenAI[OpenAI API]:::ai
 
     subgraph RailsApp ["Aplicación Rails 7.2"]
-        Webhook[WebhooksController] :::app
-        Jobs[Sidekiq Workers] :::app
-        DB[(PostgreSQL)] :::db
-        Redis[(Redis 7)] :::db
+        Webhook[WebhooksController]:::app
+        Jobs[Sidekiq Workers]:::app
+        DB[(PostgreSQL)]:::db
+        Redis[(Redis 7)]:::db
     end
 
     Meta -- Webhook Inbound --> Webhook
@@ -47,6 +47,7 @@ sequenceDiagram
     participant Verifier as SignatureVerifier
     participant Redis as Redis Queue
     participant Job as ProcessIncomingMessageJob
+    participant DB as PostgreSQL
     participant Classifier as MessageClassifier
     participant Summarizer as CheckinSummarizer
     participant Client as Whatsapp::Client
@@ -95,21 +96,14 @@ sequenceDiagram
 Los procesos repetitivos están programados mediante `sidekiq-cron` en el archivo `config/schedule.yml`.
 
 ```mermaid
-gantt
-    title Cronogramas y Rutinas Diarias (Hora Local de cada Participante)
-    dateFormat HH:mm
-    axisFormat %H:%M
-    
-    section Morning Wake
-    Despertar (MorningWakeJob) :active, 07:00, 07:15
-    IAReto (SendIaretoJob) : 07:30, 08:00
-    
-    section Evening Check-in
-    Check-in (CheckinEveningJob) : 20:00, 20:15
-    Ventana activa de respuesta : 20:00, 23:59
-    
-    section Advance Day
-    Avance de Día (AdvanceDayJob - Global) : 06:00, 06:15
+flowchart TD
+    A["☀️  07:00 — MorningWakeJob\nEnvía mensaje de inicio del día personalizado"]
+    B["🎯  07:30 — SendIaretoJob\nEnvía el reto conductual de la mañana"]
+    C["🌙  20:00 — CheckinEveningJob\nEnvía preguntas de reflexión nocturna"]
+    D["⏳  20:00 – 23:59\nVentana activa de respuesta del participante"]
+    E["🔄  06:00 UTC — AdvanceDayJob\nAvance global de día para todos los participantes"]
+
+    A --> B --> C --> D --> E
 ```
 
 ### 3.1 Avance de Día (`AdvanceDayJob`)

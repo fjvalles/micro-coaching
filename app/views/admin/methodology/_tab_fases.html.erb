@@ -1,0 +1,69 @@
+<% if @phase_kpi.blank? && @voice_trend.blank? %>
+  <p style="color: var(--text-muted);">Sin métricas de fases aún. Encola un recálculo.</p>
+<% else %>
+  <h3 style="color: var(--text-main); margin-bottom: 14px;">KPIs por fase del programa</h3>
+
+  <% phase_labels = { "see" => "Ver (Días 1-5)", "choose" => "Elegir (Días 6-10)", "anchor" => "Anclar (Días 11-14)" } %>
+  <% phase_colors = { "see" => "#6366f1", "choose" => "#f59e0b", "anchor" => "#10b981" } %>
+
+  <% if @phase_kpi.present? %>
+    <table class="table" style="margin-bottom: 24px;">
+      <thead>
+        <tr>
+          <th>Fase</th>
+          <th>Participantes</th>
+          <th>Tasa de respuesta</th>
+          <th>Chars promedio</th>
+          <th>% audio</th>
+          <th>% completados</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% (@phase_kpi.payload["phases"] || {}).each do |phase, k| %>
+          <tr>
+            <td>
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:<%= phase_colors[phase] %>; margin-right:6px;"></span>
+              <strong><%= phase_labels[phase] || phase %></strong>
+            </td>
+            <td><%= k["participants"] %></td>
+            <td><%= k["response_rate"] %>%</td>
+            <td><%= k["avg_response_chars"] %></td>
+            <td><%= k["audio_share"] %>%</td>
+            <td><%= k["completion_rate"] %>%</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 32px;">
+      Actualizado <%= time_ago_in_words(@phase_kpi.generated_at) %> atrás.
+    </p>
+  <% end %>
+
+  <% if @voice_trend.present? %>
+    <h3 style="color: var(--text-main); margin-bottom: 14px;">Tono y energía por fase (análisis de voz)</h3>
+    <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+      <% (@voice_trend.payload["phases"] || {}).each do |phase, v| %>
+        <div class="card" style="padding: 16px; margin-bottom: 0; border-left: 4px solid <%= phase_colors[phase] %>;">
+          <h4 style="margin: 0 0 8px; font-size: 14px;"><%= phase_labels[phase] || phase %></h4>
+          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+            Muestras con audio: <strong><%= v["sample_size"] %></strong>
+            · Energía promedio: <strong><%= v["energy_avg"] || "—" %></strong>
+          </div>
+          <% tones = v["tone_histogram"] || {} %>
+          <% if tones.any? %>
+            <div style="font-size: 12px;">
+              <strong>Tonos detectados:</strong>
+              <ul style="margin: 6px 0 0 0; padding-left: 18px;">
+                <% tones.sort_by { |_t, n| -n }.first(5).each do |tone, n| %>
+                  <li><%= tone %> <span style="color: var(--text-muted);">(<%= n %>)</span></li>
+                <% end %>
+              </ul>
+            </div>
+          <% else %>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Sin tonos detectados.</p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

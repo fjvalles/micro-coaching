@@ -31,9 +31,9 @@
                 <% end %>
               </td>
               <td class="table-actions">
-                <a href="<%= edit_admin_admin_user_path(user) %>" class="btn btn-secondary btn-sm">Editar</a>
+                <%= render "shared/table_action_edit", path: edit_admin_admin_user_path(user), title: "Editar administrador" %>
                 <% if AdminUser.count > 1 && user != current_admin_user %>
-                  <%= button_to "Eliminar", admin_admin_user_path(user), method: :delete, data: { confirm: "¿Estás seguro de eliminar a este administrador?", turbo_confirm: "¿Estás seguro?" }, class: "btn btn-secondary btn-sm btn-danger" %>
+                  <%= render "shared/table_action_delete", path: admin_admin_user_path(user), confirm: "¿Estás seguro de eliminar a este administrador?", title: "Eliminar administrador" %>
                 <% end %>
               </td>
             </tr>

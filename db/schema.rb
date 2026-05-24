@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_24_100000) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_24_181914) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -94,6 +94,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_24_100000) do
     t.index ["program_id"], name: "index_day_contents_on_program_id"
   end
 
+  create_table "methodology_insights", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "scope", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.datetime "generated_at", null: false
+    t.uuid "program_id"
+    t.date "window_start"
+    t.date "window_end"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["program_id", "scope"], name: "index_methodology_insights_on_program_id_and_scope"
+    t.index ["scope", "generated_at"], name: "index_methodology_insights_on_scope_and_generated_at", order: { generated_at: :desc }
+  end
+
   create_table "participants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
     t.string "phone_e164", null: false
@@ -114,10 +127,41 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_24_100000) do
     t.uuid "program_id"
     t.string "company"
     t.string "role"
+    t.string "response_mode"
     t.index ["discarded_at"], name: "index_participants_on_discarded_at"
     t.index ["phone_e164"], name: "index_participants_on_phone_e164", unique: true
     t.index ["program_id"], name: "index_participants_on_program_id"
     t.index ["status"], name: "index_participants_on_status"
+  end
+
+  create_table "pending_responses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "participant_id", null: false
+    t.uuid "conversation_id"
+    t.uuid "approved_by_id"
+    t.string "status", default: "pending", null: false
+    t.string "mode", null: false
+    t.string "moment", null: false
+    t.integer "day_number"
+    t.text "draft_body", null: false
+    t.text "original_body"
+    t.text "prompt_used"
+    t.string "model_used"
+    t.integer "tokens_input"
+    t.integer "tokens_output"
+    t.string "template_name"
+    t.jsonb "template_variables", default: [], null: false
+    t.string "delivery_kind", default: "text", null: false
+    t.text "rejection_reason"
+    t.datetime "acted_at"
+    t.datetime "discarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["approved_by_id"], name: "index_pending_responses_on_approved_by_id"
+    t.index ["conversation_id"], name: "index_pending_responses_on_conversation_id"
+    t.index ["discarded_at"], name: "index_pending_responses_on_discarded_at"
+    t.index ["participant_id", "status"], name: "index_pending_responses_on_participant_id_and_status"
+    t.index ["participant_id"], name: "index_pending_responses_on_participant_id"
+    t.index ["status"], name: "index_pending_responses_on_status"
   end
 
   create_table "programs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -129,7 +173,80 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_24_100000) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "response_mode"
     t.index ["slug"], name: "index_programs_on_slug", unique: true
+  end
+
+  create_table "prompt_analyses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "prompt_template_id", null: false
+    t.uuid "prompt_version_id"
+    t.integer "executions_sampled", default: 0, null: false
+    t.jsonb "findings", default: {}, null: false
+    t.text "suggested_body"
+    t.text "rationale"
+    t.string "model_used"
+    t.integer "tokens_input"
+    t.integer "tokens_output"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_prompt_analyses_on_created_at"
+    t.index ["prompt_template_id"], name: "index_prompt_analyses_on_prompt_template_id"
+    t.index ["prompt_version_id"], name: "index_prompt_analyses_on_prompt_version_id"
+  end
+
+  create_table "prompt_executions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "prompt_template_id", null: false
+    t.uuid "prompt_version_id", null: false
+    t.uuid "participant_id"
+    t.uuid "conversation_id"
+    t.integer "day_number"
+    t.string "moment"
+    t.jsonb "rendered_messages", default: [], null: false
+    t.text "output_body"
+    t.string "model_used"
+    t.integer "tokens_input"
+    t.integer "tokens_output"
+    t.integer "latency_ms"
+    t.text "error_message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["conversation_id"], name: "index_prompt_executions_on_conversation_id"
+    t.index ["created_at"], name: "index_prompt_executions_on_created_at"
+    t.index ["participant_id"], name: "index_prompt_executions_on_participant_id"
+    t.index ["prompt_template_id", "day_number"], name: "index_prompt_executions_on_prompt_template_id_and_day_number"
+    t.index ["prompt_template_id"], name: "index_prompt_executions_on_prompt_template_id"
+    t.index ["prompt_version_id"], name: "index_prompt_executions_on_prompt_version_id"
+  end
+
+  create_table "prompt_templates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "key", null: false
+    t.uuid "program_id"
+    t.integer "day_number"
+    t.string "name", null: false
+    t.text "description"
+    t.text "current_body", default: "", null: false
+    t.integer "current_version", default: 0, null: false
+    t.string "source", default: "service", null: false
+    t.datetime "discarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_prompt_templates_on_discarded_at"
+    t.index ["key", "program_id", "day_number"], name: "idx_prompt_templates_unique", unique: true
+    t.index ["program_id"], name: "index_prompt_templates_on_program_id"
+  end
+
+  create_table "prompt_versions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "prompt_template_id", null: false
+    t.uuid "author_id"
+    t.integer "version", null: false
+    t.text "body", null: false
+    t.text "change_note"
+    t.string "origin", default: "service", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_prompt_versions_on_author_id"
+    t.index ["prompt_template_id", "version"], name: "index_prompt_versions_on_prompt_template_id_and_version", unique: true
+    t.index ["prompt_template_id"], name: "index_prompt_versions_on_prompt_template_id"
   end
 
   create_table "settings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -144,8 +261,45 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_24_100000) do
     t.index ["key"], name: "index_settings_on_key", unique: true
   end
 
+  create_table "unknown_inbounds", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "phone"
+    t.string "wamid"
+    t.string "message_type"
+    t.string "body_preview"
+    t.datetime "received_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["received_at"], name: "index_unknown_inbounds_on_received_at"
+    t.index ["wamid"], name: "index_unknown_inbounds_on_wamid", unique: true
+  end
+
+  create_table "versions", force: :cascade do |t|
+    t.string "whodunnit"
+    t.datetime "created_at"
+    t.bigint "item_id", null: false
+    t.string "item_type", null: false
+    t.string "event", null: false
+    t.text "object"
+    t.text "object_changes"
+    t.string "source"
+    t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
+  end
+
   add_foreign_key "conversations", "participants"
   add_foreign_key "daily_reports", "participants"
   add_foreign_key "day_contents", "programs"
+  add_foreign_key "methodology_insights", "programs"
   add_foreign_key "participants", "programs"
+  add_foreign_key "pending_responses", "admin_users", column: "approved_by_id"
+  add_foreign_key "pending_responses", "conversations"
+  add_foreign_key "pending_responses", "participants"
+  add_foreign_key "prompt_analyses", "prompt_templates"
+  add_foreign_key "prompt_analyses", "prompt_versions"
+  add_foreign_key "prompt_executions", "conversations"
+  add_foreign_key "prompt_executions", "participants"
+  add_foreign_key "prompt_executions", "prompt_templates"
+  add_foreign_key "prompt_executions", "prompt_versions"
+  add_foreign_key "prompt_templates", "programs"
+  add_foreign_key "prompt_versions", "admin_users", column: "author_id"
+  add_foreign_key "prompt_versions", "prompt_templates"
 end

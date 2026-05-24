@@ -1,0 +1,65 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "pathname"
+
+ROOT = Pathname.new(__dir__).join("..").expand_path
+AGENTS_MD_PATH = ROOT.join("AGENTS.md")
+
+# 1. Run check-doc-refs
+puts "== Running bin/check-doc-refs =="
+system_success = system("asdf exec bundle exec ruby #{ROOT.join('bin/check-doc-refs')}")
+unless system_success
+  puts "✗ bin/check-doc-refs failed!"
+  exit 1
+end
+puts "✓ bin/check-doc-refs passed."
+
+unless AGENTS_MD_PATH.exist?
+  puts "✗ AGENTS.md is missing!"
+  exit 1
+end
+
+agents_content = File.read(AGENTS_MD_PATH)
+stale = []
+
+# 2. Check models
+puts "\n== Checking models in AGENTS.md =="
+Dir[ROOT.join("app/models/**/*.rb")].each do |model_file|
+  base = File.basename(model_file, ".rb")
+  next if %w[application_record].include?(base)
+  next if model_file.include?("/concerns/")
+
+  camel = base.split('_').map(&:capitalize).join
+
+  unless agents_content.include?(camel) || agents_content.include?(base)
+    stale << "Model not documented: #{model_file} (expecting '#{camel}' or '#{base}' in AGENTS.md)"
+  end
+end
+
+# 3. Check services
+puts "\n== Checking services in AGENTS.md =="
+Dir[ROOT.join("app/services/**/*.rb")].each do |service_file|
+  next if service_file.include?("/concerns/")
+
+  rel = Pathname.new(service_file).relative_path_from(ROOT.join("app/services")).to_s
+  base = File.basename(service_file, ".rb")
+  camel = base.split('_').map(&:capitalize).join
+
+  unless agents_content.include?(rel) || agents_content.include?(base) || agents_content.include?(camel)
+    stale << "Service not documented: #{rel} (expecting '#{rel}', '#{camel}' or '#{base}' in AGENTS.md)"
+  end
+end
+
+puts ""
+
+if stale.empty?
+  puts "✓ All models and services are documented in AGENTS.md."
+  puts "✓ Documentation is fully up-to-date!"
+  exit 0
+else
+  puts "✗ #{stale.size} undocumented item(s) found:"
+  stale.each { |s| puts "  #{s}" }
+  puts "\nPlease update AGENTS.md before pushing/committing."
+  exit 1
+end

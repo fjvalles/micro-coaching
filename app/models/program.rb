@@ -1,6 +1,9 @@
 class Program < ApplicationRecord
+  has_paper_trail meta: { source: proc { PaperTrail.request.controller_info.to_h[:source] } }
   has_many :day_contents, dependent: :destroy
   has_many :participants, dependent: :nullify
+  has_many :prompt_templates, dependent: :destroy
+  has_many :methodology_insights, dependent: :destroy
 
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: true,

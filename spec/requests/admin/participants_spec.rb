@@ -23,6 +23,14 @@ RSpec.describe "Admin::Participants", type: :request do
       expect(response.body).to include("Nuevo participante")
     end
 
+    it "does not list discarded participants" do
+      discarded_participant = create(:participant, program: program, name: "Discarded Person")
+      discarded_participant.discard
+      get "/admin/participants"
+      expect(response.body).to include(participant.name)
+      expect(response.body).not_to include(discarded_participant.name)
+    end
+
     it "filters by program_id" do
       get "/admin/participants", params: { program_id: program.id }
       expect(response).to have_http_status(:ok)
@@ -36,6 +44,36 @@ RSpec.describe "Admin::Participants", type: :request do
       expect(response.body).not_to include(participant.name)
       expect(response.body).to include(other_participant.name)
     end
+
+    it "filters by enrolled date range" do
+      p_enrolled_yesterday = create(:participant, name: "Yesterday Person", program: program, enrolled_at: 1.day.ago)
+      p_enrolled_tomorrow = create(:participant, name: "Tomorrow Person", program: program, enrolled_at: 1.day.from_now)
+
+      get "/admin/participants", params: { enrolled_from: 2.days.ago.to_date.to_s, enrolled_to: Date.current.to_s }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(p_enrolled_yesterday.name)
+      expect(response.body).not_to include(p_enrolled_tomorrow.name)
+    end
+
+    it "filters by company" do
+      p_with_company = create(:participant, name: "Company Person", program: program, company: "Comtraining")
+      p_no_company = create(:participant, name: "No Company Person", program: program, company: nil)
+
+      get "/admin/participants", params: { company: "Comtraining" }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(p_with_company.name)
+      expect(response.body).not_to include(p_no_company.name)
+    end
+
+    it "filters by response_mode" do
+      p_auto = create(:participant, name: "Auto Person", program: program, response_mode: "auto")
+      p_manual = create(:participant, name: "Manual Person", program: program, response_mode: "manual")
+
+      get "/admin/participants", params: { response_mode: "auto" }
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(p_auto.name)
+      expect(response.body).not_to include(p_manual.name)
+    end
   end
 
   describe "GET /admin/participants/:id" do
@@ -44,6 +82,14 @@ RSpec.describe "Admin::Participants", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(participant.name)
       expect(response.body).to include(participant.phone_e164)
+    end
+  end
+
+  describe "GET /admin/participants/new" do
+    it "renders the new form with America/Santiago default timezone" do
+      get "/admin/participants/new"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('value="America/Santiago"')
     end
   end
 
@@ -56,7 +102,7 @@ RSpec.describe "Admin::Participants", type: :request do
             name: "Nuevo Test Participant",
             phone_e164: "+521999988877",
             status: "pending",
-            timezone: "America/Mexico_City"
+            timezone: "America/Santiago"
           }
         }
       }.to change(Participant, :count).by(1)

@@ -14,6 +14,15 @@ module Openai
         max_tokens: Setting.fetch("openai_max_tokens_manifesto"),
         temperature: Setting.fetch("openai_temperature_generative")
       )
+
+      Openai::PromptLogger.record(
+        key: "manifesto", name: "Manifiesto de cierre",
+        description: "Manifiesto día 15 (cierre del programa).",
+        system_body: messages.first[:content], messages: messages, response: response,
+        program: @participant.program, day_number: @participant.current_day,
+        participant: @participant, moment: "manifesto", latency_ms: response.latency_ms
+      )
+
       Result.new(
         body: response.content,
         prompt_used: messages.to_json,

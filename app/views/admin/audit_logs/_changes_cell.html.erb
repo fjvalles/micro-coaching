@@ -1,0 +1,30 @@
+<%
+  changes = begin
+    version.object_changes ? PaperTrail.serializer.load(version.object_changes) : {}
+  rescue
+    {}
+  end
+
+  changes = changes.except("updated_at", "created_at", "id")
+%>
+<% if changes.blank? %>
+  <span style="color:var(--text-muted);">—</span>
+<% else %>
+  <div style="display:flex;flex-direction:column;gap:2px;">
+    <% changes.each do |field, (before, after)| %>
+      <div>
+        <span style="font-weight:600;color:var(--text-main);"><%= field %>:</span>
+        <% if version.event == "create" %>
+          <span style="color:var(--success)"><%= truncate(after.to_s, length: 60) %></span>
+        <% elsif version.event == "destroy" %>
+          <span style="color:var(--danger)"><%= truncate(before.to_s, length: 60) %></span>
+        <% else %>
+          <span style="color:var(--danger);text-decoration:line-through;margin-right:4px;">
+            <%= truncate(before.to_s, length: 40) %>
+          </span>
+          <span style="color:var(--success)"><%= truncate(after.to_s, length: 40) %></span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

@@ -10,42 +10,86 @@
     </div>
   <% end %>
 
-  <div class="form-group">
-    <%= f.label :name, "Nombre del Programa", class: "form-label" %>
-    <%= f.text_field :name, class: "form-input", placeholder: "Ej. Impulso Liderazgo en Acción", required: true %>
-  </div>
+  <div class="form-layout-columns">
+    <!-- Columna Principal (Izquierda) -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      
+      <!-- Card 1: Detalles Básicos -->
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <h3 class="card-title">Información Básica del Programa</h3>
+        </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="form-grid-2col">
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :name, "Nombre del Programa", class: "form-label" %>
+              <%= f.text_field :name, class: "form-input", placeholder: "Ej. Impulso Liderazgo en Acción", required: true %>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :slug, "Slug (Identificador en URL)", class: "form-label" %>
+              <%= f.text_field :slug, class: "form-input", placeholder: "Ej. impulso-liderazgo-en-accion", required: true %>
+              <p class="form-help">Minúsculas, números y guiones.</p>
+            </div>
+          </div>
 
-  <div class="form-group">
-    <%= f.label :slug, "Slug", class: "form-label" %>
-    <%= f.text_field :slug, class: "form-input", placeholder: "Ej. impulso-liderazgo-en-accion", required: true %>
-    <p class="form-help">Identificador único en minúsculas, números y guiones. Ej: impulso-liderazgo-en-accion</p>
-  </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :description, "Descripción", class: "form-label" %>
+            <%= f.text_area :description, class: "form-textarea", style: "min-height: 80px; margin-bottom: 0;", placeholder: "Escribe brevemente el propósito de este programa de coaching..." %>
+          </div>
+        </div>
+      </div>
 
-  <div class="form-group">
-    <%= f.label :description, "Descripción", class: "form-label" %>
-    <%= f.text_area :description, class: "form-textarea", placeholder: "Describe brevemente el propósito de este programa..." %>
-  </div>
-
-  <div class="form-group">
-    <%= f.label :manifesto, "Manifiesto (Prompt Base de IA)", class: "form-label" %>
-    <%= f.text_area :manifesto, class: "form-textarea", style: "min-height: 200px;", placeholder: "Este texto se antepone a los system prompts de OpenAI para este programa..." %>
-    <p class="form-help">Instrucciones generales de comportamiento para la IA.</p>
-  </div>
-
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-    <div class="form-group">
-      <%= f.label :total_days, "Total de Días", class: "form-label" %>
-      <%= f.number_field :total_days, class: "form-input", min: 1, required: true %>
+      <!-- Card 2: Manifiesto de IA -->
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <h3 class="card-title">Manifiesto y Configuración de IA</h3>
+        </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :manifesto, "Manifiesto (Prompt Base de IA)", class: "form-label" %>
+            <%= f.text_area :manifesto, class: "form-textarea", style: "min-height: 220px; font-family: monospace; font-size: 13px; margin-bottom: 0;", placeholder: "Este texto se antepone a los prompts de IA. Define tono, principios y reglas..." %>
+            <p class="form-help">Instrucciones generales permanentes compartidas por todos los días.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 28px;">
-      <%= f.check_box :active, style: "width: 18px; height: 18px; accent-color: var(--brand);" %>
-      <%= f.label :active, "Programa Activo", style: "font-weight: 500; cursor: pointer; user-select: none;" %>
-    </div>
-  </div>
+    <!-- Columna Lateral (Derecha) -->
+    <div style="display: flex; flex-direction: column; gap: 24px;" class="sticky-sidebar-card">
+      
+      <!-- Card 3: Configuración y Duración -->
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header">
+          <h3 class="card-title">Configuración</h3>
+        </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :total_days, "Total de Días", class: "form-label" %>
+            <%= f.number_field :total_days, class: "form-input", min: 1, required: true %>
+          </div>
 
-  <div class="card-footer" style="padding-left: 0; padding-right: 0; background-color: transparent; border-top: none; margin-top: 24px;">
-    <%= link_to "Cancelar", admin_programs_path, class: "btn btn-secondary" %>
-    <%= f.submit program.new_record? ? "Crear Programa" : "Guardar Cambios", class: "btn btn-primary" %>
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :response_mode, "Modo de Respuesta (Override)", class: "form-label" %>
+            <%= f.select :response_mode,
+                [ [ "Heredar global", "" ], [ "Manual", "manual" ], [ "Sugerencia IA", "suggest" ], [ "Aprobación IA", "approve" ], [ "Automático", "auto" ] ],
+                {}, class: "form-select" %>
+            <p class="form-help">Sobrescribe el modo global del sistema.</p>
+          </div>
+
+          <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 0; margin-top: 10px;">
+            <%= f.check_box :active, style: "width: 18px; height: 18px; accent-color: var(--brand); cursor: pointer;" %>
+            <%= f.label :active, "Programa Activo", style: "font-weight: 600; cursor: pointer; user-select: none; font-size: 14px;" %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Acciones -->
+      <div class="card form-card" style="background-color: var(--bg-secondary); margin-bottom: 0;">
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
+          <%= f.submit program.new_record? ? "Crear Programa" : "Guardar Cambios", class: "btn btn-primary", style: "width: 100%;" %>
+          <%= link_to "Cancelar", program.new_record? ? admin_programs_path : admin_program_path(program), class: "btn btn-secondary", style: "width: 100%;" %>
+        </div>
+      </div>
+    </div>
   </div>
 <% end %>

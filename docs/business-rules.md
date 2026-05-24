@@ -1,4 +1,4 @@
-# Reglas de Negocio — Piloto Automático
+# Reglas de Negocio
 
 Fuente canónica. Cada regla: **enunciado** + **por qué** + **dónde se enforce** (`path:line`).
 
@@ -104,7 +104,7 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 ### 4.5 Check-in marca `pending_checkin_at`
 - **Regla.** Al enviar check-in, set `participant.pending_checkin_at = Time.current`. Habilita clasificación posterior.
 - **Por qué.** `MessageClassifier` necesita marcar ventana de respuesta esperada.
-- **Enforce.** `app/jobs/checkin_for_participant_job.rb:36`.
+- **Enforce.** `app/jobs/checkin_for_participant_job.rb:30`.
 
 ### 4.6 Avance de día a 06:00 UTC
 - **Regla.** `AdvanceDayJob` corre diario 06:00 UTC. Para cada `:active`, llama `DayAdvancer`.
@@ -148,7 +148,11 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 ### 6.3 Toda inbound se persiste como `Conversation`
 - **Regla.** Antes de clasificar, se crea `Conversation(moment: :free_user, role: :user)`. Luego el moment se reescribe según clasificación (`:welcome` o `:checkin_response`).
 - **Por qué.** Auditoría completa. Pérdida de un inbound = pérdida de evidencia.
-- **Enforce.** `app/jobs/process_incoming_message_job.rb:34-49`.
+- **Enforce.** `app/jobs/process_incoming_message_job.rb:45-53`.
+### 6.4 Registro de números desconocidos
+- **Regla.** Si un mensaje proviene de un número que no corresponde a ningún participante en el sistema, se registra en `UnknownInbound` y no se envía ninguna respuesta al remitente.
+- **Por qué.** Evitar costos innecesarios en llamadas a la API de OpenAI y llamadas de WhatsApp para remitentes accidentales o spam, a la vez que se mantiene trazabilidad para auditorías.
+- **Enforce.** `app/jobs/process_incoming_message_job.rb:30-32` y `app/jobs/process_incoming_message_job.rb:171-186`.
 
 ---
 
@@ -279,6 +283,65 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 ### 12.2 Cambio en vivo
 - **Regla.** Cambiar un `Setting` afecta el próximo tick de cron. No requiere deploy ni reinicio.
 - **Enforce.** `Setting.get(key)` se lee en cada ejecución de job.
+
+---
+
+## 12.bis Registro y mejora de prompts IA
+
+### 12.bis.1 Toda llamada a OpenAI queda registrada
+- **Regla.** Cada generador (`MorningMessageGenerator`, `FreeResponseGenerator`, `CheckinSummarizer`, `ManifestoGenerator`, `VoiceAnalyzer`) escribe un `PromptExecution` por invocación con input renderizado, output, tokens y latencia.
+- **Por qué.** Iterar sobre prompts con datos reales en lugar de logs efímeros.
+- **Enforce.** `Openai::PromptLogger.record` al final de cada `#call`. Fallos del logger no abortan la respuesta (rescue + warn).
+
+### 12.bis.2 Cada edición de prompt crea versión
+- **Regla.** `PromptTemplate#record_version!` snapshotea un `PromptVersion` cuando el body cambia. Mismo body no duplica.
+- **Orígenes:** `service` (auto-captura), `day_content` (edición de `DayContent.ai_system_prompt`), `admin` (UI), `analysis` (aplicar sugerencia IA).
+
+### 12.bis.3 Sección vs día
+- Templates de sección (`morning_message`, `free_response`, `checkin_summarizer`, `manifesto`, `voice_analyzer`): `day_number` nil.
+- Template `day_system_prompt`: una fila por (`program_id`, `day_number`), refleja `DayContent.ai_system_prompt`.
+
+### 12.bis.4 Análisis IA on-demand
+- **Regla.** `/admin/prompt_templates/:id/analyze` encola `AnalyzePromptJob` → `Openai::PromptCritic` toma las últimas 20 ejecuciones y devuelve `findings + suggested_body + rationale` persistidos en `PromptAnalysis`.
+## 14. Modos de Respuesta y Supervisión Humana (Human-in-the-loop)
+
+### 14.1 Resolución de modo de respuesta (Precedencia)
+- **Regla.** El modo de respuesta para un participante se resuelve buscando en orden de prioridad: el modo específico del participante (`Participant#response_mode`), el modo del programa (`Program#response_mode`), el valor del setting global (`Setting.fetch("response_mode")`), y finalmente el valor predeterminado `"auto"`.
+- **Por qué.** Permitir control granular (supervisar un participante en particular o un programa piloto) sin perder la capacidad de configurar el comportamiento del sistema de manera global.
+- **Enforce.** `app/services/response_mode.rb:7-15`.
+
+### 14.2 Comportamiento del Dispatcher según el modo
+- **Regla.** `Outbound::Dispatcher` determina la acción según el modo de respuesta resuelto:
+  - `auto`: Envía el mensaje inmediatamente por WhatsApp y crea una `Conversation`.
+  - `approve` / `suggest`: Genera el borrador con IA, crea un registro `PendingResponse` en estado `pending`, e inicia el mailer para notificar al administrador.
+  - `manual`: Crea un registro `PendingResponse` en estado `pending` con borrador vacío, y notifica al administrador (sin generar respuesta IA automáticamente).
+- **Por qué.** Garantizar la seguridad e intervención humana en diferentes niveles de confianza del sistema antes de enviar mensajes reales por WhatsApp.
+- **Enforce.** `app/services/outbound/dispatcher.rb:25-54`.
+
+### 14.3 Aprobación y Rechazo de Respuestas Pendientes
+- **Regla.** El administrador puede editar, aprobar (`SendApprovedJob`) o rechazar un `PendingResponse` desde la interfaz. Aprobarlo desencadena el envío por la API de WhatsApp, la creación de la respectiva `Conversation`, y actualiza el estado de la respuesta pendiente a `sent` o `approved` con la marca del administrador (`approved_by_id`).
+- **Por qué.** Mantener la consistencia del chat y el registro de auditoría de quién aprobó la interacción.
+- **Enforce.** `app/controllers/admin/pending_responses_controller.rb`.
+
+---
+
+## 15. Sistema de Aprendizaje Continuo (Methodology Insights)
+
+### 15.1 Generación de Insights Nocturnos
+- **Regla.** El cron `RefreshMethodologyInsightsJob` se ejecuta todas las noches a las 03:30 UTC para recalcular y guardar vistas agregadas del rendimiento del coaching y prompts en la tabla `methodology_insights`.
+- **Por qué.** Ofrecer un panel consolidado de métricas sin penalizar el rendimiento del panel de administración en tiempo de consulta.
+- **Enforce.** `config/schedule.yml:21-24`, `app/services/methodology/insight_builder.rb`.
+
+### 15.2 Tipos de Insights Soportados
+- **Regla.** Se calculan y actualizan 6 scopes agregados en el payload JSONB:
+  - `key_pattern_cluster`: Temas recurrentes en las respuestas de check-in (mediante `Openai::PatternClusterer`).
+  - `voice_trend_by_phase`: Tendencia de tono y emoción por fase pedagógica del participante.
+  - `prompt_finding_digest`: Resumen de fallas y debilidades identificadas por `PromptCritic`.
+  - `phase_kpi`: Métricas de engagement (tasa de respuesta, longitud de caracteres, audios) por fase.
+  - `stuck_pattern`: Alertas de participantes que llevan 3+ días en el mismo patrón de check-in.
+  - `prompt_evolution`: Comparativa de latencia y tokens entre versiones de prompts.
+- **Por qué.** Cubrir las fases de Observe, Evaluate e Improve en el ciclo de mejora de prompt engineering.
+- **Enforce.** `app/services/methodology/insight_builder.rb`.
 
 ---
 

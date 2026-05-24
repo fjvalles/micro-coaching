@@ -79,6 +79,56 @@
     </div>
   </section>
 
+  <!-- Trust Section (Logo Wall) -->
+  <section class="trust-section">
+    <p class="trust-title">Respaldado por metodologías de Comtraining y líderes en organizaciones de LATAM</p>
+    <div class="logo-grid-custom">
+      <div class="logo-item-custom">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13H5.5L12 6.5z"/></svg>
+        <span>Comtraining</span>
+      </div>
+      <div class="logo-item-custom">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <span>Vortex Corp</span>
+      </div>
+      <div class="logo-item-custom">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 9h4v11h12V9h4L12 2z"/></svg>
+        <span>Sinergia</span>
+      </div>
+      <div class="logo-item-custom">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        <span>Apex Global</span>
+      </div>
+      <div class="logo-item-custom">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.5 2 12a10 10 0 0010 10c5.53 0 10-4.5 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+        <span>Nova Talent</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROI Metrics Section -->
+  <section class="metrics-section">
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-value emerald-gradient">+80%</div>
+        <div class="metric-label">Tasa de Adherencia</div>
+        <div class="metric-detail">Frente al escaso 15% promedio de las plataformas e-learning tradicionales y apps corporativas complejas.</div>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-value indigo-gradient">3x</div>
+        <div class="metric-label">Retención del Aprendizaje</div>
+        <div class="metric-detail">Mediante micro-desafíos diarios contextuales de 15 minutos integrados en el flujo de trabajo real.</div>
+      </div>
+      
+      <div class="metric-card">
+        <div class="metric-value yellow-gradient">14 Días</div>
+        <div class="metric-label">Acompañamiento Guiado</div>
+        <div class="metric-detail">Transferencia conductual real evaluada con reportería corporativa ejecutiva anónima diaria.</div>
+      </div>
+    </div>
+  </section>
+
   <!-- The Problem Section (B2B Dilution) -->
   <section class="landing-section problem-section">
     <div class="section-header-centered">
@@ -388,10 +438,37 @@
       // Convert markdown-like *bold* to <strong>
       let formattedText = bubble.text.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
       
-      bubbleDiv.innerHTML = `${formattedText}<span class="bubble-time">${bubble.time}</span>`;
+      const isUser = bubble.role === "user";
+      const checkmarkSvg = isUser ? `
+        <span class="double-check" style="color: var(--primary); display: inline-flex; align-items: center; margin-left: 4px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle;">
+            <path fill="currentColor" d="M12.162 16.242l-5.656-5.656-1.414 1.414 7.07 7.07 12.02-12.02-1.414-1.414zM20.12 6.636l-1.414-1.414-8.484 8.484 1.414 1.414z"/>
+          </svg>
+        </span>
+      ` : "";
+      
+      bubbleDiv.innerHTML = `
+        ${formattedText}
+        <div class="bubble-footer">
+          <span class="bubble-time">${bubble.time}</span>
+          ${checkmarkSvg}
+        </div>
+      `;
       chatContainer.appendChild(bubbleDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
+
+    // Spotlight cursor tracking for Bento Cards (Vercel/Linear style)
+    const bentoCards = document.querySelectorAll(".bento-card");
+    bentoCards.forEach(card => {
+      card.addEventListener("mousemove", e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty("--mouse-x", `${x}px`);
+        card.style.setProperty("--mouse-y", `${y}px`);
+      });
+    });
 
     // Bind click events to selector cards
     selectorCards.forEach(card => {
@@ -422,6 +499,39 @@
     const timezoneInput = document.getElementById("user-timezone");
     const trialError = document.getElementById("trial-error");
 
+    // Typewriter effect for AI demo streaming
+    function streamTypewriter(element, text, speed = 12, onComplete = null) {
+      element.innerHTML = "";
+      let i = 0;
+      
+      function type() {
+        if (i < text.length) {
+          const char = text.charAt(i);
+          if (char === '*') {
+            const nextAsterisk = text.indexOf('*', i + 1);
+            if (nextAsterisk !== -1) {
+              const boldContent = text.substring(i + 1, nextAsterisk);
+              element.innerHTML += `<strong>${boldContent}</strong>`;
+              i = nextAsterisk + 1;
+            } else {
+              element.innerHTML += char;
+              i++;
+            }
+          } else if (char === '\n') {
+            element.innerHTML += "<br>";
+            i++;
+          } else {
+            element.innerHTML += char;
+            i++;
+          }
+          setTimeout(type, speed);
+        } else if (onComplete) {
+          onComplete();
+        }
+      }
+      type();
+    }
+
     // Detect browser timezone and inject into hidden field
     if (timezoneInput) {
       try {
@@ -445,6 +555,10 @@
 
       hideError();
       setLoading(true);
+      
+      // Reset view states
+      enrollForm.style.display = "none";
+      previewContainer.style.display = "none";
 
       // Make AJAX post request to rails controller
       fetch("<%= preview_challenge_path %>", {
@@ -463,15 +577,17 @@
       })
       .then(data => {
         setLoading(false);
-        // Display result
-        previewText.textContent = data.challenge;
         previewContainer.style.display = "block";
-        
-        // Open enrollment fields
-        enrollForm.style.display = "flex";
-        
-        // Scroll smoothly to preview
         previewContainer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        
+        // Start streaming response character by character
+        streamTypewriter(previewText, data.challenge, 10, function() {
+          // Open enrollment fields and fade in
+          enrollForm.style.display = "flex";
+          setTimeout(() => {
+            enrollForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }, 150);
+        });
       })
       .catch(error => {
         setLoading(false);

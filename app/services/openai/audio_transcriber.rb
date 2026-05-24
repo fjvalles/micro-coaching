@@ -2,6 +2,8 @@ require "tempfile"
 
 module Openai
   class AudioTranscriber
+    include Openai::Retryable
+
     Result = Struct.new(:text, :language, :duration, :model, keyword_init: true)
 
     def initialize(bytes:, filename:, mime_type: nil, language: "es", api_key: ENV["OPENAI_API_KEY"], model: nil)
@@ -20,21 +22,14 @@ module Openai
 
       raise ArgumentError, "OPENAI_API_KEY missing" if @api_key.blank?
 
-      tempfile = Tempfile.new([ "wa_audio", File.extname(@filename) ], binmode: true)
-      begin
+      ext = File.extname(@filename)
+      Tempfile.open([ "wa_audio", ext ], binmode: true) do |tempfile|
         tempfile.write(@bytes)
         tempfile.flush
         tempfile.rewind
 
-        client = ::OpenAI::Client.new(access_token: @api_key, request_timeout: 60)
-        params = {
-          model: @model,
-          file: tempfile,
-          language: @language
-        }
-        params[:response_format] = "json"
-
-        response = with_retries { client.audio.transcribe(parameters: params) }
+        params = { model: @model, file: tempfile, language: @language, response_format: "json" }
+        response = with_retries { http_client.audio.transcribe(parameters: params) }
         text = response.is_a?(Hash) ? response["text"].to_s : response.to_s
 
         Result.new(
@@ -43,25 +38,13 @@ module Openai
           duration: response.is_a?(Hash) ? response["duration"] : nil,
           model: @model
         )
-      ensure
-        tempfile.close
-        tempfile.unlink
       end
     end
 
     private
 
-    def with_retries(max: nil)
-      max ||= Setting.fetch("openai_retry_max") || 3
-      attempt = 0
-      begin
-        attempt += 1
-        yield
-      rescue Faraday::TooManyRequestsError, Faraday::ServerError, Faraday::TimeoutError => e
-        raise e if attempt >= max
-        sleep(0.5 * (2**attempt))
-        retry
-      end
+    def http_client
+      @http_client ||= ::OpenAI::Client.new(access_token: @api_key, request_timeout: 60)
     end
   end
 end

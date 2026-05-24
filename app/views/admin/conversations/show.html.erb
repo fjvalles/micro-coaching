@@ -1,4 +1,4 @@
-<% content_for :title, "Mensaje ID: #{@conversation.id}" %>
+<% content_for :title, "Detalle de Mensaje" %>
 
 <% content_for :breadcrumbs do %>
   <span>/</span>
@@ -11,103 +11,288 @@
   <%= button_to "Eliminar Registro", admin_conversation_path(@conversation), method: :delete, data: { confirm: "¿Estás seguro de eliminar este registro de mensaje?", turbo_confirm: "¿Estás seguro?" }, class: "btn btn-danger" %>
 <% end %>
 
-<div class="card">
-  <div class="card-header">
-    <h3 class="card-title">Detalles del Mensaje</h3>
-    <% role_badge = case @conversation.role.to_sym
-       when :user then 'badge-success'
-       when :assistant then 'badge-info'
-       when :system then 'badge-neutral'
-       end %>
-    <span class="badge <%= role_badge %>">
-      <%= translate_role(@conversation.role).upcase %>
-    </span>
-  </div>
-  <div class="card-body">
-    <div class="details-list">
-      <div class="detail-item">
-        <span class="detail-label">Participante</span>
-        <span class="detail-value">
-          <% if @conversation.participant %>
-            <a href="<%= admin_participant_path(@conversation.participant) %>" style="color: var(--brand); font-weight: 500; text-decoration: none;">
-              <%= @conversation.participant.name %>
-            </a>
-          <% else %>
-            Desconocido
-          <% end %>
+<%
+  is_user = @conversation.role.to_sym == :user
+  is_assistant = @conversation.role.to_sym == :assistant
+  is_system = @conversation.role.to_sym == :system
+
+  role_badge = case @conversation.role.to_sym
+               when :user then 'badge-success'
+               when :assistant then 'badge-info'
+               when :system then 'badge-neutral'
+               end
+
+  # Determine WhatsApp message status for timeline
+  status_width = "0%"
+  sent_completed = @conversation.sent_at.present? || is_user
+  delivered_completed = @conversation.delivered_at.present?
+  read_completed = @conversation.read_at.present?
+
+  if read_completed
+    status_width = "100%"
+  elsif delivered_completed
+    status_width = "50%"
+  elsif sent_completed
+    status_width = "0%"
+  end
+%>
+
+<div class="details-grid-layout" style="display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; margin-bottom: 32px;">
+  <!-- CSS inline responsive hack -->
+  <style>
+    @media (min-width: 1024px) {
+      .details-grid-layout {
+        grid-template-columns: 2fr 1fr !important;
+      }
+    }
+  </style>
+
+  <!-- COLUMNA PRINCIPAL: Mensaje y Detalles -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- Vista Previa de WhatsApp -->
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-header" style="background-color: var(--bg-primary); display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg style="width: 20px; height: 20px; color: var(--success);" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.062 5.248 5.303 0 11.771 0c3.14 0 6.084 1.22 8.293 3.438 2.22 2.219 3.443 5.16 3.443 8.29-.008 6.486-5.25 11.734-11.716 11.734-1.996-.002-3.955-.51-5.7-1.478L0 24zm6.49-4.754l.325.193c1.517.9 3.39 1.377 5.294 1.378 5.347 0 9.697-4.32 9.702-9.627a9.552 9.552 0 0 0-2.837-6.83 9.605 9.605 0 0 0-6.848-2.836c-5.36 0-9.71 4.33-9.715 9.638-.002 1.838.487 3.633 1.414 5.216l.212.361-1.002 3.655 3.757-.979zm11.233-5.243c-.3-.15-1.77-.875-2.04-.976-.27-.1-.47-.15-.67.15-.2.3-.77.975-.94 1.174-.17.2-.35.225-.65.075-1.03-.519-1.74-.827-2.42-1.997-.56-.967-.84-1.88-.99-2.28-.15-.3.08-.43.23-.58.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.62-.93-2.22-.24-.59-.49-.51-.68-.52-.17-.01-.37-.01-.57-.01-.2 0-.52.075-.79.37-.27.3-1.03 1.01-1.03 2.47 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.19 5.07 4.48.71.3 1.26.48 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35z"/>
+          </svg>
+          Vista Previa de Chat
+        </h3>
+        <span class="badge <%= role_badge %>">
+          <%= translate_role(@conversation.role).upcase %>
         </span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Día del Programa</span>
-        <span class="detail-value">Día <%= @conversation.day_number %></span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Momento</span>
-        <span class="detail-value"><%= translate_moment(@conversation.moment) %></span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Creado</span>
-        <span class="detail-value"><%= l(@conversation.created_at, format: :long) rescue @conversation.created_at.strftime("%Y-%m-%d %H:%M:%S") %></span>
-      </div>
+      <div class="card-body" style="background-color: var(--bg-secondary); padding: 16px;">
+        <div class="whatsapp-chat-preview">
+          <!-- Chat Header inside mock -->
+          <div class="whatsapp-chat-header">
+            <div class="whatsapp-avatar">
+              <% if @conversation.participant %>
+                <%= @conversation.participant.name.to_s.split.map(&:first).join.upcase.first(2) %>
+              <% else %>
+                ?
+              <% end %>
+            </div>
+            <div class="whatsapp-chat-info">
+              <span class="whatsapp-chat-name">
+                <% if @conversation.participant %>
+                  <%= @conversation.participant.name %> (<%= @conversation.participant.phone_e164 %>)
+                <% else %>
+                  Participante Desconocido
+                <% end %>
+              </span>
+              <span class="whatsapp-chat-status">En línea</span>
+            </div>
+          </div>
 
-      <!-- WhatsApp specifics -->
-      <div class="detail-item">
-        <span class="detail-label">WhatsApp ID</span>
-        <span class="detail-value" style="font-family: monospace; font-size: 13px;"><%= @conversation.whatsapp_message_id.presence || '(Ninguno)' %></span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Plantilla WhatsApp</span>
-        <span class="detail-value" style="font-family: monospace; font-size: 13px;"><%= @conversation.whatsapp_template_name.presence || '(Ninguna)' %></span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Fecha de Envío</span>
-        <span class="detail-value"><%= l(@conversation.sent_at, format: :long) rescue @conversation.sent_at&.strftime("%Y-%m-%d %H:%M") || '(No enviado / Inbound)' %></span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Fecha de Entrega</span>
-        <span class="detail-value"><%= l(@conversation.delivered_at, format: :long) rescue @conversation.delivered_at&.strftime("%Y-%m-%d %H:%M") || '(Sin registrar)' %></span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Fecha de Lectura</span>
-        <span class="detail-value"><%= l(@conversation.read_at, format: :long) rescue @conversation.read_at&.strftime("%Y-%m-%d %H:%M") || '(No leído)' %></span>
-      </div>
-
-      <!-- AI stats if generated -->
-      <% if @conversation.model_used.present? %>
-        <div class="detail-item">
-          <span class="detail-label">Modelo OpenAI Usado</span>
-          <span class="detail-value" style="font-family: monospace;"><%= @conversation.model_used %></span>
+          <!-- Chat Bubbles Area -->
+          <% if is_system %>
+            <div class="whatsapp-bubble system-msg">
+              <div class="whatsapp-bubble-body"><%= @conversation.body %></div>
+              <div class="whatsapp-bubble-meta">
+                <%= @conversation.created_at.strftime("%I:%M %p") %>
+              </div>
+            </div>
+          <% elsif is_user %>
+            <!-- User is inbound (left side, white bubble) -->
+            <div class="whatsapp-bubble inbound">
+              <div class="whatsapp-bubble-body"><%= @conversation.body %></div>
+              <div class="whatsapp-bubble-meta">
+                <%= @conversation.created_at.strftime("%I:%M %p") %>
+              </div>
+            </div>
+          <% elsif is_assistant %>
+            <!-- Assistant is outbound (right side, green bubble) -->
+            <div class="whatsapp-bubble outbound">
+              <div class="whatsapp-bubble-body"><%= @conversation.body %></div>
+              <div class="whatsapp-bubble-meta">
+                <%= @conversation.created_at.strftime("%I:%M %p") %>
+                <% if read_completed %>
+                  <span class="whatsapp-check blue" title="Leído">
+                    <svg viewBox="0 0 16 15"><path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32 3.2 0 0 1-.484.033L5.18 7.316a.368.368 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.14.504 0l6.077-7.61a.379.379 0 0 0-.076-.528zm-3.5 0l-.478-.372a.365.365 0 0 0-.51.063L5.166 9.879a.32 3.2 0 0 1-.484.033L2.87 8.56a.367.367 0 0 0-.513.003l-.427.43a.364.364 0 0 0 .004.514l2.217 2.13c.143.14.361.14.504 0l6.077-7.61a.379.379 0 0 0-.076-.528z"/></svg>
+                  </span>
+                <% elsif delivered_completed %>
+                  <span class="whatsapp-check gray" title="Entregado">
+                    <svg viewBox="0 0 16 15"><path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32 3.2 0 0 1-.484.033L5.18 7.316a.368.368 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.14.504 0l6.077-7.61a.379.379 0 0 0-.076-.528zm-3.5 0l-.478-.372a.365.365 0 0 0-.51.063L5.166 9.879a.32 3.2 0 0 1-.484.033L2.87 8.56a.367.367 0 0 0-.513.003l-.427.43a.364.364 0 0 0 .004.514l2.217 2.13c.143.14.361.14.504 0l6.077-7.61a.379.379 0 0 0-.076-.528z"/></svg>
+                  </span>
+                <% else %>
+                  <span class="whatsapp-check gray" title="Enviado">
+                    <svg viewBox="0 0 16 15"><path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32 3.2 0 0 1-.484.033L5.18 7.316a.368.368 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.14.504 0l6.077-7.61a.379.379 0 0 0-.076-.528z"/></svg>
+                  </span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
         </div>
-        <div class="detail-item">
-          <span class="detail-label">Tokens Utilizados</span>
-          <span class="detail-value">
-            <strong>Input:</strong> <%= @conversation.tokens_input %> | 
-            <strong>Output:</strong> <%= @conversation.tokens_output %>
+      </div>
+    </div>
+
+    <!-- Prompt de Sistema de OpenAI -->
+    <% if @conversation.prompt_used.present? %>
+      <div class="card" style="margin-bottom: 0;">
+        <div class="card-header" style="background-color: var(--bg-primary);">
+          <h3 class="card-title">Prompt de Sistema Enviado a OpenAI</h3>
+        </div>
+        <div class="card-body" style="padding: 16px;">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+            Este fue el contexto completo del sistema inyectado a la API de OpenAI para guiar la respuesta del asistente.
+          </p>
+          <div class="editor-preview-container">
+            <div class="editor-header">
+              <span class="editor-title">openai_system_prompt.txt</span>
+              <div class="editor-actions-btns">
+                <button onclick="navigator.clipboard.writeText(document.getElementById('prompt-text').innerText); alert('Prompt copiado al portapapeles');" class="btn btn-sm btn-secondary" style="padding: 2px 8px; font-size: 11px; background: transparent; border-color: #475569; color: #94a3b8;">
+                  Copiar Prompt
+                </button>
+              </div>
+            </div>
+            <div class="editor-body" id="prompt-text"><%= @conversation.prompt_used %></div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- COLUMNA SECUNDARIA: Estado y Stats -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- Estado de Envío de WhatsApp (Solo para outbound) -->
+    <% if is_assistant %>
+      <div class="card" style="margin-bottom: 0;">
+        <div class="card-header" style="background-color: var(--bg-primary);">
+          <h3 class="card-title">Entrega de WhatsApp</h3>
+        </div>
+        <div class="card-body">
+          <div class="delivery-timeline">
+            <div class="delivery-timeline-progress" style="width: <%= status_width %>"></div>
+            
+            <div class="delivery-step <%= 'completed' if sent_completed %>">
+              <div class="delivery-node">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              </div>
+              <div class="delivery-step-label">Enviado</div>
+              <div class="delivery-step-time">
+                <%= @conversation.sent_at&.strftime("%H:%M") || '—' %>
+              </div>
+            </div>
+
+            <div class="delivery-step <%= 'completed' if delivered_completed %> <%= 'active' if sent_completed && !delivered_completed %>">
+              <div class="delivery-node">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              </div>
+              <div class="delivery-step-label">Entregado</div>
+              <div class="delivery-step-time">
+                <%= @conversation.delivered_at&.strftime("%H:%M") || '—' %>
+              </div>
+            </div>
+
+            <div class="delivery-step <%= 'completed' if read_completed %> <%= 'active' if delivered_completed && !read_completed %>">
+              <div class="delivery-node">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              </div>
+              <div class="delivery-step-label">Leído</div>
+              <div class="delivery-step-time">
+                <%= @conversation.read_at&.strftime("%H:%M") || '—' %>
+              </div>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+              <span style="color: var(--text-muted);">ID de Meta:</span>
+              <span style="font-family: monospace; font-weight: 500; font-size: 11px;"><%= @conversation.whatsapp_message_id.presence || '—' %></span>
+            </div>
+            <% if @conversation.whatsapp_template_name.present? %>
+              <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                <span style="color: var(--text-muted);">Plantilla:</span>
+                <span style="font-family: monospace; font-weight: 500; font-size: 11px; color: var(--brand);"><%= @conversation.whatsapp_template_name %></span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Desglose de Rendimiento de IA -->
+    <% if @conversation.model_used.present? || @conversation.tokens_input.present? %>
+      <div class="card" style="margin-bottom: 0;">
+        <div class="card-header" style="background-color: var(--bg-primary);">
+          <h3 class="card-title">Métricas de Inteligencia Artificial</h3>
+        </div>
+        <div class="card-body">
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+              <span style="color: var(--text-muted);">Modelo OpenAI:</span>
+              <span style="font-family: monospace; font-weight: 600;"><%= @conversation.model_used %></span>
+            </div>
+            
+            <div class="ai-perf-grid">
+              <div class="ai-perf-stat">
+                <span class="ai-perf-label">Tokens Input</span>
+                <span class="ai-perf-val"><%= @conversation.tokens_input || 0 %></span>
+              </div>
+              <div class="ai-perf-stat">
+                <span class="ai-perf-label">Tokens Output</span>
+                <span class="ai-perf-val"><%= @conversation.tokens_output || 0 %></span>
+              </div>
+            </div>
+
+            <!-- Token Bar visualization -->
+            <% 
+              total_tokens = (@conversation.tokens_input.to_i + @conversation.tokens_output.to_i)
+              input_percent = total_tokens > 0 ? ((@conversation.tokens_input.to_f / total_tokens) * 100).round : 0
+            %>
+            <div style="margin-top: 8px;">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; font-weight: 600;">
+                <span style="color: var(--brand);">Input (<%= input_percent %>%)</span>
+                <span style="color: var(--info);">Output (<%= 100 - input_percent %>%)</span>
+              </div>
+              <div style="height: 8px; background-color: var(--info); border-radius: 4px; overflow: hidden; display: flex;">
+                <div style="width: <%= input_percent %>%; height: 100%; background-color: var(--brand);"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Tarjeta de Contexto General -->
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-header" style="background-color: var(--bg-primary);">
+        <h3 class="card-title">Contexto del Mensaje</h3>
+      </div>
+      <div class="card-body" style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Día del Programa</span>
+          <span style="font-size: 14px; font-weight: 600; color: var(--text-main);">Día <%= @conversation.day_number %></span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Momento</span>
+          <span style="font-size: 14px; font-weight: 500; color: var(--text-main);"><%= translate_moment(@conversation.moment) %></span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Creado</span>
+          <span style="font-size: 13px; color: var(--text-muted);">
+            <%= l(@conversation.created_at, format: :long) rescue @conversation.created_at.strftime("%Y-%m-%d %H:%M:%S") %>
           </span>
         </div>
-      <% end %>
-
-      <!-- Error message -->
-      <% if @conversation.error_message.present? %>
-        <div class="detail-item" style="grid-column: span 2; color: var(--danger); background-color: var(--danger-bg); padding: 16px; border: 1px solid var(--danger-border); border-radius: var(--radius-md);">
-          <span class="detail-label" style="color: var(--danger);">Mensaje de Error</span>
-          <span class="detail-value" style="font-weight: 600;"><%= @conversation.error_message %></span>
-        </div>
-      <% end %>
-
-      <!-- Body / Message Text -->
-      <div class="detail-item" style="grid-column: span 2;">
-        <span class="detail-label">Cuerpo del Mensaje</span>
-        <pre class="detail-value-code" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;"><%= @conversation.body %></pre>
       </div>
-
-      <!-- Prompt used if present -->
-      <% if @conversation.prompt_used.present? %>
-        <div class="detail-item" style="grid-column: span 2;">
-          <span class="detail-label">Prompt de Sistema Enviado a OpenAI</span>
-          <pre class="detail-value-code" style="font-size: 12px; font-family: monospace;"><%= @conversation.prompt_used %></pre>
-        </div>
-      <% end %>
     </div>
+
+    <!-- Errores de Envío / Excepciones -->
+    <% if @conversation.error_message.present? %>
+      <div class="card" style="margin-bottom: 0; border-color: var(--danger-border); box-shadow: 0 4px 6px rgba(239, 68, 68, 0.05);">
+        <div class="card-header" style="background-color: var(--danger-bg); border-bottom-color: var(--danger-border);">
+          <h3 class="card-title" style="color: var(--danger); display: flex; align-items: center; gap: 8px;">
+            <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            Error de Transmisión
+          </h3>
+        </div>
+        <div class="card-body" style="background-color: var(--danger-bg); color: #991b1b; font-size: 13px; line-height: 1.5; font-weight: 500;">
+          <%= @conversation.error_message %>
+        </div>
+      </div>
+    <% end %>
   </div>
 </div>

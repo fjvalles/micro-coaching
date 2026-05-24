@@ -1,0 +1,49 @@
+<% content_for :title, "Prompts" %>
+
+<div class="card">
+  <div class="card-header">
+    <h2 style="font-size: 16px; font-weight: 600; margin: 0;">Plantillas registradas (<%= @templates.size %>)</h2>
+  </div>
+  <div class="card-body" style="padding: 0;">
+    <% if @templates.empty? %>
+      <div class="empty-state" style="padding: 24px;">
+        <div class="empty-state-title">Sin prompts aún</div>
+        <div class="empty-state-desc">Las plantillas se registran solas la primera vez que un generador de IA se ejecuta o cuando editás el system prompt de un día.</div>
+      </div>
+    <% else %>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Sección</th>
+              <th>Programa</th>
+              <th>Día</th>
+              <th>Versión</th>
+              <th>Ejecuciones</th>
+              <th>Último análisis</th>
+              <th style="text-align: right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @templates.each do |t| %>
+              <tr>
+                <td>
+                  <div style="font-weight: 600;"><%= t.name %></div>
+                  <div style="font-size: 12px; font-family: monospace; color: var(--text-muted);"><%= t.key %></div>
+                </td>
+                <td><%= t.program&.slug || "—" %></td>
+                <td><%= t.day_number || "—" %></td>
+                <td>v<%= t.current_version %></td>
+                <td><%= t.prompt_executions.count %></td>
+                <td><%= t.prompt_analyses.maximum(:created_at)&.strftime("%Y-%m-%d %H:%M") || "—" %></td>
+                <td class="table-actions">
+                  <%= link_to "Ver", admin_prompt_template_path(t), class: "btn btn-secondary btn-sm" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </div>
+</div>

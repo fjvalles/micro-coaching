@@ -1,0 +1,62 @@
+<% if @versions.empty? %>
+  <div class="empty-state" style="padding: 32px; background-color: var(--bg-secondary); border-radius: var(--radius-md); border: 1px dashed var(--border);">
+    <svg style="width: 32px; height: 32px; color: var(--text-muted); margin-bottom: 8px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <p style="color: var(--text-muted); font-size: 13.5px; font-weight: 500;">Sin versiones registradas históricamente para este prompt.</p>
+  </div>
+<% else %>
+  <div class="changelog-feed">
+    <% @versions.each do |v| %>
+      <div class="changelog-item">
+        <div class="changelog-dot"></div>
+        
+        <div class="changelog-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="badge badge-success" style="font-family: monospace; font-size: 12.5px; padding: 4px 10px;">
+              v<%= v.version %>
+            </span>
+            <span class="badge badge-neutral" style="font-size: 11px; text-transform: uppercase;">
+              Origen: <%= v.origin %>
+            </span>
+          </div>
+          <div class="changelog-meta">
+            <span style="font-weight: 500;"><%= v.created_at.strftime("%d %b, %Y — %H:%M") %></span>
+            <% if v.author %>
+              <span style="color: var(--text-muted);">· Por</span> 
+              <span style="font-weight: 600; color: var(--brand-text);"><%= v.author.name %></span>
+            <% end %>
+          </div>
+        </div>
+
+        <% if v.change_note.present? %>
+          <div class="changelog-note">
+            <%= v.change_note %>
+          </div>
+        <% else %>
+          <div class="changelog-note" style="color: var(--text-muted); font-style: italic; font-size: 12.5px;">
+            Sin notas de cambio proporcionadas.
+          </div>
+        <% end %>
+
+        <details style="cursor: pointer; margin-top: 12px;">
+          <summary style="font-size: 12px; color: var(--brand); font-weight: 600; outline: none; display: inline-flex; align-items: center; gap: 4px;">
+            Ver Cuerpo del Prompt (<%= number_with_delimiter(v.body.to_s.length) %> caracteres)
+          </summary>
+          
+          <div class="editor-preview-container" style="cursor: default;">
+            <div class="editor-header" style="background-color: #334155; border-bottom-color: #475569;">
+              <span class="editor-title" style="color: #cbd5e1;">prompt_body_v<%= v.version %>.txt</span>
+              <div class="editor-actions-btns">
+                <button onclick="navigator.clipboard.writeText(document.getElementById('prompt-version-<%= v.id %>').innerText); alert('Copiado');" class="btn btn-sm btn-secondary" style="padding: 1px 6px; font-size: 10px; background: transparent; border-color: #64748b; color: #cbd5e1;">
+                  Copiar
+                </button>
+              </div>
+            </div>
+            <div class="editor-body" id="prompt-version-<%= v.id %>" style="max-height: 200px; font-size: 12.5px; background-color: #1e293b;"><%= v.body %></div>
+          </div>
+        </details>
+      </div>
+    <% end %>
+  </div>
+<% end %>

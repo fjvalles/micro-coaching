@@ -1,0 +1,68 @@
+<% if @prompt_evolution.blank? %>
+  <p style="color: var(--text-muted);">Sin evolución de prompts aún. Encola un recálculo.</p>
+<% else %>
+  <%
+    templates = @prompt_evolution.payload["templates"] || []
+    def delta_badge(before, after)
+      return "—" if before.nil? || after.nil?
+      delta = after.to_f - before.to_f
+      cls = delta < 0 ? "badge-success" : (delta > 0 ? "badge-danger" : "badge-neutral")
+      sign = delta > 0 ? "+" : ""
+      "<span class='badge #{cls}'>#{sign}#{delta.round(1)}</span>".html_safe
+    end
+  %>
+
+  <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+    Para cada plantilla, comparamos las <strong>30 ejecuciones previas</strong> a una versión vs las
+    <strong>30 ejecuciones posteriores</strong>. Un delta negativo (verde) = mejora.
+    Actualizado <%= time_ago_in_words(@prompt_evolution.generated_at) %> atrás.
+  </p>
+
+  <% templates.each do |t| %>
+    <div class="card" style="padding: 16px 18px; margin-bottom: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;">
+        <div>
+          <%= link_to t["name"], admin_prompt_template_path(t["template_id"]), style: "color: var(--brand); font-weight: 600; text-decoration: none;" %>
+          <code style="margin-left: 8px; font-size: 11px; color: var(--text-muted);"><%= t["key"] %></code>
+        </div>
+        <span class="badge badge-info">v<%= t["current_version"] %></span>
+      </div>
+
+      <% versions = Array(t["versions"]) %>
+      <% if versions.empty? %>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Sin versiones registradas.</p>
+      <% else %>
+        <table class="table" style="margin: 0; font-size: 12px;">
+          <thead>
+            <tr>
+              <th>v</th>
+              <th>Aplicada</th>
+              <th>Origen</th>
+              <th>Tokens antes</th>
+              <th>Tokens después</th>
+              <th>Δ Tokens</th>
+              <th>Latencia antes (ms)</th>
+              <th>Latencia después (ms)</th>
+              <th>Δ Latencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% versions.each do |v| %>
+              <tr>
+                <td><strong>v<%= v["n"] %></strong></td>
+                <td><%= Time.zone.parse(v["applied_at"]).strftime("%Y-%m-%d %H:%M") rescue v["applied_at"] %></td>
+                <td><span class="badge badge-neutral"><%= v["origin"] %></span></td>
+                <td><%= v["tokens_avg_before"] || "—" %></td>
+                <td><%= v["tokens_avg_after"] || "—" %></td>
+                <td><%= delta_badge(v["tokens_avg_before"], v["tokens_avg_after"]) %></td>
+                <td><%= v["latency_avg_before"] || "—" %></td>
+                <td><%= v["latency_avg_after"] || "—" %></td>
+                <td><%= delta_badge(v["latency_avg_before"], v["latency_avg_after"]) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

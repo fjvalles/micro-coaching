@@ -39,8 +39,8 @@
                   <% end %>
                 </td>
                 <td class="table-actions">
-                  <a href="<%= admin_program_path(program) %>" class="btn btn-secondary btn-sm">Ver</a>
-                  <a href="<%= edit_admin_program_path(program) %>" class="btn btn-secondary btn-sm">Editar</a>
+                  <%= render "shared/table_action_view", path: admin_program_path(program), title: "Ver programa" %>
+                  <%= render "shared/table_action_edit", path: edit_admin_program_path(program), title: "Editar programa" %>
                 </td>
               </tr>
             <% end %>

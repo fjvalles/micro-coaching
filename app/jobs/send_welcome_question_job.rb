@@ -5,18 +5,6 @@ class SendWelcomeQuestionJob < ApplicationJob
 
   def perform(participant_id)
     participant = Participant.kept.find(participant_id)
-    client = Whatsapp::Client.new
-    response = client.send_text(to: participant.phone_e164, body: QUESTION)
-
-    Conversation.create!(
-      participant: participant,
-      day_number: 0,
-      moment: :welcome,
-      role: :assistant,
-      body: QUESTION,
-      whatsapp_message_id: response.wamid,
-      sent_at: response.success? ? Time.current : nil,
-      error_message: response.success? ? nil : response.error
-    )
+    Outbound::Dispatcher.new(participant: participant, moment: :welcome, day_number: 0).send_text(body: QUESTION)
   end
 end

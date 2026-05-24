@@ -16,7 +16,13 @@ module Webhooks
         head :unauthorized and return
       end
 
-      payload = JSON.parse(raw_body) rescue {}
+      begin
+        payload = JSON.parse(raw_body)
+      rescue JSON::ParserError => e
+        Rails.logger.error("WhatsApp webhook JSON parse failed: #{e.message}")
+        head :unprocessable_entity and return
+      end
+
       ProcessIncomingMessageJob.perform_later(payload) if payload.present?
       head :ok
     end

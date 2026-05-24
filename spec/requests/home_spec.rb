@@ -128,4 +128,17 @@ RSpec.describe "Home", type: :request do
       end
     end
   end
+
+  describe "GET /privacidad" do
+    before do
+      Setting.set("privacy_policy", "Esta es la politica de prueba para Comtraining.")
+    end
+
+    it "renders the privacy page successfully and includes the policy text" do
+      get privacidad_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Política de Privacidad")
+      expect(response.body).to include("politica de prueba")
+    end
+  end
 end
