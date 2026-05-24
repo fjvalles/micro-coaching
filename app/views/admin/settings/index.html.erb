@@ -1,19 +1,62 @@
-<% content_for :title, "Configuraciones del Sistema" %>
+<% content_for :title, "Configuración del Sistema" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <span>Configuración</span>
+<% end %>
+
+<style>
+  details.details-card {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-card);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  details.details-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-focus);
+  }
+  details.details-card[open] summary {
+    border-bottom: 1px solid var(--border);
+    background-color: var(--bg-card);
+  }
+  details.details-card[open] .chevron-icon {
+    transform: rotate(180deg);
+  }
+  details.details-card summary::-webkit-details-marker {
+    display: none;
+  }
+  details.details-card summary {
+    list-style: none;
+    outline: none;
+  }
+  details.details-card summary:hover {
+    background-color: var(--bg-secondary);
+  }
+  .setting-row {
+    transition: background-color 0.15s ease;
+  }
+  .setting-row:hover {
+    background-color: rgba(99, 102, 241, 0.015);
+  }
+</style>
 
 <%= render "admin/shared/response_mode_panel" %>
 
 <% if @grouped_settings.empty? %>
   <div class="card">
     <div class="card-body">
-      <div class="empty-state">
-        <div class="empty-state-title">No hay configuraciones</div>
-        <div class="empty-state-desc">No se encontraron configuraciones en la base de datos. Corre <code>rails db:seed</code> para poblar los defaults del schema.</div>
+      <div class="empty-state" style="padding: 40px; text-align: center;">
+        <div class="empty-state-title" style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px;">No hay configuraciones</div>
+        <div class="empty-state-desc" style="font-size: 0.9rem; color: var(--text-muted);">No se encontraron configuraciones en la base de datos. Corre <code>rails db:seed</code> para poblar los defaults.</div>
       </div>
     </div>
   </div>
 <% else %>
   <%
-    # Assign icons and theme accent colors to categories
+    # Assign icons and theme accent colors to all categories
     category_meta = {
       "general" => {
         color: "var(--brand)",
@@ -25,64 +68,236 @@
       },
       "openai" => {
         color: "#8b5cf6",
-        icon: '<svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 0 0 .495-7.467 5.99 5.99 0 0 0-1.925 3.546 5.974 5.974 0 0 1-2.133-1a3.75 3.75 0 0 0 12 18Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.75L16.5 7.5m0 0L14.25 5.25M16.5 7.5H9m5.25 9L12 18.75m0 0l2.25 2.25M12 18.75V15" /></svg>'
+        icon: '<svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 0 0-3.09 3.091ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>'
+      },
+      "timing" => {
+        color: "#f59e0b",
+        icon: '<svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>'
+      },
+      "program" => {
+        color: "#3b82f6",
+        icon: '<svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582" /></svg>'
+      },
+      "admin" => {
+        color: "#ef4444",
+        icon: '<svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>'
+      },
+      "finances" => {
+        color: "#0ea5e9",
+        icon: '<svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>'
       }
     }
   %>
 
-  <% @grouped_settings.each do |category, settings| %>
-    <% meta = category_meta[category] || { color: "var(--text-muted)", icon: '<svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.68-.68-.86-1.72-.4-2.58l.78-1.46c.46-.86.28-1.9-.4-2.58l-.05-.05c-.68-.68-1.72-.86-2.58-.4l-1.46.78c-.86.46-1.9.28-2.58-.4l-.05-.05c-.68-.68-.86-1.72-.4-2.58l.78-1.46c.46-.86.28-1.9-.4-2.58" /></svg>' } %>
-    
-    <div class="card" style="margin-bottom: 32px;">
-      <div class="card-header" style="background-color: #fafafa; display: flex; align-items: center; justify-content: flex-start; gap: 10px;">
-        <div class="info-icon-wrapper" style="width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center; background-color: white; color: <%= meta[:color] %>;">
-          <%= raw meta[:icon] %>
-        </div>
-        <h2 style="font-size: 16px; font-weight: 600; margin: 0; color: var(--text-main); text-transform: capitalize;">
-          <%= @category_labels[category] || category.titleize %>
-          <span style="font-size: 12px; font-weight: 500; color: var(--text-muted); margin-left: 6px;">(<%= settings.size %>)</span>
-        </h2>
+  <!-- Settings Search Toolbar -->
+  <div class="filter-toolbar" style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: white; padding: 16px 20px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 280px;">
+      <div style="position: relative; width: 100%; max-width: 360px;">
+        <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); display: flex; align-items: center;">
+          <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </span>
+        <input type="text" id="settings-search" placeholder="Buscar clave, descripción o valor..." class="form-input" style="padding-left: 36px; height: 38px; font-size: 13.5px; box-shadow: none;">
       </div>
-      <div class="card-body" style="padding: 0;">
-        <div class="table-responsive">
-          <table class="table" style="margin-bottom: 0;">
-            <thead>
-              <tr>
-                <th style="width: 220px;">Clave</th>
-                <th style="width: 90px;">Tipo</th>
-                <th>Descripción</th>
-                <th>Valor Actual</th>
-                <th style="text-align: right; width: 100px;">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% settings.each do |setting| %>
-                <tr>
-                  <td style="font-weight: 600; font-family: monospace; font-size: 13px; color: var(--text-main);"><%= setting.key %></td>
-                  <td>
-                    <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); background-color: var(--bg-app); border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px;">
-                      <%= setting.value_type %>
-                    </span>
-                  </td>
-                  <td style="font-size: 13px; color: var(--text-muted); line-height: 1.4;"><%= setting.description %></td>
-                  <td>
-                    <% if setting.value_type == "boolean" %>
-                      <span class="badge <%= setting.typed_value ? 'badge-success' : 'badge-neutral' %>" style="font-size: 11px;">
-                        <%= setting.typed_value ? "true" : "false" %>
-                      </span>
-                    <% else %>
-                      <pre style="font-size: 12px; font-family: monospace; background-color: var(--bg-secondary); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); overflow-x: auto; white-space: pre-wrap; max-height: 80px; max-width: 400px; color: var(--text-main); margin: 0;"><%= setting.value %></pre>
-                    <% end %>
-                  </td>
-                  <td class="table-actions" style="text-align: right;">
-                    <a href="<%= edit_admin_setting_path(setting) %>" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 12px;">Editar</a>
-                  </td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <span id="search-count" style="font-size: 13px; font-weight: 500; color: var(--brand); background-color: var(--brand-light); padding: 4px 10px; border-radius: 20px; display: none;"></span>
     </div>
-  <% end %>
+    
+    <div style="display: flex; gap: 8px;">
+      <button type="button" id="btn-expand-all" class="btn btn-secondary btn-sm" style="height: 38px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+        <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 5.25l-7.5 7.5-7.5-7.5m15 6l-7.5 7.5-7.5-7.5" />
+        </svg>
+        <span>Expandir Todo</span>
+      </button>
+      <button type="button" id="btn-collapse-all" class="btn btn-secondary btn-sm" style="height: 38px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+        <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l7.5-7.5 7.5 7.5m-15 6l7.5-7.5 7.5 7.5" />
+        </svg>
+        <span>Colapsar Todo</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Collapsible Categories -->
+  <div style="display: flex; flex-direction: column; gap: 4px;">
+    <% @grouped_settings.each do |category, settings| %>
+      <% meta = category_meta[category] || { color: "var(--text-muted)", icon: '<svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.68-.68-.86-1.72-.4-2.58l.78-1.46c.46-.86.28-1.9-.4-2.58l-.05-.05c-.68-.68-1.72-.86-2.58-.4l-1.46.78c-.86.46-1.9.28-2.58-.4l-.05-.05c-.68-.68-.86-1.72-.4-2.58l.78-1.46c.46-.86.28-1.9-.4-2.58" /></svg>' } %>
+      
+      <details class="details-card" open>
+        <summary style="padding: 16px 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-secondary); transition: background-color 0.2s;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div class="info-icon-wrapper" style="width: 36px; height: 36px; border-radius: var(--radius-md); border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center; background-color: white; color: <%= meta[:color] %>; box-shadow: var(--shadow-sm);">
+              <%= raw meta[:icon] %>
+            </div>
+            <div style="text-align: left;">
+              <h3 style="font-size: 15px; font-weight: 600; margin: 0; color: var(--text-main);">
+                <%= @category_labels[category] || category.titleize %>
+              </h3>
+              <p style="font-size: 11px; color: var(--text-muted); font-weight: 400; margin-top: 1px;">
+                <%= case category
+                    when "general"  then "Configuraciones generales de idioma y variables transversales."
+                    when "whatsapp" then "Tokens de Meta Cloud API, IDs de teléfono y envío de plantillas."
+                    when "openai"   then "API Keys, modelos de IA generativa e instrucciones generales de comportamiento."
+                    when "timing"   then "Horarios de morning broadcast, check-in vespertino y retrasos del despachador."
+                    when "program"  then "Límite de días, manifesto educativo y lógica interna del programa."
+                    when "admin"    then "Ajustes del panel y configuraciones operativas internas."
+                    when "finances" then "Costos operativos mensuales del hosting, dominio, correos, Meta Cloud API y gastos publicitarios."
+                    else "Configuraciones de categoría #{category}."
+                    end %>
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="badge badge-neutral settings-count-badge" style="font-size: 11px; font-weight: 600;">
+              <%= settings.size %>
+            </span>
+            <svg class="chevron-icon" style="width: 18px; height: 18px; color: var(--text-muted); transition: transform 0.2s;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </div>
+        </summary>
+        
+        <div class="card-body" style="padding: 0; border-top: 1px solid var(--border);">
+          <div class="table-responsive">
+            <table class="table" style="margin-bottom: 0;">
+              <thead>
+                <tr>
+                  <th style="width: 240px; font-size: 11px;">Clave</th>
+                  <th style="width: 90px; font-size: 11px;">Tipo</th>
+                  <th style="font-size: 11px;">Descripción</th>
+                  <th style="font-size: 11px;">Valor Actual</th>
+                  <th style="text-align: right; width: 100px; font-size: 11px;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% settings.each do |setting| %>
+                  <tr class="setting-row" data-key="<%= setting.key %>" data-desc="<%= setting.description %>" data-value="<%= setting.value %>">
+                    <td>
+                      <code style="font-weight: 700; font-family: monospace; font-size: 13px; color: var(--brand-text); background-color: var(--brand-light); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);">
+                        <%= setting.key %>
+                      </code>
+                    </td>
+                    <td>
+                      <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); background-color: #f1f5f9; border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; letter-spacing: 0.02em;">
+                        <%= setting.value_type %>
+                      </span>
+                    </td>
+                    <td style="font-size: 13px; color: var(--text-muted); line-height: 1.5; max-width: 320px; overflow-wrap: break-word;">
+                      <%= setting.description %>
+                    </td>
+                    <td>
+                      <% if setting.value_type == "boolean" %>
+                        <span class="badge <%= setting.typed_value ? 'badge-success' : 'badge-neutral' %>" style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; padding: 4px 10px;">
+                          <%= setting.typed_value ? "activo" : "inactivo" %>
+                        </span>
+                      <% else %>
+                        <pre style="font-family: monospace; font-size: 12.5px; background: #fafafa; border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-sm); overflow-x: auto; white-space: pre-wrap; word-break: break-all; max-height: 80px; max-width: 450px; color: var(--text-main); margin: 0; line-height: 1.45;"><%= setting.value %></pre>
+                      <% end %>
+                    </td>
+                    <td class="table-actions" style="text-align: right;">
+                      <a href="<%= edit_admin_setting_path(setting) %>" class="btn btn-secondary btn-sm" style="font-weight: 600; font-size: 12.5px; padding: 6px 12px;">Editar</a>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+    <% end %>
+  </div>
 <% end %>
+
+<script>
+  (function() {
+    function setupSettingsInteractivity() {
+      const searchInput = document.getElementById("settings-search");
+      const searchCount = document.getElementById("search-count");
+      const expandBtn = document.getElementById("btn-expand-all");
+      const collapseBtn = document.getElementById("btn-collapse-all");
+
+      if (expandBtn) {
+        expandBtn.addEventListener("click", function() {
+          document.querySelectorAll("details.details-card").forEach(function(detail) {
+            detail.open = true;
+          });
+        });
+      }
+
+      if (collapseBtn) {
+        collapseBtn.addEventListener("click", function() {
+          document.querySelectorAll("details.details-card").forEach(function(detail) {
+            detail.open = false;
+          });
+        });
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener("input", function(e) {
+          const q = e.target.value.toLowerCase().trim();
+          let matchCount = 0;
+          let totalCount = 0;
+
+          document.querySelectorAll(".setting-row").forEach(function(row) {
+            totalCount++;
+            const key = (row.dataset.key || "").toLowerCase();
+            const desc = (row.dataset.desc || "").toLowerCase();
+            const value = (row.dataset.value || "").toLowerCase();
+            const matches = key.includes(q) || desc.includes(q) || value.includes(q);
+
+            if (matches) {
+              row.style.display = "";
+              matchCount++;
+            } else {
+              row.style.display = "none";
+            }
+          });
+
+          // Show/hide/expand cards based on visibility of child rows
+          document.querySelectorAll("details.details-card").forEach(function(detail) {
+            const rows = detail.querySelectorAll(".setting-row");
+            const visibleRows = detail.querySelectorAll(".setting-row:not([style*='display: none'])");
+            const badge = detail.querySelector(".settings-count-badge");
+            
+            if (q.length > 0) {
+              // Update count badge to show matches
+              if (badge) {
+                badge.textContent = `${visibleRows.length}/${rows.length}`;
+              }
+              
+              if (visibleRows.length > 0) {
+                detail.style.display = "";
+                detail.open = true; // Auto-expand matching sections
+              } else {
+                detail.style.display = "none";
+              }
+            } else {
+              // Reset display
+              detail.style.display = "";
+              if (badge) {
+                badge.textContent = rows.length;
+              }
+            }
+          });
+
+          // Show search results count
+          if (q.length > 0) {
+            searchCount.textContent = `Encontrados: ${matchCount} de ${totalCount}`;
+            searchCount.style.display = "inline";
+          } else {
+            searchCount.style.display = "none";
+          }
+        });
+      }
+    }
+
+    // Run on boot & turbo loads
+    document.addEventListener("turbo:load", setupSettingsInteractivity);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", setupSettingsInteractivity);
+    } else {
+      setupSettingsInteractivity();
+    }
+  })();
+</script>

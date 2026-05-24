@@ -6,7 +6,8 @@ module Admin
       "whatsapp" => "WhatsApp / Meta",
       "program"  => "Programa",
       "admin"    => "Administración",
-      "general"  => "General"
+      "general"  => "General",
+      "finances" => "Finanzas"
     }.freeze
 
     before_action :set_setting, only: [ :edit, :update ]
