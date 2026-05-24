@@ -1,0 +1,14 @@
+<% content_for :title, "Nuevo Administrador" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_admin_users_path %>">Administradores</a>
+  <span>/</span>
+  <span>Nuevo</span>
+<% end %>
+
+<div class="card">
+  <div class="card-body">
+    <%= render "form", admin_user: @admin_user %>
+  </div>
+</div>

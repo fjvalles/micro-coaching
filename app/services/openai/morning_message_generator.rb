@@ -1,0 +1,60 @@
+module Openai
+  class MorningMessageGenerator
+    Result = Struct.new(:body, :prompt_used, :tokens_input, :tokens_output, :model, keyword_init: true)
+
+    def initialize(participant:, day_content:, client: Openai::Client.new)
+      @participant = participant
+      @day_content = day_content
+      @client = client
+    end
+
+    def call(dry_run: false)
+      messages = build_messages
+      if dry_run
+        return Result.new(body: @day_content.morning_template.to_s.gsub("{name}", @participant.name),
+                          prompt_used: messages.to_json, tokens_input: 0, tokens_output: 0, model: "dry-run")
+      end
+
+      response = @client.chat(
+        messages: messages,
+        max_tokens: Setting.fetch("openai_max_tokens_morning"),
+        temperature: Setting.fetch("openai_temperature_generative")
+      )
+      Result.new(
+        body: response.content,
+        prompt_used: messages.to_json,
+        tokens_input: response.tokens_input,
+        tokens_output: response.tokens_output,
+        model: response.model
+      )
+    end
+
+    private
+
+    def build_messages
+      [
+        { role: "system", content: system_prompt },
+        { role: "user",   content: user_prompt }
+      ]
+    end
+
+    def system_prompt
+      [ Openai.program_manifesto(@participant.program), @day_content.ai_system_prompt.to_s ].join("\n\n")
+    end
+
+    def user_prompt
+      <<~PROMPT
+        Participante: #{@participant.name}
+        Día: #{@participant.current_day} (#{@participant.phase})
+        Patrón inicial: #{@participant.initial_pattern.presence || 'no declarado'}
+        Mapa de energía: #{(@participant.energy_map.presence || {}).to_json}
+        Último reporte (ayer): #{@participant.latest_report&.raw_text.presence || 'sin reporte previo'}
+        Plantilla base (puedes reescribir manteniendo intención):
+        #{@day_content.morning_template}
+
+        Genera el mensaje de despertar de hoy, personalizado, refiriendo brevemente al
+        reporte de ayer si existe. Máximo 4 frases. Sustituye {name} por el nombre real.
+      PROMPT
+    end
+  end
+end

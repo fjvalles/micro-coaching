@@ -1,0 +1,95 @@
+# Guía de Uso del Panel de Administración
+
+Esta guía está diseñada para los **administradores y operadores de la plataforma**. Explica cómo navegar por las secciones del panel, realizar operaciones comunes de gestión y monitorear el comportamiento de los participantes.
+
+Además de la operación diaria, el área **Documentación** del panel expone tanto la base técnica/pedagógica del producto como los documentos de estrategia comercial usados para el lanzamiento B2B de **Impulso by Comtraining**.
+
+---
+
+## 1. Introducción al Panel Nivo (`/admin`)
+
+El panel de administración es una interfaz a medida construida de forma nativa en Rails. Su objetivo es dar visibilidad completa del estado de la plataforma a los operadores no técnicos sin sacrificar velocidad.
+
+Para ingresar se requiere un usuario administrador (`AdminUser`) configurado mediante credenciales seguras de Devise.
+
+---
+
+## 2. Secciones del Sistema
+
+El panel se organiza en una barra lateral dividida en dos grupos de navegación:
+
+| Sección | Propósito | Operaciones Clave |
+|---------|-----------|-------------------|
+| **Inicio (Dashboard)** | Visión general del estado en tiempo real. | Ver métricas generales (activos, errores, mensajes de hoy). |
+| **Programas** | Definición del programa de coaching. | Crear programas y activar/desactivar la secuencia. |
+| **Días y Contenidos** | Consola transversal del contenido pedagógico. | Filtrar por programa, día, fase, estado o texto para auditar y editar prompts, retos y preguntas. |
+| **Participantes** | El núcleo de la administración de usuarios. | Inscribir nuevos usuarios, pausar, archivar, auditar chat. |
+| **Mensajes** | Historial crudo de la base de datos de mensajes. | Ver metadatos de tokens y estado de entrega de Meta. |
+| **Reportes Diarios** | Resúmenes cognitivos del check-in nocturno. | Leer los patrones de comportamiento detectados por la IA. |
+| **Configuración** | Parámetros del sistema modificables en vivo. | Cambiar la hora de despertar o el retraso del IAReto. |
+| **Administradores** | Gestión del equipo de soporte. | Agregar o eliminar usuarios con acceso al panel. |
+| **Sidekiq ↗** | Consola técnica de tareas en segundo plano. | Monitorear colas de envíos retrasados o reintentos de red. |
+
+---
+
+## 3. Operaciones Comunes de Gestión
+
+### 3.1 Inscribir a un Nuevo Participante (Enrollment)
+Para dar de alta a un usuario en el programa:
+1. Dirígete a **Participantes** y haz clic en **Inscribir Participante**.
+2. Completa los campos:
+   * **Teléfono:** Debe estar en formato internacional estricto E.164 (ej: `+56912345678`). No uses espacios ni guiones.
+   * **Zona Horaria:** Selecciona el huso del participante (ej: `America/Santiago`). Esto es crítico para que sus mensajes le lleguen a la hora local correspondiente.
+   * **Programa:** Si se deja en blanco, se asignará el programa activo por defecto.
+3. Al guardar, el participante quedará en estado `active` y se encolará automáticamente su **Mensaje de Bienvenida** por WhatsApp.
+
+### 3.2 Pausar o Reactivar a un Participante
+Si un participante se va de vacaciones o pide pausar las interacciones:
+1. Entra a la ficha del participante en **Participantes**.
+2. Haz clic en **Editar**.
+3. Cambia el campo **Estado (Status)**:
+   * `paused`: Detiene inmediatamente todo envío de mañana, tarde e IAReto. No perderá su día actual (`current_day`).
+   * `active`: Reanuda el envío en el próximo ciclo programado.
+4. Haz clic en **Actualizar**.
+
+### 3.3 Archivar / Eliminar (Soft Delete)
+Para no saturar las listas con participantes de prueba antiguos o que abandonaron:
+1. En la lista de participantes o en su ficha detallada, haz clic en **Archivar**.
+2. Esto ejecuta un borrado lógico (*soft delete*). El participante desaparecerá de las listas generales de forma segura.
+3. Sus mensajes y costos asociados de IA se conservan en la base de datos para auditorías financieras.
+4. Para revertirlo, los administradores pueden hacer clic en **Desarchivar** desde la ficha de auditoría si es necesario.
+
+### 3.4 Gestionar contenidos de un programa
+Para trabajar los días de un programa específico:
+1. Entra a **Programas** y abre el programa correspondiente.
+2. Desde la ficha del programa usa **Gestionar Contenidos** o **Ver Todos**.
+3. Allí verás solo los `DayContent` de ese programa y podrás crear nuevos días manteniendo ese contexto.
+4. La pantalla global **Días y Contenidos** sigue disponible para búsquedas transversales con filtros por programa, día, fase, estado y texto libre.
+
+---
+
+## 4. Auditoría y Diagnóstico Visual
+
+### 4.1 La Ficha del Participante (Chat Visual)
+Al ingresar al detalle de cualquier participante, verás su historial de conversación en un formato de chat similar a WhatsApp. Esta interfaz te permite:
+* **Ver qué se dijo:** Diferencia visual de burbujas (Verde = Participante, Blanco = IA, Gris = Mensajes de Sistema automáticos).
+* **Auditar la IA:** Cada mensaje enviado por la IA muestra en letras pequeñas los tokens de entrada/salida y el modelo usado (`gpt-4.1-mini`).
+* **Ver el prompt real:** Puedes hacer clic en el botón de metadatos del mensaje de la IA para revisar el prompt exacto de sistema que se le envió a OpenAI en ese instante.
+
+```mermaid
+graph TD
+    A[Mensaje en Ficha de Participante] --> B[Color de Burbuja: Identifica Rol]
+    A --> C[Metadatos del Mensaje]
+    C --> D[Tokens Consumidos: Input/Output]
+    C --> E[Prompt de Sistema Utilizado]
+    C --> F[Estado de Envío Meta: Entregado/Leído/Fallido]
+```
+
+### 4.2 Monitoreo de Configuración en Vivo (`Settings`)
+La sección **Configuración** expone variables globales de negocio almacenadas en la base de datos:
+* `wake_hour`: Por defecto `7` (envía el despertar a las 07:00 AM local del participante).
+* `iareto_delay_minutes`: Por defecto `30` (espera 30 minutos desde el despertar para enviar el reto).
+
+> [!TIP]
+> **Cambios sin Deploy:**
+> Si cambias el `wake_hour` de `7` a `8` en la interfaz, el cambio toma efecto en el siguiente ciclo de hora de Sidekiq de forma inmediata. No requiere que los programadores reinicien la aplicación ni hagan un nuevo deploy de código.

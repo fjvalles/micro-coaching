@@ -1,0 +1,16 @@
+<% content_for :title, "Editar: #{@program.name}" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_programs_path %>">Programas</a>
+  <span>/</span>
+  <a href="<%= admin_program_path(@program) %>"><%= @program.name %></a>
+  <span>/</span>
+  <span>Editar</span>
+<% end %>
+
+<div class="card">
+  <div class="card-body">
+    <%= render "form", program: @program %>
+  </div>
+</div>

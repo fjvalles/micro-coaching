@@ -1,0 +1,51 @@
+<%= form_with(model: [:admin, program], local: true) do |f| %>
+  <% if program.errors.any? %>
+    <div style="background-color: var(--danger-bg); border: 1px solid var(--danger-border); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px; color: var(--danger);">
+      <h4 style="font-weight: 600; margin-bottom: 8px;">Por favor corrige los siguientes errores:</h4>
+      <ul style="padding-left: 20px;">
+        <% program.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= f.label :name, "Nombre del Programa", class: "form-label" %>
+    <%= f.text_field :name, class: "form-input", placeholder: "Ej. Impulso Liderazgo en Acción", required: true %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :slug, "Slug", class: "form-label" %>
+    <%= f.text_field :slug, class: "form-input", placeholder: "Ej. impulso-liderazgo-en-accion", required: true %>
+    <p class="form-help">Identificador único en minúsculas, números y guiones. Ej: impulso-liderazgo-en-accion</p>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :description, "Descripción", class: "form-label" %>
+    <%= f.text_area :description, class: "form-textarea", placeholder: "Describe brevemente el propósito de este programa..." %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :manifesto, "Manifiesto (Prompt Base de IA)", class: "form-label" %>
+    <%= f.text_area :manifesto, class: "form-textarea", style: "min-height: 200px;", placeholder: "Este texto se antepone a los system prompts de OpenAI para este programa..." %>
+    <p class="form-help">Instrucciones generales de comportamiento para la IA.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="form-group">
+      <%= f.label :total_days, "Total de Días", class: "form-label" %>
+      <%= f.number_field :total_days, class: "form-input", min: 1, required: true %>
+    </div>
+
+    <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 28px;">
+      <%= f.check_box :active, style: "width: 18px; height: 18px; accent-color: var(--brand);" %>
+      <%= f.label :active, "Programa Activo", style: "font-weight: 500; cursor: pointer; user-select: none;" %>
+    </div>
+  </div>
+
+  <div class="card-footer" style="padding-left: 0; padding-right: 0; background-color: transparent; border-top: none; margin-top: 24px;">
+    <%= link_to "Cancelar", admin_programs_path, class: "btn btn-secondary" %>
+    <%= f.submit program.new_record? ? "Crear Programa" : "Guardar Cambios", class: "btn btn-primary" %>
+  </div>
+<% end %>

@@ -1,0 +1,59 @@
+<% content_for :title, "Configuraciones del Sistema" %>
+
+<% if @grouped_settings.empty? %>
+  <div class="card">
+    <div class="card-body">
+      <div class="empty-state">
+        <div class="empty-state-title">No hay configuraciones</div>
+        <div class="empty-state-desc">No se encontraron configuraciones en la base de datos. Corre <code>rails db:seed</code> para poblar los defaults del schema.</div>
+      </div>
+    </div>
+  </div>
+<% else %>
+  <% @grouped_settings.each do |category, settings| %>
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-header">
+        <h2 style="font-size: 16px; font-weight: 600; margin: 0;">
+          <%= @category_labels[category] || category.titleize %>
+          <span style="font-size: 12px; font-weight: 400; color: var(--text-muted); margin-left: 8px;">(<%= settings.size %>)</span>
+        </h2>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Clave</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
+                <th>Valor</th>
+                <th style="text-align: right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% settings.each do |setting| %>
+                <tr>
+                  <td style="font-weight: 600; font-family: monospace; font-size: 13px;"><%= setting.key %></td>
+                  <td style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;"><%= setting.value_type %></td>
+                  <td style="font-size: 13px; color: var(--text-muted); max-width: 280px;"><%= setting.description %></td>
+                  <td style="max-width: 360px;">
+                    <% if setting.value_type == "boolean" %>
+                      <span class="badge <%= setting.typed_value ? 'badge-success' : 'badge-muted' %>">
+                        <%= setting.typed_value ? "true" : "false" %>
+                      </span>
+                    <% else %>
+                      <div style="font-size: 13px; font-family: monospace; background-color: var(--bg-secondary); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); overflow-x: auto; white-space: pre-wrap; max-height: 120px;"><%= setting.value %></div>
+                    <% end %>
+                  </td>
+                  <td class="table-actions">
+                    <a href="<%= edit_admin_setting_path(setting) %>" class="btn btn-secondary btn-sm">Editar</a>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>

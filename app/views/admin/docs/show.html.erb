@@ -1,0 +1,144 @@
+<% content_for :title, @doc[:title] %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_docs_path %>">Documentación</a>
+  <span>/</span>
+  <span><%= @doc[:title] %></span>
+<% end %>
+
+<% content_for :header_actions do %>
+  <div style="display: flex; gap: 8px;">
+    <button id="toggle-raw" class="btn btn-secondary btn-sm">
+      Ver Markdown Raw
+    </button>
+    <a href="<%= admin_docs_path %>" class="btn btn-secondary btn-sm">
+      ← Volver
+    </a>
+  </div>
+<% end %>
+
+<div class="card" style="margin-bottom: 40px;">
+  <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border);">
+    <div style="font-family: monospace; font-size: 12px; color: var(--text-muted);">
+      <%= @raw_path %> · actualizado <%= l(@mtime.to_date, format: :long) rescue @mtime.strftime("%Y-%m-%d") %>
+    </div>
+  </div>
+  <div class="card-body" style="padding: 32px;">
+    <div id="formatted-doc" class="md">
+      <%= @html %>
+    </div>
+    <div id="raw-doc" style="display: none;">
+      <pre style="background: #0f172a; color: #f8fafc; padding: 24px; border-radius: var(--radius-lg); font-family: monospace; font-size: 13px; overflow-x: auto; white-space: pre-wrap; border: 1px solid #1e293b; line-height: 1.5;"><%= File.read(Rails.root.join(@doc[:path])) %></pre>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+  (function() {
+    function initDocs() {
+      // 1. Process Mermaid Diagrams
+      if (typeof mermaid !== 'undefined') {
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'neutral',
+          securityLevel: 'loose',
+          flowchart: { useMaxWidth: true, htmlLabels: true }
+        });
+        
+        // Convert any .language-mermaid pre/code elements to simple divs for mermaid to render
+        document.querySelectorAll('.md pre code.language-mermaid').forEach((codeBlock, idx) => {
+          const pre = codeBlock.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.id = 'mermaid-diagram-' + idx;
+          container.textContent = codeBlock.textContent;
+          pre.replaceWith(container);
+        });
+
+        try {
+          mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+        } catch (e) {
+          console.error("Mermaid initialization failed", e);
+        }
+      }
+
+      // 2. Format GitHub-style Alerts
+      document.querySelectorAll('.md blockquote').forEach(bq => {
+        const firstP = bq.querySelector('p');
+        if (firstP) {
+          const text = firstP.innerHTML.trim();
+          const match = text.match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
+          if (match) {
+            const type = match[1].toLowerCase();
+            bq.className = ''; // reset class list
+            bq.classList.add('markdown-alert', `markdown-alert-${type}`);
+            
+            // Generate icon and label text
+            let icon = '';
+            let labelText = '';
+            switch(type) {
+              case 'note':
+                icon = '<svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 6px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
+                labelText = 'Nota';
+                break;
+              case 'tip':
+                icon = '<svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 6px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>';
+                labelText = 'Consejo / Tip';
+                break;
+              case 'important':
+                icon = '<svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 6px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
+                labelText = 'Importante';
+                break;
+              case 'warning':
+                icon = '<svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 6px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
+                labelText = 'Advertencia';
+                break;
+              case 'caution':
+                icon = '<svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 6px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>';
+                labelText = 'Cuidado';
+                break;
+            }
+            
+            // Replace the alert tag content with formatted label + text
+            const newContent = text.replace(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
+            firstP.innerHTML = `<span style="display: flex; align-items: center; font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; margin-bottom: 4px; gap: 4px;">${icon}${labelText}</span>${newContent}`;
+          }
+        }
+      });
+
+      // 3. Setup Toggle Button
+      const toggleBtn = document.getElementById("toggle-raw");
+      const formattedDoc = document.getElementById("formatted-doc");
+      const rawDoc = document.getElementById("raw-doc");
+      
+      if (toggleBtn && formattedDoc && rawDoc) {
+        // Remove old listeners if any (important for Turbo cached pages)
+        const newToggleBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+        
+        newToggleBtn.addEventListener("click", function(e) {
+          e.preventDefault();
+          if (formattedDoc.style.display === "none") {
+            formattedDoc.style.display = "block";
+            rawDoc.style.display = "none";
+            newToggleBtn.textContent = "Ver Markdown Raw";
+          } else {
+            formattedDoc.style.display = "none";
+            rawDoc.style.display = "block";
+            newToggleBtn.textContent = "Ver Formateado";
+          }
+        });
+      }
+    }
+
+    // Bind to Turbo and load states
+    document.addEventListener("turbo:load", initDocs);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initDocs);
+    } else {
+      initDocs();
+    }
+  })();
+</script>

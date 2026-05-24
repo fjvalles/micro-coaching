@@ -1,0 +1,42 @@
+<%= form_with(model: [:admin, admin_user], local: true) do |f| %>
+  <% if admin_user.errors.any? %>
+    <div style="background-color: var(--danger-bg); border: 1px solid var(--danger-border); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px; color: var(--danger);">
+      <h4 style="font-weight: 600; margin-bottom: 8px;">Por favor corrige los siguientes errores:</h4>
+      <ul style="padding-left: 20px;">
+        <% admin_user.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= f.label :name, "Nombre", class: "form-label" %>
+    <%= f.text_field :name, class: "form-input", placeholder: "Nombre del administrador", required: true %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :email, "Correo Electrónico", class: "form-label" %>
+    <%= f.email_field :email, class: "form-input", placeholder: "admin@example.com", required: true %>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="form-group">
+      <%= f.label :password, "Contraseña", class: "form-label" %>
+      <%= f.password_field :password, class: "form-input", placeholder: admin_user.new_record? ? "Contraseña segura..." : "Dejar en blanco si no deseas cambiarla" %>
+      <% unless admin_user.new_record? %>
+        <p class="form-help">Dejar vacío para mantener la contraseña actual.</p>
+      <% end %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :password_confirmation, "Confirmar Contraseña", class: "form-label" %>
+      <%= f.password_field :password_confirmation, class: "form-input", placeholder: admin_user.new_record? ? "Confirmar..." : "Confirmar nueva contraseña..." %>
+    </div>
+  </div>
+
+  <div class="card-footer" style="padding-left: 0; padding-right: 0; background-color: transparent; border-top: none; margin-top: 24px;">
+    <%= link_to "Cancelar", admin_admin_users_path, class: "btn btn-secondary" %>
+    <%= f.submit admin_user.new_record? ? "Crear Administrador" : "Guardar Cambios", class: "btn btn-primary" %>
+  </div>
+<% end %>

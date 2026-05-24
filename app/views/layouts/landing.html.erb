@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <title><%= content_for(:title) || "Impulso by Comtraining · De la capacitación a la conducta" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="Impulso by Comtraining es un programa de acompañamiento conductual por WhatsApp de 14 días que ayuda a empresas a sostener liderazgo y cambio post-capacitación.">
+    
+    <!-- Favicon and Icons -->
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Impulso by Comtraining · De la capacitación a la conducta">
+    <meta property="og:description" content="Programa de acompañamiento conductual de 14 días por WhatsApp para sostener liderazgo y cambio con reportería anónima y supervisión experta.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/icon.png">
+
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "landing", "data-turbo-track": "reload" %>
+    <%= yield :head %>
+  </head>
+
+  <body>
+    <!-- Floating Public Alerts -->
+    <div class="flash-container-public">
+      <% flash.each do |type, message| %>
+        <div class="toast-public toast-<%= type %>-public" id="flash-<%= type %>">
+          <span class="toast-message"><%= message %></span>
+          <button class="toast-close-public" onclick="this.parentElement.remove()">×</button>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="landing-nav">
+      <div class="logo-container">
+        <img src="/icon.svg" alt="Impulso Logo" class="logo-image">
+        <span class="logo-text">Impulso <span style="font-weight: 400; font-size: 14px; opacity: 0.7;">by Comtraining</span></span>
+      </div>
+      <a href="#trial" class="nav-cta">Solicitar piloto</a>
+    </nav>
+
+    <!-- Main Content -->
+    <%= yield %>
+
+    <!-- Footer -->
+    <footer style="padding: 40px 8%; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 14px;">
+      <p>&copy; 2026 Impulso by Comtraining. Todos los derechos reservados.</p>
+      <p style="margin-top: 10px; font-size: 12px;">Desarrollado con Rails 7.2 & Inteligencia Artificial.</p>
+    </footer>
+  </body>
+</html>

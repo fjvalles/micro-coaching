@@ -1,0 +1,14 @@
+<% content_for :title, "Editar Administrador: #{@admin_user.name.presence || @admin_user.email}" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_admin_users_path %>">Administradores</a>
+  <span>/</span>
+  <span><%= @admin_user.name.presence || @admin_user.email %></span>
+<% end %>
+
+<div class="card">
+  <div class="card-body">
+    <%= render "form", admin_user: @admin_user %>
+  </div>
+</div>

@@ -1,0 +1,97 @@
+<%
+  program_context = local_assigns[:program_context]
+  form_model = day_content.new_record? && program_context.present? ? [ :admin, program_context, day_content ] : [ :admin, day_content ]
+  cancel_path = if program_context.present?
+    admin_program_day_contents_path(program_context)
+  else
+    admin_day_contents_path
+  end
+%>
+
+<%= form_with(model: form_model, local: true) do |f| %>
+  <% if day_content.errors.any? %>
+    <div style="background-color: var(--danger-bg); border: 1px solid var(--danger-border); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px; color: var(--danger);">
+      <h4 style="font-weight: 600; margin-bottom: 8px;">Por favor corrige los siguientes errores:</h4>
+      <ul style="padding-left: 20px;">
+        <% day_content.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if program_context.present? %>
+    <%= hidden_field_tag :return_to_program_id, program_context.id %>
+  <% elsif params[:return_to_program_id].present? %>
+    <%= hidden_field_tag :return_to_program_id, params[:return_to_program_id] %>
+  <% end %>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="form-group">
+      <% if program_context.present? %>
+        <%= f.label :program_id, "Programa", class: "form-label" %>
+        <input type="text" class="form-input" value="<%= program_context.name %>" disabled>
+        <%= f.hidden_field :program_id, value: program_context.id %>
+      <% else %>
+        <%= f.label :program_id, "Programa", class: "form-label" %>
+        <%= f.collection_select :program_id, @programs, :id, :name, { prompt: "Selecciona un programa" }, { class: "form-select", required: true } %>
+      <% end %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :day_number, "Número de Día", class: "form-label" %>
+      <%= f.number_field :day_number, class: "form-input", min: 1, required: true %>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <div class="form-group">
+      <%= f.label :phase, "Fase", class: "form-label" %>
+      <%= f.select :phase, DayContent.phases.keys.map { |k| [translate_phase(k).upcase, k] }, {}, { class: "form-select", required: true } %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :title, "Título", class: "form-label" %>
+      <%= f.text_field :title, class: "form-input", placeholder: "Ej. Inventario de Liderazgo", required: true %>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :template_name_whatsapp, "Nombre de la Plantilla de WhatsApp (Meta Approved)", class: "form-label" %>
+    <%= f.text_field :template_name_whatsapp, class: "form-input", placeholder: "Ej. despertar_dia_01" %>
+    <p class="form-help">Nombre aprobado en el panel de Meta Cloud API.</p>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :morning_template, "Plantilla del Mensaje de Mañana", class: "form-label" %>
+    <%= f.text_area :morning_template, class: "form-textarea", style: "min-height: 120px;", placeholder: "Contenido base del mensaje matutino..." %>
+    <p class="form-help">OpenAI usará esto como plantilla base y la personalizará.</p>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :iareto_text, "Texto del IAReto", class: "form-label" %>
+    <%= f.text_area :iareto_text, class: "form-textarea", style: "min-height: 100px;", placeholder: "Texto o reto a enviar 30 minutos después..." %>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :checkin_questions, "Preguntas de Check-in", class: "form-label" %>
+    <%= f.text_area :checkin_questions, class: "form-textarea", style: "min-height: 120px;", placeholder: "¿Qué viste hoy?\n¿Cómo reaccionaste?" %>
+    <p class="form-help">Ingresa una pregunta por línea.</p>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :ai_system_prompt, "Prompt de Sistema para la IA (OpenAI System Prompt)", class: "form-label" %>
+    <%= f.text_area :ai_system_prompt, class: "form-textarea", style: "min-height: 200px;", placeholder: "Instrucciones de coaching y reflejo para el check-in de este día..." %>
+    <p class="form-help">Instrucciones específicas de IA para las respuestas del participante de este día.</p>
+  </div>
+
+  <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 24px;">
+    <%= f.check_box :active, style: "width: 18px; height: 18px; accent-color: var(--brand);" %>
+    <%= f.label :active, "Día Activo", style: "font-weight: 500; cursor: pointer;" %>
+  </div>
+
+  <div class="card-footer" style="padding-left: 0; padding-right: 0; background-color: transparent; border-top: none; margin-top: 24px;">
+    <%= link_to "Cancelar", cancel_path, class: "btn btn-secondary" %>
+    <%= f.submit day_content.new_record? ? "Crear Día" : "Guardar Cambios", class: "btn btn-primary" %>
+  </div>
+<% end %>

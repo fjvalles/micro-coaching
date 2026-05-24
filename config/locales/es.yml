@@ -1,0 +1,101 @@
+es:
+  activerecord:
+    models:
+      participant: "Participante"
+      day_content: "Contenido de día"
+      conversation: "Mensaje"
+      daily_report: "Reporte diario"
+      admin_user: "Administrador"
+      program: "Programa"
+      setting: "Configuración"
+    attributes:
+      participant:
+        name: "Nombre"
+        phone_e164: "Teléfono"
+        status: "Estado"
+        current_day: "Día actual"
+        timezone: "Zona horaria"
+        email: "Correo electrónico"
+        company: "Empresa"
+        role: "Cargo / Rol"
+        initial_pattern: "Patrón inicial"
+        energy_map: "Mapa de energía"
+        closing_manifesto: "Manifiesto de cierre"
+        pending_checkin_at: "Check-in pendiente desde"
+      admin_user:
+        name: "Nombre"
+        email: "Correo electrónico"
+        password: "Contraseña"
+        password_confirmation: "Confirmar contraseña"
+        remember_me: "Recordarme"
+        current_password: "Contraseña actual"
+      program:
+        name: "Nombre"
+        slug: "Slug"
+        description: "Descripción"
+        manifesto: "Manifiesto"
+        active: "Activo"
+        total_days: "Total de días"
+      day_content:
+        program_id: "Programa"
+        day_number: "Número de día"
+        phase: "Fase"
+        title: "Título"
+        template_name_whatsapp: "Nombre de la plantilla de WhatsApp"
+        morning_template: "Plantilla de mensaje de mañana"
+        iareto_text: "Texto de IAReto"
+        checkin_questions: "Preguntas de check-in"
+        ai_system_prompt: "Prompt de sistema para IA"
+        active: "Activo"
+      conversation:
+        participant_id: "Participante"
+        day_number: "Día"
+        moment: "Momento"
+        role: "Rol"
+        body: "Mensaje"
+        error_message: "Mensaje de error"
+        tokens_input: "Tokens de entrada"
+        tokens_output: "Tokens de salida"
+      daily_report:
+        participant_id: "Participante"
+        day_number: "Día"
+        ai_summary: "Resumen IA"
+        ai_key_pattern: "Patrón clave"
+        raw_text: "Texto original"
+        reported_at: "Reportado el"
+      setting:
+        key: "Clave"
+        value: "Valor"
+        description: "Descripción"
+    enums:
+      participant:
+        status:
+          pending: "Pendiente"
+          active: "Activo"
+          completed: "Completado"
+          paused: "Pausado"
+      day_content:
+        phase:
+          see: "Ver"
+          choose: "Elegir"
+          anchor: "Anclar"
+      conversation:
+        role:
+          user: "Usuario"
+          assistant: "Asistente"
+          system: "Sistema"
+        moment:
+          welcome: "Bienvenida"
+          morning_wake: "Despertador"
+          iareto: "IAReto"
+          checkin_question: "Pregunta de Check-in"
+          checkin_response: "Respuesta de Check-in"
+          free_user: "Respuesta Libre (Usuario)"
+          free_assistant: "Respuesta Libre (Asistente)"
+          manifesto: "Manifiesto de Cierre"
+  date:
+    formats:
+      default: "%d/%m/%Y"
+  time:
+    formats:
+      default: "%d/%m/%Y %H:%M"

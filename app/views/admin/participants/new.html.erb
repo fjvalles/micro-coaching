@@ -1,0 +1,14 @@
+<% content_for :title, "Inscribir Participante" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_participants_path %>">Participantes</a>
+  <span>/</span>
+  <span>Nuevo</span>
+<% end %>
+
+<div class="card">
+  <div class="card-body">
+    <%= render "form", participant: @participant %>
+  </div>
+</div>

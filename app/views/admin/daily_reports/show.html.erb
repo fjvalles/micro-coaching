@@ -1,0 +1,64 @@
+<% content_for :title, "Reporte Diario: Día #{@daily_report.day_number}" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_daily_reports_path %>">Reportes Diarios</a>
+  <span>/</span>
+  <span>Detalles</span>
+<% end %>
+
+<% content_for :header_actions do %>
+  <%= button_to "Eliminar Reporte", admin_daily_report_path(@daily_report), method: :delete, data: { confirm: "¿Estás seguro de eliminar este reporte diario?", turbo_confirm: "¿Estás seguro?" }, class: "btn btn-danger" %>
+<% end %>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Resumen de Análisis Diario</h3>
+  </div>
+  <div class="card-body">
+    <div class="details-list">
+      <div class="detail-item">
+        <span class="detail-label">Participante</span>
+        <span class="detail-value">
+          <% if @daily_report.participant %>
+            <a href="<%= admin_participant_path(@daily_report.participant) %>" style="color: var(--brand); font-weight: 500; text-decoration: none;">
+              <%= @daily_report.participant.name %>
+            </a>
+          <% else %>
+            Desconocido
+          <% end %>
+        </span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Día del Programa</span>
+        <span class="detail-value">Día <%= @daily_report.day_number %></span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Reportado el</span>
+        <span class="detail-value"><%= l(@daily_report.reported_at, format: :long) rescue @daily_report.reported_at.strftime("%Y-%m-%d %H:%M:%S") %></span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Patrón Clave (AI Key Pattern)</span>
+        <span class="detail-value">
+          <span class="badge badge-info" style="font-size: 13px; font-weight: 600; padding: 6px 12px;">
+            <%= @daily_report.ai_key_pattern %>
+          </span>
+        </span>
+      </div>
+
+      <div class="detail-item" style="grid-column: span 2;">
+        <span class="detail-label">Resumen Diario de la IA</span>
+        <div style="background-color: var(--info-bg); border: 1px solid var(--info-border); padding: 20px; border-radius: var(--radius-md); font-size: 15px; line-height: 1.6; color: var(--text-main);">
+          <%= @daily_report.ai_summary %>
+        </div>
+      </div>
+
+      <% if @daily_report.raw_text.present? %>
+        <div class="detail-item" style="grid-column: span 2;">
+          <span class="detail-label">Texto Original Procesado (Raw Chat)</span>
+          <pre class="detail-value-code" style="white-space: pre-wrap; font-size: 13px; line-height: 1.5; max-height: 300px; overflow-y: auto;"><%= @daily_report.raw_text %></pre>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

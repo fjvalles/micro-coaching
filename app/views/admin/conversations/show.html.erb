@@ -1,0 +1,113 @@
+<% content_for :title, "Mensaje ID: #{@conversation.id}" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_conversations_path %>">Mensajes</a>
+  <span>/</span>
+  <span>Detalles</span>
+<% end %>
+
+<% content_for :header_actions do %>
+  <%= button_to "Eliminar Registro", admin_conversation_path(@conversation), method: :delete, data: { confirm: "¿Estás seguro de eliminar este registro de mensaje?", turbo_confirm: "¿Estás seguro?" }, class: "btn btn-danger" %>
+<% end %>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Detalles del Mensaje</h3>
+    <% role_badge = case @conversation.role.to_sym
+       when :user then 'badge-success'
+       when :assistant then 'badge-info'
+       when :system then 'badge-neutral'
+       end %>
+    <span class="badge <%= role_badge %>">
+      <%= translate_role(@conversation.role).upcase %>
+    </span>
+  </div>
+  <div class="card-body">
+    <div class="details-list">
+      <div class="detail-item">
+        <span class="detail-label">Participante</span>
+        <span class="detail-value">
+          <% if @conversation.participant %>
+            <a href="<%= admin_participant_path(@conversation.participant) %>" style="color: var(--brand); font-weight: 500; text-decoration: none;">
+              <%= @conversation.participant.name %>
+            </a>
+          <% else %>
+            Desconocido
+          <% end %>
+        </span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Día del Programa</span>
+        <span class="detail-value">Día <%= @conversation.day_number %></span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Momento</span>
+        <span class="detail-value"><%= translate_moment(@conversation.moment) %></span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Creado</span>
+        <span class="detail-value"><%= l(@conversation.created_at, format: :long) rescue @conversation.created_at.strftime("%Y-%m-%d %H:%M:%S") %></span>
+      </div>
+
+      <!-- WhatsApp specifics -->
+      <div class="detail-item">
+        <span class="detail-label">WhatsApp ID</span>
+        <span class="detail-value" style="font-family: monospace; font-size: 13px;"><%= @conversation.whatsapp_message_id.presence || '(Ninguno)' %></span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Plantilla WhatsApp</span>
+        <span class="detail-value" style="font-family: monospace; font-size: 13px;"><%= @conversation.whatsapp_template_name.presence || '(Ninguna)' %></span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Fecha de Envío</span>
+        <span class="detail-value"><%= l(@conversation.sent_at, format: :long) rescue @conversation.sent_at&.strftime("%Y-%m-%d %H:%M") || '(No enviado / Inbound)' %></span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Fecha de Entrega</span>
+        <span class="detail-value"><%= l(@conversation.delivered_at, format: :long) rescue @conversation.delivered_at&.strftime("%Y-%m-%d %H:%M") || '(Sin registrar)' %></span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Fecha de Lectura</span>
+        <span class="detail-value"><%= l(@conversation.read_at, format: :long) rescue @conversation.read_at&.strftime("%Y-%m-%d %H:%M") || '(No leído)' %></span>
+      </div>
+
+      <!-- AI stats if generated -->
+      <% if @conversation.model_used.present? %>
+        <div class="detail-item">
+          <span class="detail-label">Modelo OpenAI Usado</span>
+          <span class="detail-value" style="font-family: monospace;"><%= @conversation.model_used %></span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Tokens Utilizados</span>
+          <span class="detail-value">
+            <strong>Input:</strong> <%= @conversation.tokens_input %> | 
+            <strong>Output:</strong> <%= @conversation.tokens_output %>
+          </span>
+        </div>
+      <% end %>
+
+      <!-- Error message -->
+      <% if @conversation.error_message.present? %>
+        <div class="detail-item" style="grid-column: span 2; color: var(--danger); background-color: var(--danger-bg); padding: 16px; border: 1px solid var(--danger-border); border-radius: var(--radius-md);">
+          <span class="detail-label" style="color: var(--danger);">Mensaje de Error</span>
+          <span class="detail-value" style="font-weight: 600;"><%= @conversation.error_message %></span>
+        </div>
+      <% end %>
+
+      <!-- Body / Message Text -->
+      <div class="detail-item" style="grid-column: span 2;">
+        <span class="detail-label">Cuerpo del Mensaje</span>
+        <pre class="detail-value-code" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;"><%= @conversation.body %></pre>
+      </div>
+
+      <!-- Prompt used if present -->
+      <% if @conversation.prompt_used.present? %>
+        <div class="detail-item" style="grid-column: span 2;">
+          <span class="detail-label">Prompt de Sistema Enviado a OpenAI</span>
+          <pre class="detail-value-code" style="font-size: 12px; font-family: monospace;"><%= @conversation.prompt_used %></pre>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

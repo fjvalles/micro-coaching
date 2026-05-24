@@ -1,0 +1,37 @@
+<% content_for :title, "Documentación" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <span>Documentación</span>
+<% end %>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Documentos disponibles</h3>
+  </div>
+  <div class="card-body">
+    <p class="text-muted" style="margin-bottom: 24px; color: var(--text-muted); font-size: 14px;">
+      Reglas de negocio, decisiones de arquitectura, metodología y documentos de estrategia comercial extraídos directamente de los archivos Markdown del repositorio.
+    </p>
+
+    <div style="display: grid; gap: 16px;">
+      <% @docs.each do |doc| %>
+        <% if doc[:exists] %>
+          <a href="<%= admin_doc_path(doc[:slug]) %>" class="card" style="display: block; text-decoration: none; padding: 20px; margin-bottom: 0; transition: border-color 0.2s;">
+            <h4 style="color: var(--brand); margin-bottom: 6px; font-size: 16px; font-weight: 600;"><%= doc[:title] %></h4>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;"><%= doc[:description] %></p>
+            <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">
+              <%= doc[:path] %> · actualizado <%= l(doc[:mtime].to_date, format: :long) rescue doc[:mtime].strftime("%Y-%m-%d") %>
+            </div>
+          </a>
+        <% else %>
+          <div class="card" style="padding: 20px; opacity: 0.6; margin-bottom: 0;">
+            <h4 style="color: var(--text-muted); margin-bottom: 6px; font-size: 16px;"><%= doc[:title] %></h4>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;"><%= doc[:description] %></p>
+            <div style="font-size: 11px; color: var(--danger);">❌ Falta el archivo: <%= doc[:path] %></div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

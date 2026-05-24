@@ -1,0 +1,32 @@
+<%#
+  Locals:
+    label            - string, dropdown label (e.g. "Programa")
+    selected_values  - array of selected string representations (default: [])
+    clear_url        - string, url to reset this specific filter (default: nil)
+    is_active        - boolean, whether this filter has active selections (default: false)
+%>
+<%
+  selected_values = local_assigns.fetch(:selected_values, [])
+  clear_url = local_assigns.fetch(:clear_url, nil)
+  is_active = local_assigns.fetch(:is_active, false)
+
+  display_label = if selected_values.blank?
+    label
+  else
+    preview = selected_values.first
+    extra_count = selected_values.size - 1
+    extra_count.positive? ? "#{label}: #{preview} +#{extra_count}" : "#{label}: #{preview}"
+  end
+%>
+
+<details class="filter-dropdown <%= 'is-active' if is_active %>">
+  <summary class="filter-trigger">
+    <span><%= display_label %></span>
+    <% if is_active && clear_url.present? %>
+      <a href="<%= clear_url %>" class="filter-clear-link" aria-label="Limpiar filtro de <%= label.downcase %>">×</a>
+    <% end %>
+  </summary>
+  <div class="filter-panel">
+    <%= yield %>
+  </div>
+</details>

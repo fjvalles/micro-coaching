@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+# Verify `path:line` references in docs/*.md still resolve.
+# Usage: bin/check-doc-refs [path1.md path2.md ...]
+# Exits 1 if any ref is stale.
+
+require "pathname"
+
+ROOT  = Pathname.new(__dir__).join("..").expand_path
+files = ARGV.empty? ? Dir[ROOT.join("docs/**/*.md")] : ARGV
+
+stale = []
+
+files.each do |md|
+  text = File.read(md, encoding: "UTF-8")
+  text.scan(/`(app\/[a-z0-9_\/]+\.rb):(\d+)(?:-(\d+))?`/i) do |path, from, to|
+    abs = ROOT.join(path)
+    unless abs.exist?
+      stale << "#{md}: missing file → #{path}"
+      next
+    end
+    lines = abs.readlines.size
+    last  = (to || from).to_i
+    stale << "#{md}: #{path}:#{from}#{"-#{to}" if to} out of range (file has #{lines} lines)" if last > lines
+  end
+end
+
+if stale.empty?
+  puts "✓ all doc refs resolve"
+else
+  puts "✗ #{stale.size} stale ref(s):"
+  stale.each { |s| puts "  #{s}" }
+  exit 1
+end

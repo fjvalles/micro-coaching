@@ -1,0 +1,58 @@
+<% content_for :title, "Programas" %>
+
+<% content_for :header_actions do %>
+  <%= render "shared/primary_button", path: new_admin_program_path, text: "Nuevo Programa", icon: :plus %>
+<% end %>
+
+<div class="card">
+  <div class="card-body" style="padding: 0;">
+    <% if @programs.any? %>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Slug</th>
+              <th>Días</th>
+              <th>Estado</th>
+              <th style="text-align: right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @programs.each do |program| %>
+              <tr>
+                <td>
+                  <a href="<%= admin_program_path(program) %>" style="font-weight: 600; color: var(--brand); text-decoration: none;">
+                    <%= program.name %>
+                  </a>
+                  <div style="font-size: 13px; color: var(--text-muted); max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <%= program.description %>
+                  </div>
+                </td>
+                <td style="font-family: monospace; font-size: 13px;"><%= program.slug %></td>
+                <td><%= program.total_days %> días</td>
+                <td>
+                  <% if program.active %>
+                    <span class="badge badge-success">Activo</span>
+                  <% else %>
+                    <span class="badge badge-neutral">Inactivo</span>
+                  <% end %>
+                </td>
+                <td class="table-actions">
+                  <a href="<%= admin_program_path(program) %>" class="btn btn-secondary btn-sm">Ver</a>
+                  <a href="<%= edit_admin_program_path(program) %>" class="btn btn-secondary btn-sm">Editar</a>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <div class="empty-state-title">No hay programas</div>
+        <div class="empty-state-desc">Comienza creando tu primer programa para Impulso by Comtraining.</div>
+        <a href="<%= new_admin_program_path %>" class="btn btn-primary" style="margin-top: 16px;">Crear Programa</a>
+      </div>
+    <% end %>
+  </div>
+</div>

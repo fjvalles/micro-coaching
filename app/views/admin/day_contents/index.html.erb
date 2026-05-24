@@ -1,0 +1,193 @@
+<% content_for :title, "Días y Contenidos" %>
+
+<%
+  filter_form_id = "day-content-filters"
+  filter_path = @program_context ? admin_program_day_contents_path(@program_context) : admin_day_contents_path
+  status_options = [["Activo", "active"], ["Inactivo", "inactive"]]
+  phase_options = DayContent.phases.keys.map { |phase| [translate_phase(phase).upcase, phase] }
+  active_filters = @filters[:q].present? || @filters[:program_ids].present? || @filters[:day_numbers].present? || @filters[:phases].present? || @filters[:statuses].present?
+  new_day_program_id = @program_context&.id || (@filters[:program_ids].one? ? @filters[:program_ids].first : nil)
+  new_day_path = @program_context ? new_admin_program_day_content_path(@program_context) : new_admin_day_content_path(program_id: new_day_program_id)
+
+  current_query = {}
+  current_query[:q] = @filters[:q] if @filters[:q].present?
+  current_query[:program_ids] = @filters[:program_ids] unless @program_context || @filters[:program_ids].blank?
+  current_query[:day_numbers] = @filters[:day_numbers] if @filters[:day_numbers].present?
+  current_query[:phases] = @filters[:phases] if @filters[:phases].present?
+  current_query[:statuses] = @filters[:statuses] if @filters[:statuses].present?
+
+  clear_query = ->(key) { current_query.except(key) }
+  filter_url = lambda do |query|
+    @program_context ? admin_program_day_contents_path(@program_context, query) : admin_day_contents_path(query)
+  end
+
+  filter_label = lambda do |label, selections|
+    next label if selections.blank?
+
+    preview = selections.first
+    extra_count = selections.size - 1
+    extra_count.positive? ? "#{label}: #{preview} +#{extra_count}" : "#{label}: #{preview}"
+  end
+
+  selected_program_names = @programs.select { |program| @filters[:program_ids].include?(program.id.to_s) }.map(&:name)
+  selected_day_numbers = @filters[:day_numbers].map { |value| "Día #{value}" }
+  selected_phases = phase_options.filter_map { |label, value| label if @filters[:phases].include?(value) }
+  selected_statuses = status_options.filter_map { |label, value| label if @filters[:statuses].include?(value) }
+%>
+
+<% content_for :header_actions do %>
+  <%= render "shared/search_field", id: "day-content-search", value: @filters[:q], form_id: filter_form_id, placeholder: "Buscar título o contenido...", style_type: :header %>
+
+  <%= render "shared/primary_button", path: new_day_path, text: "Nuevo Día", icon: :plus %>
+<% end %>
+
+<% if @program_context %>
+  <% content_for :breadcrumbs do %>
+    <span>/</span>
+    <a href="<%= admin_programs_path %>">Programas</a>
+    <span>/</span>
+    <a href="<%= admin_program_path(@program_context) %>"><%= @program_context.name %></a>
+    <span>/</span>
+    <span>Días y Contenidos</span>
+  <% end %>
+<% end %>
+
+<div style="margin-bottom: 24px;">
+    <%= form_with url: filter_path, method: :get, local: true, html: { id: filter_form_id, class: "filter-toolbar" } do %>
+      <div class="filter-toolbar-row">
+        <% unless @program_context %>
+          <%= render layout: "shared/filter_dropdown", locals: {
+                label: "Programa",
+                selected_values: selected_program_names,
+                clear_url: filter_url.call(clear_query.call(:program_ids)),
+                is_active: @filters[:program_ids].present?
+              } do %>
+            <% @programs.each do |program| %>
+              <label class="filter-option">
+                <%= check_box_tag "program_ids[]", program.id, @filters[:program_ids].include?(program.id.to_s), form: filter_form_id, data: { auto_submit_filter: true } %>
+                <span><%= program.name %></span>
+              </label>
+            <% end %>
+          <% end %>
+        <% end %>
+
+        <%= render layout: "shared/filter_dropdown", locals: {
+              label: "Día",
+              selected_values: selected_day_numbers,
+              clear_url: filter_url.call(clear_query.call(:day_numbers)),
+              is_active: @filters[:day_numbers].present?
+            } do %>
+          <% @day_number_options.each do |day_number| %>
+            <label class="filter-option">
+              <%= check_box_tag "day_numbers[]", day_number, @filters[:day_numbers].include?(day_number.to_s), form: filter_form_id, data: { auto_submit_filter: true } %>
+              <span>Día <%= day_number %></span>
+            </label>
+          <% end %>
+        <% end %>
+
+        <%= render layout: "shared/filter_dropdown", locals: {
+              label: "Fase",
+              selected_values: selected_phases,
+              clear_url: filter_url.call(clear_query.call(:phases)),
+              is_active: @filters[:phases].present?
+            } do %>
+          <% phase_options.each do |label, value| %>
+            <label class="filter-option">
+              <%= check_box_tag "phases[]", value, @filters[:phases].include?(value), form: filter_form_id, data: { auto_submit_filter: true } %>
+              <span><%= label %></span>
+            </label>
+          <% end %>
+        <% end %>
+
+        <%= render layout: "shared/filter_dropdown", locals: {
+              label: "Estado",
+              selected_values: selected_statuses,
+              clear_url: filter_url.call(clear_query.call(:statuses)),
+              is_active: @filters[:statuses].present?
+            } do %>
+          <% status_options.each do |label, value| %>
+            <label class="filter-option">
+              <%= check_box_tag "statuses[]", value, @filters[:statuses].include?(value), form: filter_form_id, data: { auto_submit_filter: true } %>
+              <span><%= label %></span>
+            </label>
+          <% end %>
+        <% end %>
+
+        <%= link_to "Limpiar", filter_path,
+            class: "filter-reset-link #{'is-disabled' unless active_filters}",
+            aria: { disabled: !active_filters } %>
+      </div>
+    <% end %>
+</div>
+
+<div class="card">
+  <div class="card-body" style="padding: 0;">
+    <% if @day_contents.any? %>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Programa</th>
+              <th>Día</th>
+              <th>Título</th>
+              <th>Fase</th>
+              <th>Plantilla WA</th>
+              <th>Estado</th>
+              <th style="text-align: right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @day_contents.each do |content| %>
+              <tr>
+                <td style="font-weight: 500;"><%= content.program&.name || "Sin programa" %></td>
+                <td>Día <%= content.day_number %></td>
+                <td>
+                  <a href="<%= admin_day_content_path(content, return_to_program_id: (@program_context&.id || new_day_program_id)) %>" style="font-weight: 600; color: var(--brand); text-decoration: none;">
+                    <%= content.title %>
+                  </a>
+                </td>
+                <td>
+                  <% badge_class = case content.phase.to_sym
+                     when :see then "badge-info"
+                     when :choose then "badge-warning"
+                     when :anchor then "badge-success"
+                     else "badge-neutral"
+                     end %>
+                  <span class="badge <%= badge_class %>">
+                    <%= translate_phase(content.phase).upcase %>
+                  </span>
+                </td>
+                <td style="font-family: monospace; font-size: 13px;"><%= content.template_name_whatsapp %></td>
+                <td>
+                  <% if content.active %>
+                    <span class="badge badge-success">Activo</span>
+                  <% else %>
+                    <span class="badge badge-neutral">Inactivo</span>
+                  <% end %>
+                </td>
+                <td class="table-actions">
+                  <a href="<%= admin_day_content_path(content, return_to_program_id: (@program_context&.id || new_day_program_id)) %>" class="btn btn-secondary btn-sm">Ver</a>
+                  <a href="<%= edit_admin_day_content_path(content, return_to_program_id: (@program_context&.id || new_day_program_id)) %>" class="btn btn-secondary btn-sm">Editar</a>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <%= render "shared/pagination",
+                 page: @page,
+                 total_pages: @total_pages,
+                 total_count: @total_count,
+                 base_query: current_query,
+                 path_helper: filter_url,
+                 item_label: "contenidos" %>
+    <% else %>
+      <div class="empty-state">
+        <div class="empty-state-title">No hay contenidos registrados</div>
+        <div class="empty-state-desc">Prueba ajustando los filtros o crea un nuevo contenido diario.</div>
+        <a href="<%= new_day_path %>" class="btn btn-primary" style="margin-top: 16px;">Crear Día</a>
+      </div>
+    <% end %>
+  </div>
+</div>

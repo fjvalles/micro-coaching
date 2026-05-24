@@ -1,0 +1,216 @@
+<% content_for :title, @participant.name %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_participants_path %>">Participantes</a>
+  <span>/</span>
+  <span><%= @participant.name %></span>
+<% end %>
+
+<% content_for :header_actions do %>
+  <% if @participant.pending? %>
+    <%= button_to enroll_admin_participant_path(@participant), method: :post, class: "btn btn-primary" do %>
+      <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+      Inscribir al programa
+    <% end %>
+  <% end %>
+
+  <a href="<%= edit_admin_participant_path(@participant) %>" class="btn btn-secondary">
+    Editar
+  </a>
+
+  <% if @participant.discarded? %>
+    <%= button_to undiscard_admin_participant_path(@participant), method: :post, class: "btn btn-secondary" do %>
+      Restaurar
+    <% end %>
+  <% else %>
+    <%= button_to discard_admin_participant_path(@participant), method: :post, class: "btn btn-danger" do %>
+      Archivar
+    <% end %>
+  <% end %>
+<% end %>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px;">
+  <!-- Details & Activity -->
+  <div style="display: flex; flex-direction: column; gap: 32px;">
+    <!-- Profile Card -->
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-header">
+        <h3 class="card-title">Perfil del Participante</h3>
+        <% badge_class = case @participant.status.to_sym
+           when :active then 'badge-success'
+           when :pending then 'badge-warning'
+           when :completed then 'badge-info'
+           when :paused then 'badge-danger'
+           else 'badge-neutral'
+           end %>
+        <span class="badge <%= badge_class %>">
+          <%= translate_status(@participant.status) %>
+        </span>
+      </div>
+      <div class="card-body">
+        <div class="details-list">
+          <div class="detail-item">
+            <span class="detail-label">Teléfono (E.164)</span>
+            <span class="detail-value" style="font-family: monospace; font-weight: 500;"><%= @participant.phone_e164 %></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Email</span>
+            <span class="detail-value"><%= @participant.email.presence || '(Sin email)' %></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Empresa</span>
+            <span class="detail-value"><%= @participant.company.presence || '(Sin empresa)' %></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Cargo / Rol</span>
+            <span class="detail-value"><%= @participant.role.presence || '(Sin cargo)' %></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Programa</span>
+            <span class="detail-value">
+              <% if @participant.program %>
+                <a href="<%= admin_program_path(@participant.program) %>" style="color: var(--brand); font-weight: 500; text-decoration: none;">
+                  <%= @participant.program.name %>
+                </a>
+              <% else %>
+                Sin programa
+              <% end %>
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Día Actual / Fase</span>
+            <span class="detail-value">
+              Día <%= @participant.current_day %>
+              <% if @participant.status.to_sym == :active %>
+                · <span class="badge badge-info" style="font-size: 10px; padding: 2px 6px;"><%= translate_phase(@participant.phase).upcase %></span>
+              <% end %>
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Zona Horaria</span>
+            <span class="detail-value"><%= @participant.timezone %></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Inscrito el</span>
+            <span class="detail-value"><%= l(@participant.enrolled_at, format: :long) rescue @participant.enrolled_at&.strftime("%Y-%m-%d %H:%M") || 'No inscrito' %></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Iniciado el</span>
+            <span class="detail-value"><%= l(@participant.started_at, format: :long) rescue @participant.started_at&.strftime("%Y-%m-%d %H:%M") || 'No iniciado' %></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Finalizado el</span>
+            <span class="detail-value"><%= l(@participant.completed_at, format: :long) rescue @participant.completed_at&.strftime("%Y-%m-%d %H:%M") || 'No finalizado' %></span>
+          </div>
+          <% if @participant.pending_checkin_at.present? %>
+            <div class="detail-item">
+              <span class="detail-label">Check-in Pendiente Desde</span>
+              <span class="detail-value"><%= l(@participant.pending_checkin_at, format: :short) rescue @participant.pending_checkin_at.strftime("%Y-%m-%d %H:%M") %></span>
+            </div>
+          <% end %>
+          <% if @participant.discarded_at.present? %>
+            <div class="detail-item" style="color: var(--danger);">
+              <span class="detail-label">Archivado el</span>
+              <span class="detail-value"><%= l(@participant.discarded_at, format: :long) rescue @participant.discarded_at.strftime("%Y-%m-%d %H:%M") %></span>
+            </div>
+          <% end %>
+
+          <div class="detail-item" style="grid-column: span 2;">
+            <span class="detail-label">Patrón Inicial Detectado</span>
+            <pre class="detail-value-code"><%= @participant.initial_pattern.presence || 'Ninguno.' %></pre>
+          </div>
+          
+          <div class="detail-item" style="grid-column: span 2;">
+            <span class="detail-label">Mapa de Energía (JSON)</span>
+            <pre class="detail-value-code" style="font-size: 12px; font-family: monospace;"><%= @participant.energy_map.is_a?(Hash) ? JSON.pretty_generate(@participant.energy_map) : @participant.energy_map.presence || '{}' %></pre>
+          </div>
+
+          <div class="detail-item" style="grid-column: span 2;">
+            <span class="detail-label">Manifiesto de Cierre</span>
+            <pre class="detail-value-code"><%= @participant.closing_manifesto.presence || 'Ninguno.' %></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversaciones (Messages) -->
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-header">
+        <h3 class="card-title">Historial de Conversación (Últimos 50 mensajes)</h3>
+      </div>
+      <div class="card-body">
+        <% if @conversations.any? %>
+          <div class="chat-container">
+            <% @conversations.reverse_each do |msg| %>
+              <div class="chat-bubble-wrapper <%= msg.role %>">
+                <div class="chat-bubble">
+                  <%= msg.body %>
+                  <% if msg.error_message.present? %>
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(239,68,68,0.2); color: var(--danger); font-size: 11px;">
+                      ⚠️ Error: <%= msg.error_message %>
+                    </div>
+                  <% end %>
+                </div>
+                <div class="chat-meta">
+                  <span style="font-weight: 600;"><%= translate_role(msg.role).upcase %></span>
+                  <span>·</span>
+                  <span>Día <%= msg.day_number %></span>
+                  <span>·</span>
+                  <span><%= translate_moment(msg.moment) %></span>
+                  <span>·</span>
+                  <span><%= l(msg.created_at, format: :short) rescue msg.created_at.strftime("%d/%m %H:%M") %></span>
+                  <% if msg.role == 'assistant' && msg.tokens_input.present? %>
+                    <span>·</span>
+                    <span title="Tokens input / output"><%= msg.tokens_input %> in / <%= msg.tokens_output %> out</span>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="empty-state">
+            <div class="empty-state-title">Sin mensajes</div>
+            <div class="empty-state-desc">Este participante no registra conversaciones en WhatsApp todavía.</div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar: Daily Reports -->
+  <div>
+    <div class="card" style="margin-bottom: 0; position: sticky; top: 100px;">
+      <div class="card-header">
+        <h3 class="card-title">Reportes Diarios (Últimos 10)</h3>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <% if @daily_reports.any? %>
+          <div style="display: flex; flex-direction: column; gap: 1px; background-color: var(--border);">
+            <% @daily_reports.each do |report| %>
+              <a href="<%= admin_daily_report_path(report) %>" style="display: block; padding: 16px; background-color: white; text-decoration: none; color: var(--text-main); transition: background-color 0.15s ease;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                  <span style="font-weight: 600; font-size: 14px;">Día <%= report.day_number %></span>
+                  <span style="font-size: 12px; color: var(--text-muted);"><%= l(report.reported_at.to_date, format: :short) rescue report.reported_at.strftime("%d/%m/%Y") %></span>
+                </div>
+                <div style="font-size: 12px; color: var(--brand); font-weight: 500; margin-bottom: 6px;">
+                  Patrón: <%= report.ai_key_pattern %>
+                </div>
+                <div style="font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                  <%= report.ai_summary %>
+                </div>
+              </a>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="empty-state" style="padding: 40px 16px;">
+            <div class="empty-state-title" style="font-size: 15px;">Sin reportes</div>
+            <div class="empty-state-desc" style="font-size: 13px;">No hay reportes diarios generados para este participante.</div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

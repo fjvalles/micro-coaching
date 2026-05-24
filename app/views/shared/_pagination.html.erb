@@ -1,0 +1,39 @@
+<%#
+  Locals:
+    page          - current page
+    total_pages   - total pages
+    total_count   - total records
+    base_query    - hash of params to preserve in pagination links
+    path_helper   - lambda/proc accepting a query hash, returns URL
+    item_label    - pluralized noun, e.g. "contenidos"
+%>
+<% if total_pages > 1 %>
+  <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-secondary);">
+    <span style="font-size: 13px; color: var(--text-muted);">
+      Mostrando página <%= page %> de <%= total_pages %> (<%= total_count %> <%= item_label %> en total)
+    </span>
+    <div class="pagination">
+      <% if page > 1 %>
+        <a href="<%= path_helper.call(base_query.merge(page: page - 1)) %>" class="pagination-item">«</a>
+      <% else %>
+        <span class="pagination-item disabled">«</span>
+      <% end %>
+
+      <% (1..total_pages).each do |p| %>
+        <% if p == page %>
+          <span class="pagination-item active"><%= p %></span>
+        <% elsif p <= 3 || p >= total_pages - 2 || (p - page).abs <= 1 %>
+          <a href="<%= path_helper.call(base_query.merge(page: p)) %>" class="pagination-item"><%= p %></a>
+        <% elsif (p == 4 && page > 5) || (p == total_pages - 3 && page < total_pages - 4) %>
+          <span class="pagination-item disabled">...</span>
+        <% end %>
+      <% end %>
+
+      <% if page < total_pages %>
+        <a href="<%= path_helper.call(base_query.merge(page: page + 1)) %>" class="pagination-item">»</a>
+      <% else %>
+        <span class="pagination-item disabled">»</span>
+      <% end %>
+    </div>
+  </div>
+<% end %>

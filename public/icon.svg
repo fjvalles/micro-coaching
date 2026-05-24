@@ -1,0 +1,14 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="impulso-grad" x1="96" y1="416" x2="416" y2="96" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F766E" />
+      <stop offset="0.55" stop-color="#14B8A6" />
+      <stop offset="1" stop-color="#84CC16" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#0B1220" />
+  <rect x="8" y="8" width="496" height="496" rx="104" stroke="url(#impulso-grad)" stroke-opacity="0.18" stroke-width="16" />
+  <path d="M164 132H228V380H164V132Z" fill="url(#impulso-grad)" />
+  <path d="M164 104C164 86.3269 178.327 72 196 72C213.673 72 228 86.3269 228 104C228 121.673 213.673 136 196 136C178.327 136 164 121.673 164 104Z" fill="#E2FDF7" />
+  <path d="M292 144C343.915 144 386 186.085 386 238V250H322V238C322 221.431 308.569 208 292 208C275.431 208 262 221.431 262 238V274C262 290.569 275.431 304 292 304H334C385.915 304 428 346.085 428 398V408C428 425.673 413.673 440 396 440H292C240.085 440 198 397.915 198 346V334H262V346C262 362.569 275.431 376 292 376H364V398C364 381.431 350.569 368 334 368H292C240.085 368 198 325.915 198 274V238C198 186.085 240.085 144 292 144Z" fill="url(#impulso-grad)" />
+</svg>

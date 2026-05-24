@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <title><%= content_for(:title) ? "#{yield(:title)} · Impulso by Comtraining" : "Admin · Impulso by Comtraining" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "admin", "data-turbo-track": "reload" %>
+  </head>
+  <body>
+    <!-- Floating Toast Alerts -->
+    <div class="flash-container">
+      <% flash.each do |type, message| %>
+        <div class="toast toast-<%= type %>" id="flash-<%= type %>">
+          <div class="toast-message"><%= message %></div>
+          <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="admin-layout">
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-brand">
+            <span class="brand-main">Impulso</span>
+            <span class="brand-sub">by comtraining</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <!-- Management Group -->
+          <div>
+            <div class="nav-group-title">Gestión</div>
+            <ul class="nav-links">
+              <li>
+                <a href="<%= admin_root_path %>" class="nav-link <%= 'active' if controller_name == 'dashboard' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                  </svg>
+                  <span>Inicio</span>
+                </a>
+              </li>
+              <li>
+                <a href="<%= admin_programs_path %>" class="nav-link <%= 'active' if controller_name == 'programs' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-.778.099-1.533.284-2.253" />
+                  </svg>
+                  <span>Programas</span>
+                </a>
+              </li>
+              <li>
+                <a href="<%= admin_day_contents_path %>" class="nav-link <%= 'active' if controller_name == 'day_contents' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                  </svg>
+                  <span>Días y Contenidos</span>
+                </a>
+              </li>
+              <li>
+                <a href="<%= admin_participants_path %>" class="nav-link <%= 'active' if controller_name == 'participants' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                  </svg>
+                  <span>Participantes</span>
+                </a>
+              </li>
+              <li>
+                <a href="<%= admin_conversations_path %>" class="nav-link <%= 'active' if controller_name == 'conversations' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                  </svg>
+                  <span>Mensajes</span>
+                </a>
+              </li>
+              <li>
+                <a href="<%= admin_daily_reports_path %>" class="nav-link <%= 'active' if controller_name == 'daily_reports' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  <span>Reportes Diarios</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- System Group -->
+          <div>
+            <div class="nav-group-title">Sistema</div>
+            <ul class="nav-links">
+              <li>
+                <a href="<%= admin_settings_path %>" class="nav-link <%= 'active' if controller_name == 'settings' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.43l-1.003.828c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.43l1.004-.827c.292-.24.437-.613.43-.991a6.936 6.936 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                  <span>Configuración</span>
+                </a>
+              </li>
+              <li>
+                <a href="<%= admin_admin_users_path %>" class="nav-link <%= 'active' if controller_name == 'admin_users' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                  </svg>
+                  <span>Administradores</span>
+                </a>
+              </li>
+              <li>
+                <a href="<%= admin_docs_path %>" class="nav-link <%= 'active' if controller_name == 'docs' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                  </svg>
+                  <span>Documentación</span>
+                </a>
+              </li>
+              <li>
+                <a href="/sidekiq" target="_blank" class="nav-link">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                  </svg>
+                  <span>Sidekiq ↗</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user-info">
+            <% if respond_to?(:current_admin_user) && current_admin_user %>
+              <span class="user-name"><%= current_admin_user.name %></span>
+              <span class="user-email"><%= current_admin_user.email %></span>
+            <% else %>
+              <span class="user-role">Administrador</span>
+            <% end %>
+          </div>
+          <%= button_to destroy_admin_user_session_path, method: :delete, class: "btn-logout", data: { turbo: false }, title: "Cerrar sesión" do %>
+            <svg style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+            </svg>
+          <% end %>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="admin-main">
+        <header class="admin-header">
+          <div class="header-title-area">
+            <div class="header-breadcrumbs">
+              <a href="<%= admin_root_path %>">Admin</a>
+              <% if content_for?(:breadcrumbs) %>
+                <%= yield :breadcrumbs %>
+              <% end %>
+            </div>
+            <h1 class="header-title"><%= content_for(:title) || "Panel de Control" %></h1>
+          </div>
+          <div class="header-actions">
+            <%= yield :header_actions %>
+          </div>
+        </header>
+
+        <div class="admin-content">
+          <%= yield %>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      (function() {
+        // Event delegation to prevent filter clear links from closing details dropdowns
+        document.addEventListener("click", function(event) {
+          if (event.target.matches(".filter-clear-link")) {
+            event.stopPropagation();
+          }
+        });
+
+        // Event delegation for auto-submitting filters on change (e.g. checkboxes)
+        document.addEventListener("change", function(event) {
+          if (event.target.matches("[data-auto-submit-filter]")) {
+            event.target.form?.requestSubmit();
+          }
+        });
+
+        // Event delegation to close other details dropdowns when one is opened
+        document.addEventListener("toggle", function(event) {
+          if (!event.target.matches("details.filter-dropdown")) return;
+          if (!event.target.open) return;
+          document.querySelectorAll("details.filter-dropdown[open]").forEach(function(other) {
+            if (other !== event.target) other.open = false;
+          });
+        }, true); // useCapture = true because toggle does not bubble
+
+        // Event delegation to close details dropdowns when clicking outside
+        document.addEventListener("click", function(event) {
+          if (event.target.closest("details.filter-dropdown")) return;
+          document.querySelectorAll("details.filter-dropdown[open]").forEach(function(detail) {
+            detail.open = false;
+          });
+        });
+
+        // Event delegation for auto-submitting search with debounce
+        var searchTimeoutId;
+        document.addEventListener("input", function(event) {
+          if (!event.target.matches("[data-auto-submit-search]")) return;
+          clearTimeout(searchTimeoutId);
+          searchTimeoutId = setTimeout(function() {
+            event.target.form?.requestSubmit();
+          }, 250);
+        });
+      })();
+    </script>
+  </body>
+</html>
+

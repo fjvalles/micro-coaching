@@ -1,0 +1,53 @@
+<%#
+  Locals:
+    id           - string, unique DOM ID
+    name         - string, input field name (default: "q")
+    value        - string, current input value (default: nil)
+    placeholder  - string, placeholder text (default: "Buscar...")
+    form_id      - string, optional form ID attribute (default: nil)
+    auto_submit  - boolean, whether to trigger submit on input (default: true)
+    style_type   - symbol, :inline or :header (default: :inline)
+%>
+<%
+  name = local_assigns.fetch(:name, "q")
+  value = local_assigns.fetch(:value, nil)
+  placeholder = local_assigns.fetch(:placeholder, "Buscar...")
+  form_id = local_assigns.fetch(:form_id, nil)
+  auto_submit = local_assigns.fetch(:auto_submit, true)
+  style_type = local_assigns.fetch(:style_type, :inline)
+%>
+
+<% if style_type == :header %>
+  <div class="header-search">
+    <label for="<%= id %>" class="sr-only"><%= placeholder %></label>
+    <input
+      id="<%= id %>"
+      type="search"
+      name="<%= name %>"
+      value="<%= value %>"
+      <% if form_id.present? %>form="<%= form_id %>"<% end %>
+      class="form-input header-search-input"
+      placeholder="<%= placeholder %>"
+      autocomplete="off"
+      <% if auto_submit %>data-auto-submit-search<% end %>
+    >
+  </div>
+<% else %>
+  <div class="search-wrapper">
+    <label for="<%= id %>" class="sr-only"><%= placeholder %></label>
+    <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.604 10.604z" />
+    </svg>
+    <input
+      id="<%= id %>"
+      type="text"
+      name="<%= name %>"
+      value="<%= value %>"
+      <% if form_id.present? %>form="<%= form_id %>"<% end %>
+      class="search-input"
+      placeholder="<%= placeholder %>"
+      autocomplete="off"
+      <% if auto_submit %>data-auto-submit-search<% end %>
+    >
+  </div>
+<% end %>

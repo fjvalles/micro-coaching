@@ -1,0 +1,14 @@
+<% content_for :title, "Nuevo Programa" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_programs_path %>">Programas</a>
+  <span>/</span>
+  <span>Nuevo</span>
+<% end %>
+
+<div class="card">
+  <div class="card-body">
+    <%= render "form", program: @program %>
+  </div>
+</div>

@@ -1,0 +1,14 @@
+morning_wake:
+  cron: "0 * * * *"
+  class: MorningWakeJob
+  description: "Check participants whose local time is 07:00 and send wake"
+
+checkin_evening:
+  cron: "0 * * * *"
+  class: CheckinEveningJob
+  description: "Check participants whose local time is 20:00 and send check-in"
+
+advance_day:
+  cron: "0 6 * * *"
+  class: AdvanceDayJob
+  description: "Advance current_day for participants who completed yesterday's check-in"

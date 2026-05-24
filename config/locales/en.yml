@@ -1,0 +1,101 @@
+en:
+  activerecord:
+    models:
+      participant: "Participant"
+      day_content: "Day Content"
+      conversation: "Message"
+      daily_report: "Daily Report"
+      admin_user: "Administrator"
+      program: "Program"
+      setting: "Setting"
+    attributes:
+      participant:
+        name: "Name"
+        phone_e164: "Phone"
+        status: "Status"
+        current_day: "Current Day"
+        timezone: "Timezone"
+        email: "Email"
+        company: "Company"
+        role: "Role"
+        initial_pattern: "Initial Pattern"
+        energy_map: "Energy Map"
+        closing_manifesto: "Closing Manifesto"
+        pending_checkin_at: "Pending Check-in At"
+      admin_user:
+        name: "Name"
+        email: "Email"
+        password: "Password"
+        password_confirmation: "Confirm Password"
+        remember_me: "Remember Me"
+        current_password: "Current Password"
+      program:
+        name: "Name"
+        slug: "Slug"
+        description: "Description"
+        manifesto: "Manifesto"
+        active: "Active"
+        total_days: "Total Days"
+      day_content:
+        program_id: "Program"
+        day_number: "Day Number"
+        phase: "Phase"
+        title: "Title"
+        template_name_whatsapp: "WhatsApp Template Name"
+        morning_template: "Morning Message Template"
+        iareto_text: "IAReto Text"
+        checkin_questions: "Check-in Questions"
+        ai_system_prompt: "AI System Prompt"
+        active: "Active"
+      conversation:
+        participant_id: "Participant"
+        day_number: "Day"
+        moment: "Moment"
+        role: "Role"
+        body: "Message"
+        error_message: "Error Message"
+        tokens_input: "Input Tokens"
+        tokens_output: "Output Tokens"
+      daily_report:
+        participant_id: "Participant"
+        day_number: "Day"
+        ai_summary: "AI Summary"
+        ai_key_pattern: "Key Pattern"
+        raw_text: "Raw Text"
+        reported_at: "Reported At"
+      setting:
+        key: "Key"
+        value: "Value"
+        description: "Description"
+    enums:
+      participant:
+        status:
+          pending: "Pending"
+          active: "Active"
+          completed: "Completed"
+          paused: "Paused"
+      day_content:
+        phase:
+          see: "See"
+          choose: "Choose"
+          anchor: "Anchor"
+      conversation:
+        role:
+          user: "User"
+          assistant: "Assistant"
+          system: "System"
+        moment:
+          welcome: "Welcome"
+          morning_wake: "Morning Wake"
+          iareto: "IAReto"
+          checkin_question: "Check-in Question"
+          checkin_response: "Check-in Response"
+          free_user: "Free User"
+          free_assistant: "Free Assistant"
+          manifesto: "Closing Manifesto"
+  date:
+    formats:
+      default: "%m/%d/%Y"
+  time:
+    formats:
+      default: "%m/%d/%Y %H:%M"

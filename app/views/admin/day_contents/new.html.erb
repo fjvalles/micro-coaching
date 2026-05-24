@@ -1,0 +1,22 @@
+<% content_for :title, "Nuevo Día" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <% if @program_context %>
+    <a href="<%= admin_programs_path %>">Programas</a>
+    <span>/</span>
+    <a href="<%= admin_program_path(@program_context) %>"><%= @program_context.name %></a>
+    <span>/</span>
+    <a href="<%= admin_program_day_contents_path(@program_context) %>">Días y Contenidos</a>
+  <% else %>
+    <a href="<%= admin_day_contents_path %>">Días y Contenidos</a>
+  <% end %>
+  <span>/</span>
+  <span>Nuevo</span>
+<% end %>
+
+<div class="card">
+  <div class="card-body">
+    <%= render "form", day_content: @day_content, program_context: @program_context %>
+  </div>
+</div>

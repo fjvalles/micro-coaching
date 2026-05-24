@@ -1,0 +1,280 @@
+<% content_for :title, "Mensajes y Logs" %>
+
+<%
+  current_query = {}
+  current_query[:q] = params[:q] if params[:q].present?
+  current_query[:role] = params[:role] if params[:role].present?
+  current_query[:moment] = params[:moment] if params[:moment].present?
+  current_query[:participant_id] = params[:participant_id] if params[:participant_id].present?
+  current_query[:program_id] = params[:program_id] if params[:program_id].present?
+  current_query[:day_number] = params[:day_number] if params[:day_number].present?
+  current_query[:delivery_status] = params[:delivery_status] if params[:delivery_status].present?
+  current_query[:date_preset] = params[:date_preset] if params[:date_preset].present?
+  current_query[:message_type] = params[:message_type] if params[:message_type].present?
+  current_query[:ai_generated] = params[:ai_generated] if params[:ai_generated].present?
+
+  clear_query = ->(key) { current_query.except(key) }
+
+  date_preset_labels = { "today" => "Hoy", "last_7" => "Últimos 7 días", "last_30" => "Últimos 30 días" }
+  message_type_labels = { "template" => "Solo plantillas", "free" => "Solo libres" }
+%>
+
+<% content_for :header_actions do %>
+  <%= render "shared/search_field", id: "conversation-search", value: params[:q], form_id: "conversation-filters", placeholder: "Buscar mensajes...", style_type: :header %>
+<% end %>
+
+<div style="margin-bottom: 24px;">
+  <%= form_with url: admin_conversations_path, method: :get, local: true, html: { id: "conversation-filters", class: "filter-toolbar" } do |f| %>
+    <%= f.hidden_field :participant_id, value: params[:participant_id] %>
+
+    <div class="filter-toolbar-row">
+      <% if params[:participant_id].present? %>
+        <% participant = Participant.find_by(id: params[:participant_id]) %>
+        <% if participant %>
+          <div class="filter-dropdown is-active">
+            <span class="filter-trigger" style="pointer-events: none;">
+              <span>Participante: <%= participant.name %></span>
+              <%= link_to "×", admin_conversations_path(clear_query.call(:participant_id)), class: "filter-clear-link", style: "pointer-events: auto;", aria: { label: "Limpiar filtro de participante" } %>
+            </span>
+          </div>
+        <% end %>
+      <% end %>
+
+      <!-- Filter by Role -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Rol",
+            selected_values: Array(params[:role].presence).map { |r| translate_role(r).upcase },
+            clear_url: admin_conversations_path(clear_query.call(:role)),
+            is_active: params[:role].present?
+          } do %>
+        <% Conversation.roles.keys.each do |r| %>
+          <label class="filter-option">
+            <%= f.radio_button :role, r, checked: params[:role] == r, data: { auto_submit_filter: true } %>
+            <span><%= translate_role(r).upcase %></span>
+          </label>
+        <% end %>
+      <% end %>
+
+      <!-- Filter by Moment -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Momento",
+            selected_values: Array(params[:moment].presence).map { |m| translate_moment(m) },
+            clear_url: admin_conversations_path(clear_query.call(:moment)),
+            is_active: params[:moment].present?
+          } do %>
+        <% Conversation.moments.keys.each do |m| %>
+          <label class="filter-option">
+            <%= f.radio_button :moment, m, checked: params[:moment] == m, data: { auto_submit_filter: true } %>
+            <span><%= translate_moment(m) %></span>
+          </label>
+        <% end %>
+      <% end %>
+
+      <!-- Program Dropdown -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Programa",
+            selected_values: params[:program_id].present? ? (params[:program_id] == "none" ? ["Sin programa"] : Array(@programs.find { |pr| pr.id.to_s == params[:program_id] }&.name).compact) : [],
+            clear_url: admin_conversations_path(clear_query.call(:program_id)),
+            is_active: params[:program_id].present?
+          } do %>
+        <label class="filter-option">
+          <%= f.radio_button :program_id, "none", checked: params[:program_id] == "none", data: { auto_submit_filter: true } %>
+          <span>Sin programa</span>
+        </label>
+        <% @programs.each do |pr| %>
+          <label class="filter-option">
+            <%= f.radio_button :program_id, pr.id, checked: params[:program_id] == pr.id.to_s, data: { auto_submit_filter: true } %>
+            <span><%= pr.name %></span>
+          </label>
+        <% end %>
+      <% end %>
+
+      <!-- Day Dropdown -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Día",
+            selected_values: params[:day_number].present? ? ["Día #{params[:day_number]}"] : [],
+            clear_url: admin_conversations_path(clear_query.call(:day_number)),
+            is_active: params[:day_number].present?
+          } do %>
+        <% (0..15).each do |day| %>
+          <label class="filter-option">
+            <%= f.radio_button :day_number, day, checked: params[:day_number] == day.to_s, data: { auto_submit_filter: true } %>
+            <span>Día <%= day %></span>
+          </label>
+        <% end %>
+      <% end %>
+
+      <!-- Delivery Status Dropdown -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Entrega",
+            selected_values: params[:delivery_status].present? ? [params[:delivery_status] == "error" ? "Solo errores" : "Exitosos"] : [],
+            clear_url: admin_conversations_path(clear_query.call(:delivery_status)),
+            is_active: params[:delivery_status].present?
+          } do %>
+        <label class="filter-option">
+          <%= f.radio_button :delivery_status, "success", checked: params[:delivery_status] == "success", data: { auto_submit_filter: true } %>
+          <span>Sin errores / Exitosos</span>
+        </label>
+        <label class="filter-option">
+          <%= f.radio_button :delivery_status, "error", checked: params[:delivery_status] == "error", data: { auto_submit_filter: true } %>
+          <span>Solo errores</span>
+        </label>
+      <% end %>
+
+      <!-- Date Preset Dropdown -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Periodo",
+            selected_values: Array(date_preset_labels[params[:date_preset]]).compact,
+            clear_url: admin_conversations_path(clear_query.call(:date_preset)),
+            is_active: params[:date_preset].present?
+          } do %>
+        <% date_preset_labels.each do |key, label| %>
+          <label class="filter-option">
+            <%= f.radio_button :date_preset, key, checked: params[:date_preset] == key, data: { auto_submit_filter: true } %>
+            <span><%= label %></span>
+          </label>
+        <% end %>
+      <% end %>
+
+      <!-- Message Type Dropdown -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Tipo",
+            selected_values: Array(message_type_labels[params[:message_type]]).compact,
+            clear_url: admin_conversations_path(clear_query.call(:message_type)),
+            is_active: params[:message_type].present?
+          } do %>
+        <% message_type_labels.each do |key, label| %>
+          <label class="filter-option">
+            <%= f.radio_button :message_type, key, checked: params[:message_type] == key, data: { auto_submit_filter: true } %>
+            <span><%= label %></span>
+          </label>
+        <% end %>
+      <% end %>
+
+      <!-- AI Generated Dropdown -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Generado por IA",
+            selected_values: params[:ai_generated].present? ? [ params[:ai_generated] == "yes" ? "Sí" : "No" ] : [],
+            clear_url: admin_conversations_path(clear_query.call(:ai_generated)),
+            is_active: params[:ai_generated].present?
+          } do %>
+        <label class="filter-option">
+          <%= f.radio_button :ai_generated, "yes", checked: params[:ai_generated] == "yes", data: { auto_submit_filter: true } %>
+          <span>Solo generados por IA</span>
+        </label>
+        <label class="filter-option">
+          <%= f.radio_button :ai_generated, "no", checked: params[:ai_generated] == "no", data: { auto_submit_filter: true } %>
+          <span>Sin IA</span>
+        </label>
+      <% end %>
+
+      <% if current_query.any? %>
+        <%= link_to "Limpiar", admin_conversations_path, class: "filter-reset-link" %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+
+<div class="card">
+  <div class="card-body" style="padding: 0;">
+    <% if @conversations.any? %>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Participante</th>
+              <th>Día</th>
+              <th>Momento</th>
+              <th>Rol</th>
+              <th>Mensaje</th>
+              <th>Fecha/Hora</th>
+              <th style="text-align: right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @conversations.each do |c| %>
+              <tr class="<%= 'text-danger' if c.error_message.present? %>">
+                <td>
+                  <% if c.participant %>
+                    <a href="<%= admin_participant_path(c.participant) %>" style="font-weight: 600; color: var(--brand); text-decoration: none;">
+                      <%= c.participant.name %>
+                    </a>
+                  <% else %>
+                    <span style="color: var(--text-muted);">Desconocido</span>
+                  <% end %>
+                </td>
+                <td>Día <%= c.day_number %></td>
+                <td style="font-size: 13px; font-weight: 500; color: var(--text-muted);"><%= translate_moment(c.moment) %></td>
+                <td>
+                  <% role_badge = case c.role.to_sym
+                     when :user then 'badge-success'
+                     when :assistant then 'badge-info'
+                     when :system then 'badge-neutral'
+                     end %>
+                  <span class="badge <%= role_badge %>">
+                    <%= translate_role(c.role).upcase %>
+                  </span>
+                </td>
+                <td style="max-width: 350px;">
+                  <div style="font-size: 13px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="<%= c.body %>">
+                    <%= c.body %>
+                  </div>
+                  <% if c.error_message.present? %>
+                    <div style="font-size: 11px; color: var(--danger); font-weight: 500;">
+                      ⚠️ Error: <%= c.error_message %>
+                    </div>
+                  <% end %>
+                </td>
+                <td style="font-size: 13px; color: var(--text-muted);">
+                  <%= l(c.created_at, format: :short) rescue c.created_at.strftime("%d/%m %H:%M") %>
+                </td>
+                <td class="table-actions">
+                  <a href="<%= admin_conversation_path(c) %>" class="btn btn-secondary btn-sm">Detalles</a>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <% if @total_pages > 1 %>
+        <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-secondary);">
+          <span style="font-size: 13px; color: var(--text-muted);">
+            Mostrando página <%= @page %> de <%= @total_pages %> (<%= @total_count %> mensajes en total)
+          </span>
+          <div class="pagination">
+            <% if @page > 1 %>
+              <a href="<%= admin_conversations_path(request.query_parameters.merge(page: @page - 1)) %>" class="pagination-item">«</a>
+            <% else %>
+              <span class="pagination-item disabled">«</span>
+            <% end %>
+
+            <% (1..@total_pages).each do |p| %>
+              <% if p == @page %>
+                <span class="pagination-item active"><%= p %></span>
+              <% elsif p <= 3 || p >= @total_pages - 2 || (p - @page).abs <= 1 %>
+                <a href="<%= admin_conversations_path(request.query_parameters.merge(page: p)) %>" class="pagination-item"><%= p %></a>
+              <% elsif (p == 4 && @page > 5) || (p == @total_pages - 3 && @page < @total_pages - 4) %>
+                <span class="pagination-item disabled">...</span>
+              <% end %>
+            <% end %>
+
+            <% if @page < @total_pages %>
+              <a href="<%= admin_conversations_path(request.query_parameters.merge(page: @page + 1)) %>" class="pagination-item">»</a>
+            <% else %>
+              <span class="pagination-item disabled">»</span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+    <% else %>
+      <div class="empty-state">
+        <div class="empty-state-title">No se encontraron mensajes</div>
+        <div class="empty-state-desc">Intenta limpiando los filtros o realizando otra búsqueda.</div>
+      </div>
+    <% end %>
+  </div>
+</div>

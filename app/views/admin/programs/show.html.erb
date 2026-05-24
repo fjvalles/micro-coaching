@@ -1,0 +1,158 @@
+<% content_for :title, @program.name %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_programs_path %>">Programas</a>
+  <span>/</span>
+  <span><%= @program.name %></span>
+<% end %>
+
+<% content_for :header_actions do %>
+  <a href="<%= admin_program_day_contents_path(@program) %>" class="btn btn-secondary">
+    Gestionar Contenidos
+  </a>
+  <a href="<%= edit_admin_program_path(@program) %>" class="btn btn-secondary">
+    Editar Programa
+  </a>
+  <%= button_to "Eliminar", admin_program_path(@program), method: :delete, data: { confirm: "¿Estás seguro de eliminar este programa? Esta acción no se puede deshacer.", turbo_confirm: "¿Estás seguro?" }, class: "btn btn-danger" %>
+<% end %>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Detalles del Programa</h3>
+    <span class="badge <%= @program.active ? 'badge-success' : 'badge-neutral' %>">
+      <%= @program.active ? 'Activo' : 'Inactivo' %>
+    </span>
+  </div>
+  <div class="card-body">
+    <div class="details-list">
+      <div class="detail-item">
+        <span class="detail-label">Slug</span>
+        <span class="detail-value" style="font-family: monospace;"><%= @program.slug %></span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Total de Días</span>
+        <span class="detail-value"><%= @program.total_days %> días</span>
+      </div>
+      <div class="detail-item" style="grid-column: span 2;">
+        <span class="detail-label">Descripción</span>
+        <span class="detail-value"><%= @program.description.presence || 'Sin descripción.' %></span>
+      </div>
+      <div class="detail-item" style="grid-column: span 2;">
+        <span class="detail-label">Manifiesto de IA</span>
+        <pre class="detail-value-code"><%= @program.manifesto %></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 32px;">
+  <!-- Day Contents Section -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Contenido por Día (<%= @day_contents.count %>)</h3>
+      <div style="display: flex; gap: 8px;">
+        <a href="<%= admin_program_day_contents_path(@program) %>" class="btn btn-secondary btn-sm">Ver Todos</a>
+        <a href="<%= new_admin_program_day_content_path(@program) %>" class="btn btn-secondary btn-sm">+ Agregar Día</a>
+      </div>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <% if @day_contents.any? %>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Día</th>
+                <th>Título</th>
+                <th>Fase</th>
+                <th style="text-align: right;">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @day_contents.each do |content| %>
+                <tr>
+                  <td>Día <%= content.day_number %></td>
+                  <td style="font-weight: 500;"><%= content.title %></td>
+                  <td>
+                    <% badge_class = case content.phase.to_sym
+                       when :see then 'badge-info'
+                       when :choose then 'badge-warning'
+                       when :anchor then 'badge-success'
+                       else 'badge-neutral'
+                       end %>
+                    <span class="badge <%= badge_class %>">
+                      <%= translate_phase(content.phase).upcase %>
+                    </span>
+                  </td>
+                  <td style="text-align: right;">
+                    <a href="<%= admin_day_content_path(content, return_to_program_id: @program.id) %>" class="btn btn-secondary btn-sm">Ver</a>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <div class="empty-state-title">No hay contenidos asignados</div>
+          <div class="empty-state-desc">Crea contenidos de días asociados a este programa para comenzar.</div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Participants Section -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Participantes Inscritos (<%= @participants.count %>)</h3>
+      <a href="<%= new_admin_participant_path(program_id: @program.id) %>" class="btn btn-secondary btn-sm">+ Inscribir</a>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <% if @participants.any? %>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Día actual</th>
+                <th style="text-align: right;">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @participants.each do |p| %>
+                <tr>
+                  <td>
+                    <div style="font-weight: 500;"><%= p.name %></div>
+                    <div style="font-size: 12px; color: var(--text-muted);"><%= p.phone_e164 %></div>
+                  </td>
+                  <td>
+                    <% badge_class = case p.status.to_sym
+                       when :active then 'badge-success'
+                       when :pending then 'badge-warning'
+                       when :completed then 'badge-info'
+                       when :paused then 'badge-danger'
+                       else 'badge-neutral'
+                       end %>
+                    <span class="badge <%= badge_class %>">
+                      <%= translate_status(p.status) %>
+                    </span>
+                  </td>
+                  <td>Día <%= p.current_day %></td>
+                  <td style="text-align: right;">
+                    <a href="<%= admin_participant_path(p) %>" class="btn btn-secondary btn-sm">Ver</a>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <div class="empty-state-title">No hay participantes</div>
+          <div class="empty-state-desc">Aún no hay participantes en este programa.</div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

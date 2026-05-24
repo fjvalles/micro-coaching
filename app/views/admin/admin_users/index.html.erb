@@ -1,0 +1,45 @@
+<% content_for :title, "Administradores" %>
+
+<% content_for :header_actions do %>
+  <%= render "shared/primary_button", path: new_admin_admin_user_path, text: "Nuevo Administrador", icon: :user_plus %>
+<% end %>
+
+<div class="card">
+  <div class="card-body" style="padding: 0;">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Intentos fallidos</th>
+            <th>Estado de cuenta</th>
+            <th style="text-align: right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @admin_users.each do |user| %>
+            <tr>
+              <td style="font-weight: 600; color: var(--brand);"><%= user.name %></td>
+              <td><%= user.email %></td>
+              <td><%= user.failed_attempts %></td>
+              <td>
+                <% if user.locked_at.present? %>
+                  <span class="badge badge-danger" title="Bloqueado el <%= user.locked_at %>">Bloqueado</span>
+                <% else %>
+                  <span class="badge badge-success">Activo</span>
+                <% end %>
+              </td>
+              <td class="table-actions">
+                <a href="<%= edit_admin_admin_user_path(user) %>" class="btn btn-secondary btn-sm">Editar</a>
+                <% if AdminUser.count > 1 && user != current_admin_user %>
+                  <%= button_to "Eliminar", admin_admin_user_path(user), method: :delete, data: { confirm: "¿Estás seguro de eliminar a este administrador?", turbo_confirm: "¿Estás seguro?" }, class: "btn btn-secondary btn-sm btn-danger" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

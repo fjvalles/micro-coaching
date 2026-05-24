@@ -1,0 +1,79 @@
+<% content_for :title, "Editar Configuración: #{@setting.key}" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_settings_path %>">Configuraciones</a>
+  <span>/</span>
+  <span><%= @setting.key %></span>
+<% end %>
+
+<div class="card">
+  <div class="card-body">
+    <%= form_with(model: [:admin, @setting], local: true) do |f| %>
+      <% if @setting.errors.any? %>
+        <div style="background-color: var(--danger-bg); border: 1px solid var(--danger-border); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px; color: var(--danger);">
+          <h4 style="font-weight: 600; margin-bottom: 8px;">Por favor corrige los siguientes errores:</h4>
+          <ul style="padding-left: 20px;">
+            <% @setting.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="form-group">
+        <label class="form-label">Clave</label>
+        <div style="font-family: monospace; font-size: 14px; background-color: var(--bg-secondary); padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--border); color: var(--text-muted);">
+          <%= @setting.key %>
+          <span style="float: right; font-family: inherit; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <%= @setting.category %> · <%= @setting.value_type %>
+          </span>
+        </div>
+        <p class="form-help">La clave, categoría y tipo se definen en <code>Setting::SCHEMA</code> y no se editan desde aquí.</p>
+      </div>
+
+      <% if @setting.description.present? %>
+        <div class="form-group">
+          <label class="form-label">Descripción</label>
+          <div style="font-size: 14px; color: var(--text-main); margin-bottom: 12px;">
+            <%= @setting.description %>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="form-group">
+        <%= f.label :value, "Valor", class: "form-label" %>
+
+        <% case @setting.value_type %>
+        <% when "boolean" %>
+          <%= f.hidden_field :value, value: "0" %>
+          <label style="display: flex; align-items: center; gap: 10px; font-size: 14px;">
+            <%= f.check_box :value, { checked: @setting.typed_value }, "1", "0" %>
+            <span>Activado (true). Desmarcado = false.</span>
+          </label>
+
+        <% when "integer" %>
+          <%= f.number_field :value, step: 1, class: "form-input", style: "font-family: monospace;", required: true %>
+
+        <% when "float" %>
+          <%= f.number_field :value, step: "any", class: "form-input", style: "font-family: monospace;", required: true %>
+
+        <% when "string" %>
+          <%= f.text_field :value, class: "form-input", style: "font-family: monospace;", required: true %>
+
+        <% else # text, json %>
+          <%= f.text_area :value, class: "form-textarea", style: "min-height: 240px; font-family: monospace;", required: true %>
+        <% end %>
+
+        <% if (entry = @setting.schema_entry) && entry[:default].present? %>
+          <p class="form-help">Default del schema: <code><%= entry[:default].to_s.truncate(120) %></code></p>
+        <% end %>
+      </div>
+
+      <div class="card-footer" style="padding-left: 0; padding-right: 0; background-color: transparent; border-top: none; margin-top: 24px;">
+        <%= link_to "Cancelar", admin_settings_path, class: "btn btn-secondary" %>
+        <%= f.submit "Guardar Cambios", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

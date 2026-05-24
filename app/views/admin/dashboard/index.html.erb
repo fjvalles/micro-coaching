@@ -1,0 +1,291 @@
+<% content_for :title, "Inicio" %>
+
+<div class="stats-grid">
+  <!-- Card 1: Active Participants -->
+  <div class="stat-card">
+    <div class="stat-header">
+      <span>Participantes Activos</span>
+      <span class="badge badge-success">En curso</span>
+    </div>
+    <div class="stat-value"><%= @active_participants_count %></div>
+    <div class="stat-desc">De un total de <%= @total_participants_count %> registrados</div>
+  </div>
+
+  <!-- Card 2: Engagement / Response Rate -->
+  <div class="stat-card" style="border-left-color: var(--brand);">
+    <div class="stat-header">
+      <span>Tasa de Respuesta (24h)</span>
+      <% badge_cls = if @engagement_rate >= 70.0
+           'badge-success'
+         elsif @engagement_rate >= 40.0
+           'badge-warning'
+         else
+           'badge-danger'
+         end %>
+      <span class="badge <%= badge_cls %>">Engagement</span>
+    </div>
+    <div class="stat-value"><%= @engagement_rate %>%</div>
+    <div class="stat-desc">Activos que respondieron reporte diario en las últimas 24h</div>
+  </div>
+
+  <!-- Card 3: WhatsApp Deliverability -->
+  <div class="stat-card" style="border-left-color: var(--info);">
+    <div class="stat-header">
+      <span>Entregabilidad WhatsApp</span>
+      <span class="badge badge-info">Lectura: <%= @read_rate %>%</span>
+    </div>
+    <div class="stat-value"><%= @delivery_rate %>%</div>
+    <div class="stat-desc">Entregas exitosas: <%= @delivered_count %> de <%= @total_outgoing_count %> salientes</div>
+  </div>
+
+  <!-- Card 4: OpenAI Costs -->
+  <div class="stat-card" style="border-left-color: #818cf8;">
+    <div class="stat-header">
+      <span>Consumo OpenAI (Est.)</span>
+      <span class="badge badge-neutral">gpt-4o-mini</span>
+    </div>
+    <div class="stat-value" style="font-size: 28px;"><%= @formatted_openai_cost %></div>
+    <div class="stat-desc">Tokens: <%= number_to_human(@total_tokens) %> (I: <%= number_to_human(@total_input_tokens) %> / O: <%= number_to_human(@total_output_tokens) %>)</div>
+  </div>
+</div>
+
+<!-- Cohort Distribution Chart -->
+<div class="card" style="margin-top: 32px;">
+  <div class="card-header">
+    <h3 class="card-title">Distribución de Participantes por Día del Programa</h3>
+    <span class="badge badge-success">Activos: <%= @active_participants_count %></span>
+  </div>
+  <div class="card-body">
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+      Esta gráfica muestra cuántos participantes se encuentran actualmente en cada uno de los 14 días del programa. Te permite monitorear el progreso del grupo e identificar en qué días se concentran o se estancan los usuarios.
+    </p>
+    <div class="cohort-timeline">
+      <% (1..14).each do |day| %>
+        <% count = @cohort_distribution[day] || 0 %>
+        <% percent = ((count.to_f / @max_cohort_count) * 100).round %>
+        <div class="cohort-day">
+          <div class="cohort-bar-wrapper" title="Día <%= day %>: <%= count %> participantes">
+            <% if count > 0 %>
+              <div class="cohort-count"><%= count %></div>
+              <div class="cohort-bar" style="height: <%= percent %>%"></div>
+            <% else %>
+              <div class="cohort-bar empty" style="height: 0%"></div>
+            <% end %>
+          </div>
+          <span class="cohort-label">D<%= day %></span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 32px;">
+  <!-- Left Column: Stuck Participants -->
+  <div class="card" style="margin-bottom: 0;">
+    <div class="card-header">
+      <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+        <svg style="width: 18px; height: 18px; color: var(--danger);" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        Participantes Estancados
+      </h3>
+      <span class="badge badge-danger">> 3 días sin interacción</span>
+    </div>
+    <div class="card-body" style="padding: 16px;">
+      <% if @stuck_participants.any? %>
+        <div class="stuck-list">
+          <% @stuck_participants.each do |p| %>
+            <div class="stuck-item">
+              <div class="stuck-info">
+                <a href="<%= admin_participant_path(p) %>" class="stuck-name" style="text-decoration: none; color: var(--text-main);"><%= p.name %></a>
+                <span class="stuck-meta">Día <%= p.current_day %> · <%= p.phone_e164 %></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="badge badge-warning" style="font-size: 11px;">Inactivo</span>
+                <a href="<%= admin_participant_path(p) %>" class="btn btn-secondary btn-sm" style="padding: 4px 8px;">Revisar</a>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="empty-state" style="padding: 24px;">
+          <div class="empty-state-title" style="font-size: 14px; font-weight: 600;">Todo al día</div>
+          <div class="empty-state-desc" style="font-size: 12px; margin-bottom: 0;">Todos los participantes han interactuado recientemente en los últimos 3 días.</div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Right Column: Recent WhatsApp Errors -->
+  <div class="card" style="margin-bottom: 0;">
+    <div class="card-header">
+      <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+        <svg style="width: 18px; height: 18px; color: var(--warning);" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+        </svg>
+        Errores de Envío Recientes (WhatsApp)
+      </h3>
+      <span class="badge <%= @failed_messages_count > 0 ? 'badge-danger' : 'badge-neutral' %>">
+        Total: <%= @failed_messages_count %>
+      </span>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <% if @recent_failures.any? %>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Participante</th>
+                <th>Mensaje de Error</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @recent_failures.each do |f| %>
+                <tr>
+                  <td>
+                    <% if f.participant %>
+                      <a href="<%= admin_participant_path(f.participant) %>" style="font-weight: 500; text-decoration: none; color: var(--brand);"><%= f.participant.name %></a>
+                      <div style="font-size: 11px; color: var(--text-muted);"><%= f.participant.phone_e164 %></div>
+                    <% else %>
+                      <div style="font-weight: 500; color: var(--text-muted);">Desconocido</div>
+                    <% end %>
+                  </td>
+                  <td>
+                    <div style="font-size: 12px; color: var(--danger); font-weight: 500; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= f.error_message %>">
+                      <%= f.error_message %>
+                    </div>
+                    <div style="font-size: 10px; color: var(--text-muted);">Momento: <%= translate_moment(f.moment) %></div>
+                  </td>
+                  <td style="font-size: 12px; color: var(--text-muted); white-space: nowrap;">
+                    <%= f.created_at.strftime("%d/%m %H:%M") %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state" style="padding: 24px;">
+          <div class="empty-state-title" style="font-size: 14px; font-weight: 600;">Sin fallas</div>
+          <div class="empty-state-desc" style="font-size: 12px; margin-bottom: 0;">No se registran errores de envío en la base de datos.</div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 32px;">
+  <!-- Left Side: Recent Participants -->
+  <div class="card" style="margin-bottom: 0;">
+    <div class="card-header">
+      <h3 class="card-title">Participantes Registrados Recientemente</h3>
+      <a href="<%= admin_participants_path %>" class="btn btn-secondary btn-sm">Ver todos</a>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <% if @recent_participants.any? %>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Día</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @recent_participants.each do |p| %>
+                <tr>
+                  <td>
+                    <div style="font-weight: 500;"><%= p.name %></div>
+                    <div style="font-size: 12px; color: var(--text-muted);"><%= p.phone_e164 %></div>
+                  </td>
+                  <td>
+                    <% badge_class = case p.status.to_sym
+                       when :active then 'badge-success'
+                       when :pending then 'badge-warning'
+                       when :completed then 'badge-info'
+                       when :paused then 'badge-danger'
+                       else 'badge-neutral'
+                       end %>
+                    <span class="badge <%= badge_class %>">
+                      <%= translate_status(p.status) %>
+                    </span>
+                  </td>
+                  <td>Día <%= p.current_day %></td>
+                  <td>
+                    <a href="<%= admin_participant_path(p) %>" class="btn btn-secondary btn-sm">Detalles</a>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <div class="empty-state-title">No hay participantes</div>
+          <div class="empty-state-desc">Aún no se han registrado participantes en la aplicación.</div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Right Side: Recent Messages -->
+  <div class="card" style="margin-bottom: 0;">
+    <div class="card-header">
+      <h3 class="card-title">Últimos Mensajes Procesados</h3>
+      <a href="<%= admin_conversations_path %>" class="btn btn-secondary btn-sm">Ver todos</a>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <% if @recent_messages.any? %>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Participante / Rol</th>
+                <th>Mensaje</th>
+                <th>Fecha/Hora</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @recent_messages.each do |c| %>
+                <tr>
+                  <td>
+                    <div style="font-weight: 500;"><%= c.participant.name %></div>
+                    <div>
+                      <% role_badge = case c.role.to_sym
+                         when :user then 'badge-success'
+                         when :assistant then 'badge-info'
+                         when :system then 'badge-neutral'
+                         end %>
+                      <span class="badge <%= role_badge %>" style="font-size: 10px; padding: 2px 6px;">
+                        <%= translate_role(c.role) %>
+                      </span>
+                    </div>
+                  </td>
+                  <td style="max-width: 250px;">
+                    <div style="font-size: 13px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="<%= c.body %>">
+                      <%= c.body %>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted);">
+                      Momento: <%= translate_moment(c.moment) %>
+                    </div>
+                  </td>
+                  <td style="font-size: 12px; color: var(--text-muted);">
+                    <%= l(c.created_at, format: :short) rescue c.created_at.strftime("%d/%m %H:%M") %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <div class="empty-state-title">No hay mensajes</div>
+          <div class="empty-state-desc">No se han registrado conversaciones todavía.</div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
