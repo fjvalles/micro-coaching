@@ -6,23 +6,55 @@
   end
 
   changes = changes.except("updated_at", "created_at", "id")
+
+  def translate_field_name(name)
+    case name.to_s
+    when "name" then "nombre"
+    when "status" then "estado"
+    when "phone_e164" then "teléfono"
+    when "email" then "correo"
+    when "current_day", "day_number" then "día"
+    when "timezone" then "zona horaria"
+    when "company" then "empresa"
+    when "role" then "rol"
+    when "response_mode" then "modo respuesta"
+    when "started_at" then "fecha inicio"
+    when "completed_at" then "fecha término"
+    when "active" then "activo"
+    when "title" then "título"
+    when "phase" then "fase"
+    when "manifesto" then "manifiesto"
+    when "description" then "descripción"
+    when "slug" then "slug"
+    when "morning_template" then "plantilla mañana"
+    when "iareto_text" then "texto iareto"
+    when "checkin_questions" then "preguntas checkin"
+    when "ai_system_prompt" then "prompt sistema"
+    else name.to_s
+    end
+  end
 %>
 <% if changes.blank? %>
-  <span style="color:var(--text-muted);">—</span>
+  <span style="color: var(--text-muted); font-style: italic;">Sin cambios en atributos</span>
 <% else %>
-  <div style="display:flex;flex-direction:column;gap:2px;">
+  <div style="display: flex; flex-direction: column; gap: 4px;">
     <% changes.each do |field, (before, after)| %>
-      <div>
-        <span style="font-weight:600;color:var(--text-main);"><%= field %>:</span>
+      <div style="line-height: 1.4;">
+        <span style="font-weight: 600; color: var(--text-main); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.02em;">
+          <%= translate_field_name(field) %>:
+        </span>
         <% if version.event == "create" %>
-          <span style="color:var(--success)"><%= truncate(after.to_s, length: 60) %></span>
+          <span style="color: var(--success); font-weight: 500;"><%= truncate(after.to_s, length: 60) %></span>
         <% elsif version.event == "destroy" %>
-          <span style="color:var(--danger)"><%= truncate(before.to_s, length: 60) %></span>
+          <span style="color: var(--danger); font-weight: 500;"><%= truncate(before.to_s, length: 60) %></span>
         <% else %>
-          <span style="color:var(--danger);text-decoration:line-through;margin-right:4px;">
-            <%= truncate(before.to_s, length: 40) %>
+          <span style="color: var(--danger); text-decoration: line-through; margin-right: 4px; font-size: 0.8rem; opacity: 0.85;">
+            <%= before.nil? ? "nulo" : truncate(before.to_s, length: 40) %>
           </span>
-          <span style="color:var(--success)"><%= truncate(after.to_s, length: 40) %></span>
+          <span style="color: var(--text-muted); font-size: 0.8rem; margin-right: 4px;">&rarr;</span>
+          <span style="color: var(--success); font-weight: 500;">
+            <%= after.nil? ? "nulo" : truncate(after.to_s, length: 40) %>
+          </span>
         <% end %>
       </div>
     <% end %>

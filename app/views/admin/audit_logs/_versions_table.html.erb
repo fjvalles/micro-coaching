@@ -1,52 +1,64 @@
 <%# locals: (versions:, show_item_col: false) %>
 <% if versions.empty? %>
-  <div class="empty-state">
-    <p class="empty-state-title">Sin historial</p>
-    <p class="empty-state-desc">No se han registrado cambios todavía.</p>
+  <div class="empty-state" style="padding: 40px; text-align: center;">
+    <div class="empty-state-title" style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px;">Sin historial</div>
+    <div class="empty-state-desc" style="font-size: 0.9rem; color: var(--text-muted);">No se han registrado cambios todavía.</div>
   </div>
 <% else %>
-  <div class="table-wrapper">
-    <table class="data-table">
+  <div class="table-responsive">
+    <table class="table">
       <thead>
         <tr>
-          <th>Fecha</th>
+          <th style="white-space: nowrap; width: 140px;">Fecha / Hora</th>
           <% if show_item_col %>
-            <th>Tipo</th>
-            <th>Registro</th>
+            <th style="width: 130px;">Tipo de Recurso</th>
+            <th>Registro Afectado</th>
           <% end %>
-          <th>Acción</th>
-          <th>Origen</th>
-          <th>Por</th>
-          <th>Cambios</th>
+          <th style="width: 100px;">Acción</th>
+          <th style="width: 130px;">Origen</th>
+          <th style="width: 180px;">Ejecutado Por</th>
+          <th>Detalle de Cambios</th>
         </tr>
       </thead>
       <tbody>
         <% versions.each do |v| %>
           <tr>
-            <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">
+            <td style="white-space: nowrap; font-size: 0.85rem; color: var(--text-muted);">
               <%= v.created_at.strftime("%d/%m/%Y %H:%M") %>
             </td>
             <% if show_item_col %>
-              <td><span class="badge badge-secondary" style="font-size:0.7rem;"><%= v.item_type %></span></td>
-              <td style="font-size:0.85rem;">
-                <% item = v.item %>
-                <% if item %>
-                  <%= link_to audit_item_label(v), audit_item_path(v), class: "text-link" %>
+              <td>
+                <span class="badge badge-neutral" style="font-size: 11px; font-weight: 500;">
+                  <%= translate_item_type(v.item_type) %>
+                </span>
+              </td>
+              <td style="font-size: 0.9rem;">
+                <% path = audit_item_path(v) %>
+                <% label = audit_item_label(v) %>
+                <% if path != "#" %>
+                  <%= link_to label, path, style: "font-weight: 600; color: var(--brand); text-decoration: none;" %>
                 <% else %>
-                  <span style="color:var(--text-muted);">#<%= v.item_id.to_s.first(8) %>&hellip;</span>
+                  <span style="font-weight: 500; color: var(--text-main);"><%= label %></span>
+                  <% if v.event == "destroy" %>
+                    <span class="badge badge-neutral" style="font-size: 10px; margin-left: 4px; padding: 2px 6px;">Eliminado</span>
+                  <% end %>
                 <% end %>
               </td>
             <% end %>
             <td>
-              <span class="badge <%= audit_event_badge(v.event) %>"><%= v.event %></span>
+              <span class="badge <%= audit_event_badge(v.event) %>" style="text-transform: uppercase; font-size: 10px; letter-spacing: 0.03em;">
+                <%= v.event == "create" ? "Crear" : (v.event == "destroy" ? "Eliminar" : "Modificar") %>
+              </span>
             </td>
             <td>
-              <span class="badge <%= audit_source_badge(v.source) %>"><%= v.source.presence || "—" %></span>
+              <span class="badge <%= audit_source_badge(v.source) %>" style="font-size: 11px;">
+                <%= v.source == "admin" ? "Admin manual" : (v.source == "ai" ? "IA automático" : "Sistema") %>
+              </span>
             </td>
-            <td style="font-size:0.8rem;color:var(--text-muted);">
-              <%= v.whodunnit.presence || "—" %>
+            <td style="font-size: 0.85rem; color: var(--text-main); font-weight: 500;">
+              <%= v.whodunnit.presence || "Sistema" %>
             </td>
-            <td style="font-size:0.8rem;max-width:320px;">
+            <td style="font-size: 0.85rem; max-width: 450px;">
               <%= render "admin/audit_logs/changes_cell", version: v %>
             </td>
           </tr>

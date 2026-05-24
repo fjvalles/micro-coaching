@@ -5,33 +5,88 @@
   <span>Auditoría</span>
 <% end %>
 
-<div style="margin-bottom:1.5rem;">
-  <%= form_with url: admin_audit_log_path, method: :get, local: true do |f| %>
-    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end;">
-      <div>
-        <%= f.label :item_type, "Tipo", style: "display:block;font-size:0.8rem;font-weight:600;color:var(--text-muted);margin-bottom:4px;" %>
-        <%= f.select :item_type,
-              [["Todos", ""], ["Participantes", "Participant"], ["Programas", "Program"], ["Días", "DayContent"]],
-              { selected: params[:item_type] },
-              class: "form-select", style: "min-width:140px;" %>
-      </div>
-      <div>
-        <%= f.label :source, "Origen", style: "display:block;font-size:0.8rem;font-weight:600;color:var(--text-muted);margin-bottom:4px;" %>
-        <%= f.select :source,
-              [["Todos", ""], ["Admin manual", "admin"], ["IA automático", "ai"]],
-              { selected: params[:source] },
-              class: "form-select", style: "min-width:150px;" %>
-      </div>
-      <div>
-        <%= f.label :event, "Acción", style: "display:block;font-size:0.8rem;font-weight:600;color:var(--text-muted);margin-bottom:4px;" %>
-        <%= f.select :event,
-              [["Todas", ""], ["Crear", "create"], ["Actualizar", "update"], ["Eliminar", "destroy"]],
-              { selected: params[:event] },
-              class: "form-select", style: "min-width:130px;" %>
-      </div>
-      <%= f.submit "Filtrar", class: "btn btn-secondary" %>
-      <% if params[:item_type].present? || params[:source].present? || params[:event].present? %>
-        <%= link_to "Limpiar", admin_audit_log_path, class: "btn btn-ghost" %>
+<%
+  current_query = {}
+  current_query[:q] = params[:q] if params[:q].present?
+  current_query[:item_type] = params[:item_type] if params[:item_type].present?
+  current_query[:source] = params[:source] if params[:source].present?
+  current_query[:event] = params[:event] if params[:event].present?
+
+  clear_query = ->(key) { current_query.except(key) }
+
+  item_type_labels = { "Participant" => "Participantes", "Program" => "Programas", "DayContent" => "Días de Contenido" }
+  source_labels = { "admin" => "Admin manual", "ai" => "IA automático" }
+  event_labels = { "create" => "Crear", "update" => "Actualizar", "destroy" => "Eliminar" }
+%>
+
+<% content_for :header_actions do %>
+  <%= render "shared/search_field", id: "audit-search", value: params[:q], form_id: "audit-filters", placeholder: "Buscar cambios...", style_type: :header %>
+<% end %>
+
+<div style="margin-bottom: 24px;">
+  <%= form_with url: admin_audit_log_path, method: :get, local: true, html: { id: "audit-filters", class: "filter-toolbar" } do |f| %>
+    <%= f.hidden_field :q, value: params[:q] if params[:q].present? %>
+
+    <div class="filter-toolbar-row">
+      <!-- Filter by Type -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Tipo",
+            selected_values: Array(item_type_labels[params[:item_type]]).compact,
+            clear_url: admin_audit_log_path(clear_query.call(:item_type)),
+            is_active: params[:item_type].present?
+          } do %>
+        <label class="filter-option">
+          <%= f.radio_button :item_type, "", checked: params[:item_type].blank?, data: { auto_submit_filter: true } %>
+          <span>Todos</span>
+        </label>
+        <% item_type_labels.each do |key, label| %>
+          <label class="filter-option">
+            <%= f.radio_button :item_type, key, checked: params[:item_type] == key, data: { auto_submit_filter: true } %>
+            <span><%= label %></span>
+          </label>
+        <% end %>
+      <% end %>
+
+      <!-- Filter by Source -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Origen",
+            selected_values: Array(source_labels[params[:source]]).compact,
+            clear_url: admin_audit_log_path(clear_query.call(:source)),
+            is_active: params[:source].present?
+          } do %>
+        <label class="filter-option">
+          <%= f.radio_button :source, "", checked: params[:source].blank?, data: { auto_submit_filter: true } %>
+          <span>Todos</span>
+        </label>
+        <% source_labels.each do |key, label| %>
+          <label class="filter-option">
+            <%= f.radio_button :source, key, checked: params[:source] == key, data: { auto_submit_filter: true } %>
+            <span><%= label %></span>
+          </label>
+        <% end %>
+      <% end %>
+
+      <!-- Filter by Event -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Acción",
+            selected_values: Array(event_labels[params[:event]]).compact,
+            clear_url: admin_audit_log_path(clear_query.call(:event)),
+            is_active: params[:event].present?
+          } do %>
+        <label class="filter-option">
+          <%= f.radio_button :event, "", checked: params[:event].blank?, data: { auto_submit_filter: true } %>
+          <span>Todas</span>
+        </label>
+        <% event_labels.each do |key, label| %>
+          <label class="filter-option">
+            <%= f.radio_button :event, key, checked: params[:event] == key, data: { auto_submit_filter: true } %>
+            <span><%= label %></span>
+          </label>
+        <% end %>
+      <% end %>
+
+      <% if current_query.any? %>
+        <%= link_to "Limpiar", admin_audit_log_path, class: "filter-reset-link" %>
       <% end %>
     </div>
   <% end %>
@@ -39,10 +94,42 @@
 
 <div class="card">
   <div class="card-header">
-    <h3 class="card-title">Historial de cambios (últimos 200)</h3>
-    <span style="font-size:0.8rem;color:var(--text-muted);"><%= @versions.size %> registros</span>
+    <h3 class="card-title">Historial de cambios</h3>
+    <span style="font-size:0.8rem;color:var(--text-muted);"><%= @total_count %> registros en total</span>
   </div>
   <div class="card-body" style="padding:0;">
     <%= render "admin/audit_logs/versions_table", versions: @versions, show_item_col: true %>
+    
+    <!-- Pagination Footer -->
+    <% if @total_pages > 1 %>
+      <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-secondary);">
+        <span style="font-size: 13px; color: var(--text-muted);">
+          Mostrando página <%= @page %> de <%= @total_pages %> (<%= @total_count %> cambios en total)
+        </span>
+        <div class="pagination">
+          <% if @page > 1 %>
+            <a href="<%= admin_audit_log_path(request.query_parameters.merge(page: @page - 1)) %>" class="pagination-item">«</a>
+          <% else %>
+            <span class="pagination-item disabled">«</span>
+          <% end %>
+
+          <% (1..@total_pages).each do |p| %>
+            <% if p == @page %>
+              <span class="pagination-item active"><%= p %></span>
+            <% elsif p <= 3 || p >= @total_pages - 2 || (p - @page).abs <= 1 %>
+              <a href="<%= admin_audit_log_path(request.query_parameters.merge(page: p)) %>" class="pagination-item"><%= p %></a>
+            <% elsif (p == 4 && @page > 5) || (p == @total_pages - 3 && @page < @total_pages - 4) %>
+              <span class="pagination-item disabled">...</span>
+            <% end %>
+          <% end %>
+
+          <% if @page < @total_pages %>
+            <a href="<%= admin_audit_log_path(request.query_parameters.merge(page: @page + 1)) %>" class="pagination-item">»</a>
+          <% else %>
+            <span class="pagination-item disabled">»</span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
   </div>
 </div>

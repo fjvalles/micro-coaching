@@ -54,9 +54,38 @@ module ApplicationHelper
     end
   end
 
+  def translate_item_type(type)
+    case type
+    when "Participant" then "Participante"
+    when "Program"     then "Programa"
+    when "DayContent"  then "Día de Contenido"
+    else type.to_s.humanize
+    end
+  end
+
   def audit_item_label(version)
     item = version.item
+    item ||= begin
+      version.reify
+    rescue
+      nil
+    end
+
+    if item.nil? && version.object_changes.present?
+      changes = begin
+        PaperTrail.serializer.load(version.object_changes)
+      rescue
+        {}
+      end
+      name = changes["name"]&.last || changes["title"]&.last
+      day_number = changes["day_number"]&.last
+      if name
+        return version.item_type == "DayContent" ? "Día #{day_number} — #{name}" : name
+      end
+    end
+
     return "##{version.item_id.to_s.first(8)}" unless item
+
     case version.item_type
     when "Participant" then item.name
     when "Program"     then item.name
@@ -67,10 +96,14 @@ module ApplicationHelper
 
   def audit_item_path(version)
     case version.item_type
-    when "Participant" then admin_participant_path(version.item_id)
-    when "Program"     then admin_program_path(version.item_id)
-    when "DayContent"  then admin_day_content_path(version.item_id)
-    else "#"
+    when "Participant"
+      Participant.exists?(version.item_id) ? admin_participant_path(version.item_id) : "#"
+    when "Program"
+      Program.exists?(version.item_id) ? admin_program_path(version.item_id) : "#"
+    when "DayContent"
+      DayContent.exists?(version.item_id) ? admin_day_content_path(version.item_id) : "#"
+    else
+      "#"
     end
   end
 
