@@ -1,0 +1,81 @@
+service: impulso
+image: ghcr.io/fjvalles/impulso
+
+servers:
+  web:
+    hosts:
+      - 49.13.138.22
+    options:
+      network: impulso
+  worker:
+    hosts:
+      - 49.13.138.22
+    cmd: bundle exec sidekiq
+    options:
+      network: impulso
+
+proxy:
+  ssl: true
+  host: impulso.comtraining.cl
+  app_port: 3000
+
+registry:
+  server: ghcr.io
+  username: fjvalles
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+  args:
+    RUBY_VERSION: "4.0.2"
+    NODE_VERSION: "25.9.0"
+
+env:
+  clear:
+    RAILS_ENV: production
+    META_API_VERSION: v21.0
+    PROGRAM_LOCALE: es
+    APP_HOST: impulso.comtraining.cl
+    MAILER_FROM: "Impulso <noreply@impulso.comtraining.cl>"
+  secret:
+    - RAILS_MASTER_KEY
+    - DATABASE_URL
+    - REDIS_URL
+    - OPENAI_API_KEY
+    - META_PHONE_NUMBER_ID
+    - META_BUSINESS_ACCOUNT_ID
+    - META_ACCESS_TOKEN
+    - META_APP_SECRET
+    - META_WEBHOOK_VERIFY_TOKEN
+    - ADMIN_EMAIL
+    - ADMIN_PASSWORD
+    - ADMIN_NAME
+    - GOOGLE_DRIVE_BACKUP_FOLDER_ID
+    - GOOGLE_SERVICE_ACCOUNT_JSON
+    - RESEND_API_KEY
+
+accessories:
+  db:
+    image: postgres:16
+    host: 49.13.138.22
+    port: "127.0.0.1:5432:5432"
+    env:
+      clear:
+        POSTGRES_DB: impulso_production
+        POSTGRES_USER: postgres
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+    options:
+      network: impulso
+
+  redis:
+    image: redis:7
+    host: 49.13.138.22
+    port: "127.0.0.1:6379:6379"
+    directories:
+      - data:/data
+    options:
+      network: impulso
