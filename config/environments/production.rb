@@ -85,7 +85,7 @@ Rails.application.configure do
     port: 465,
     ssl: true,
     user_name: "resend",
-    password: ENV.fetch("RESEND_API_KEY"),
+    password: ENV.fetch("RESEND_API_KEY", nil),
     authentication: :login
   }
   config.action_mailer.default_url_options = {
