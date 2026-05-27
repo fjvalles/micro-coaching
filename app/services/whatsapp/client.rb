@@ -7,7 +7,7 @@ module Whatsapp
     BASE = "https://graph.facebook.com".freeze
     DEFAULT_MAX_ATTEMPTS = 3
 
-    def send_template(to:, template_name:, locale: ENV.fetch("PROGRAM_LOCALE", "es_MX"), components: [])
+    def send_template(to:, template_name:, locale: ENV.fetch("PROGRAM_LOCALE", "es"), components: [])
       post({
         messaging_product: "whatsapp",
         to: to,
