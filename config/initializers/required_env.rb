@@ -1,4 +1,4 @@
-if Rails.env.production?
+if Rails.env.production? && ENV["SECRET_KEY_BASE_DUMMY"].blank?
   REQUIRED_ENV_VARS = %w[
     META_APP_SECRET
     META_ACCESS_TOKEN
