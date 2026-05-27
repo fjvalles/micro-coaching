@@ -48,7 +48,7 @@ module Openai
     def system_prompt
       day = @participant.day_content
       <<~SYS
-        #{Openai.program_manifesto(@participant.program)}
+        #{Openai::ProgramManifesto.call(@participant.program)}
 
         Contexto del participante:
         - Nombre: #{@participant.name}

@@ -42,7 +42,7 @@ module Openai
     def build_messages
       [
         { role: "system", content: <<~SYS },
-          #{Openai.program_manifesto(@participant.program)}
+          #{Openai::ProgramManifesto.call(@participant.program)}
 
           Tu tarea es resumir el check-in nocturno del participante en JSON estricto.
           Devuelve exactamente: {"summary": "...", "key_pattern": "..."}.

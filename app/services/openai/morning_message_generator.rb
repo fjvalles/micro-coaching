@@ -48,7 +48,7 @@ module Openai
     end
 
     def system_prompt
-      [ Openai.program_manifesto(@participant.program), @day_content.ai_system_prompt.to_s ].join("\n\n")
+      [ Openai::ProgramManifesto.call(@participant.program), @day_content.ai_system_prompt.to_s ].join("\n\n")
     end
 
     def user_prompt
