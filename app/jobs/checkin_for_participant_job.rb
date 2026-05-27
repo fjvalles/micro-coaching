@@ -20,7 +20,7 @@ class CheckinForParticipantJob < ApplicationJob
     else
                dispatcher.send_template(
                  template_name: "checkin_dia_%02d" % day_content.day_number,
-                 variables: [ participant.name, *questions.split("\n").first(3) ],
+                 variables: [ participant.name, questions.split("\n").reject(&:blank?).first(3).join("\n\n") ],
                  body_preview: body
                )
     end
