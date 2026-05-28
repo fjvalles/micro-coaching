@@ -14,7 +14,7 @@ gem "bootsnap", require: false
 
 # App-specific
 gem "redis", ">= 4.0.1"
-gem "sidekiq", "~> 7.0"
+gem "sidekiq", "~> 8.1"
 gem "sidekiq-cron", "~> 2.0"
 gem "devise"
 gem "ruby-openai", "~> 7.0"
