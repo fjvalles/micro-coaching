@@ -172,3 +172,12 @@ Decisiones que tomé durante la implementación, separadas de lo que el plan ya 
 - **Colisión de nombres asumida conscientemente.** `belongs_to :company` sombrea la columna `company`. Se eligió que la asociación sea dueña del nombre (estado final correcto) y se migraron todos los usos del string en la UI (`participants` index/show, `pending_responses` show) a la asociación; `Participants::Enroller` escribe el string legacy vía `write_attribute`. El valor legacy se lee con `participant[:company]`.
 - **Programas generales vs por empresa con un solo `company_id` nulable.** `nil` = general. Evita una tabla de membresía programa↔empresa para el caso actual (un programa pertenece a lo sumo a una empresa).
 - **`covers_membership` en `Company`.** La regla "no paga si pertenece a empresa" se modela a nivel empresa (default cubre), con `Participant#pays_individually?` derivado. Prepara Fase 2 (pagos) sin tablas de billing todavía.
+
+## Pagos con Webpay Plus (30-may-2026)
+
+- **Transbank `transbank-sdk` sobre integración HTTP propia.** El SDK oficial maneja firma/endpoints/ambientes; reimplementarlo sería frágil. `Webpay::Client` lo envuelve con un `Result`/`CommitResult` struct, honra el kill-switch `webpay_enabled` y reporta errores a Sentry.
+- **Un solo modelo `Payment` (pago único), no `Subscription` todavía.** El MVP cobra una membresía individual al inscribirse. Las suscripciones recurrentes (Oneclick/cuotas) se difieren hasta validar el modelo de cobro.
+- **`commit` idempotente por `token`.** Webpay puede reenviar el retorno (refresh, doble redirect); si el `Payment` ya está `authorized`/`rejected` no se vuelve a confirmar. `TBK_TOKEN` se mapea a `aborted`.
+- **Montos en CLP con IVA incluido; comisión congelada al confirmar.** `assign_commission_snapshot!` guarda comisión Transbank (+IVA) y neto recibido con las tasas vigentes al pago, para que cambios futuros de tasa no alteren el histórico. El IVA débito se desglosa on-the-fly del bruto.
+- **Ingresos (CLP) separados de costos (USD).** No se mezclan monedas en un P&L combinado todavía; `/admin/payments` muestra ingresos, `/admin/finances` costos. Un consolidado con FX queda pendiente.
+- **`PeriodFilterable` concern.** Se extrajo el filtro de períodos compartido entre `FinancesController` y `Admin::PaymentsController` (reuse, no duplicar).

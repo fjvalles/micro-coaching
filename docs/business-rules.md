@@ -392,6 +392,26 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 
 ---
 
+## 19. Pagos (Webpay Plus / Transbank)
+
+### 19.1 Flujo
+- `/pagos` (público) muestra el precio (`membership_price_clp`, IVA incluido) → `POST /pagos` crea un `Payment` (pending), inicia transacción Webpay (`Webpay::Client#create`) y redirige a Transbank.
+- Transbank retorna a `/pagos/retorno`: `token_ws` = flujo normal → `commit`; `TBK_TOKEN` = el usuario abandonó → `aborted`.
+- `commit` es **idempotente**: un refresh/segundo retorno no vuelve a confirmar (si ya está `authorized`/`rejected`, solo re-renderiza).
+
+### 19.2 Kill-switch y ambiente
+- `webpay_enabled` (default false) corta el inicio de transacciones. `webpay_environment` = `integration` (credenciales de prueba del SDK) o `production` (usa `WEBPAY_COMMERCE_CODE`/`WEBPAY_API_KEY`).
+
+### 19.3 Ingresos, comisión e IVA
+- `Payment#amount` es bruto con IVA incluido (CLP). `tax_amount` = IVA débito contenido; `net_of_tax` = neto de venta.
+- Al confirmar, `assign_commission_snapshot!` congela `commission_amount` (comisión Transbank × `payment_commission_rate`, + IVA) y `net_amount` (bruto − comisión).
+- `/admin/payments` (Ingresos) agrega bruto, IVA débito, neto ventas, comisión Transbank y neto recibido por período. Independiente del tracker de costos (USD) en `/admin/finances`.
+
+### 19.4 Quién paga
+- Individuos (sin empresa) pagan su membresía. Miembros de empresa con `covers_membership` no pagan individualmente (`Participant#pays_individually?`). El gating del alta por pago se hará en el portal (Fase 3).
+
+---
+
 ## 13. Edge cases conocidos
 
 - **Participante sin `DayContent`.** Si no existe `DayContent(program, current_day)`, `MorningWakeForParticipantJob` retorna sin enviar. Sin error.

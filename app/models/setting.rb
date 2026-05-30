@@ -259,6 +259,32 @@ class Setting < ApplicationRecord
       type: :float, category: "finances", default: 0.0,
       description: "Otros costos mensuales fijos en USD (dominio, herramientas, etc.).",
       validate: ->(v) { v >= 0 || "debe ser >= 0" }
+    },
+
+    # ── pagos (Webpay / Transbank) ───────────────────────────────────────────
+    "webpay_enabled" => {
+      type: :boolean, category: "finances", default: false,
+      description: "Kill-switch de pagos: si es false, Webpay::Client no inicia transacciones."
+    },
+    "webpay_environment" => {
+      type: :string, category: "finances", default: "integration",
+      description: "Ambiente Transbank: integration (credenciales de prueba del SDK) o production (usa WEBPAY_COMMERCE_CODE/WEBPAY_API_KEY).",
+      validate: ->(v) { %w[integration production].include?(v.to_s) || "debe ser integration o production" }
+    },
+    "membership_price_clp" => {
+      type: :integer, category: "finances", default: 0,
+      description: "Precio de la membresía individual en CLP (con IVA incluido). 0 = no se cobra.",
+      validate: ->(v) { v >= 0 || "debe ser >= 0" }
+    },
+    "payment_commission_rate" => {
+      type: :float, category: "finances", default: 0.0149,
+      description: "Comisión de Transbank sobre el monto bruto (ej. 0.0149 = 1,49%).",
+      validate: ->(v) { (0.0..1.0).cover?(v) || "debe estar entre 0.0 y 1.0" }
+    },
+    "tax_rate" => {
+      type: :float, category: "finances", default: 0.19,
+      description: "Tasa de IVA (Chile 19% = 0.19). Se usa para desglosar IVA débito de los ingresos y el IVA de la comisión.",
+      validate: ->(v) { (0.0..1.0).cover?(v) || "debe estar entre 0.0 y 1.0" }
     }
   }.freeze
 

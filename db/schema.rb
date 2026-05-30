@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_30_120001) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_30_120002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -149,6 +149,37 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_120001) do
     t.index ["phone_e164"], name: "index_participants_on_phone_e164", unique: true
     t.index ["program_id"], name: "index_participants_on_program_id"
     t.index ["status"], name: "index_participants_on_status"
+  end
+
+  create_table "payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "participant_id"
+    t.uuid "company_id"
+    t.uuid "program_id"
+    t.integer "amount", default: 0, null: false
+    t.string "currency", default: "CLP", null: false
+    t.integer "status", default: 0, null: false
+    t.string "buy_order", null: false
+    t.string "session_id"
+    t.string "token"
+    t.string "authorization_code"
+    t.string "payment_type_code"
+    t.integer "response_code"
+    t.integer "installments"
+    t.string "card_last4"
+    t.string "payer_email"
+    t.integer "commission_amount", default: 0, null: false
+    t.integer "net_amount", default: 0, null: false
+    t.jsonb "raw_response", default: {}, null: false
+    t.datetime "paid_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["buy_order"], name: "index_payments_on_buy_order", unique: true
+    t.index ["company_id"], name: "index_payments_on_company_id"
+    t.index ["paid_at"], name: "index_payments_on_paid_at"
+    t.index ["participant_id"], name: "index_payments_on_participant_id"
+    t.index ["program_id"], name: "index_payments_on_program_id"
+    t.index ["status"], name: "index_payments_on_status"
+    t.index ["token"], name: "index_payments_on_token"
   end
 
   create_table "pending_responses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -310,6 +341,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_120001) do
   add_foreign_key "methodology_insights", "programs"
   add_foreign_key "participants", "companies"
   add_foreign_key "participants", "programs"
+  add_foreign_key "payments", "companies"
+  add_foreign_key "payments", "participants"
+  add_foreign_key "payments", "programs"
   add_foreign_key "pending_responses", "admin_users", column: "approved_by_id"
   add_foreign_key "pending_responses", "conversations"
   add_foreign_key "pending_responses", "participants"

@@ -33,6 +33,9 @@ gem "sentry-ruby"
 gem "sentry-rails"
 gem "sentry-sidekiq"
 
+# Payments — Transbank Webpay Plus (Chile)
+gem "transbank-sdk", "~> 5.0"
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "brakeman", require: false

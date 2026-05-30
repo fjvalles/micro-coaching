@@ -50,6 +50,7 @@ Rails.application.routes.draw do
 
       get "audit_log", to: "audit_logs#index", as: :audit_log
       get "finances",  to: "finances#index",   as: :finances
+      resources :payments, only: [ :index, :show ]
 
       get "docs",           to: "docs#index",     as: :docs
       get "docs/strategy",  to: "docs#strategy",  as: :docs_strategy
@@ -73,5 +74,11 @@ Rails.application.routes.draw do
   post "preview_challenge", to: "home#preview_challenge", as: :preview_challenge
   post "enroll", to: "home#enroll", as: :enroll
   get "privacidad", to: "home#privacidad", as: :privacidad
+
+  # Pagos (Webpay Plus). retorno acepta GET (flujo normal) y POST (abort/timeout).
+  get  "pagos",         to: "payments#new",    as: :pagos
+  post "pagos",         to: "payments#create"
+  match "pagos/retorno", to: "payments#commit", as: :pago_retorno, via: %i[get post]
+
   root to: "home#index"
 end

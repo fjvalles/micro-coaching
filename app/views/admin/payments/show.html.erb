@@ -1,0 +1,22 @@
+<% content_for :title, "Pago #{@payment.buy_order}" %>
+
+<% clp = ->(n) { "$#{number_with_delimiter(n.to_i, delimiter: '.')}" } %>
+
+<div class="card" style="max-width: 640px;">
+  <div class="card-header"><h3 class="card-title">Detalle del pago</h3></div>
+  <div class="card-body" style="display: flex; flex-direction: column; gap: 12px; font-size: 14px;">
+    <div><span style="color: var(--text-muted);">Estado:</span> <strong><%= @payment.status %></strong></div>
+    <div><span style="color: var(--text-muted);">Orden de compra:</span> <strong><%= @payment.buy_order %></strong></div>
+    <div><span style="color: var(--text-muted);">Cliente:</span> <%= @payment.participant&.name || "—" %><%= " · #{@payment.company.name}" if @payment.company %></div>
+    <div><span style="color: var(--text-muted);">Monto bruto:</span> <strong><%= clp.call(@payment.amount) %></strong> (IVA: <%= clp.call(@payment.tax_amount) %>, neto: <%= clp.call(@payment.net_of_tax) %>)</div>
+    <div><span style="color: var(--text-muted);">Comisión Transbank (c/IVA):</span> <%= clp.call(@payment.commission_amount) %></div>
+    <div><span style="color: var(--text-muted);">Neto recibido:</span> <strong><%= clp.call(@payment.net_amount) %></strong></div>
+    <% if @payment.authorization_code.present? %>
+      <div><span style="color: var(--text-muted);">Código autorización:</span> <%= @payment.authorization_code %></div>
+      <div><span style="color: var(--text-muted);">Tipo de pago:</span> <%= @payment.payment_type_code %> · cuotas: <%= @payment.installments %> · tarjeta ****<%= @payment.card_last4 %></div>
+    <% end %>
+    <% if @payment.paid_at %><div><span style="color: var(--text-muted);">Pagado:</span> <%= @payment.paid_at.strftime("%d/%m/%Y %H:%M") %></div><% end %>
+  </div>
+</div>
+
+<p style="margin-top: 16px;"><%= link_to "← Volver a ingresos", admin_payments_path, class: "btn btn-secondary" %></p>
