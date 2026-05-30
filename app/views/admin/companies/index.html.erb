@@ -1,0 +1,85 @@
+<% content_for :title, "Empresas" %>
+
+<% content_for :header_actions do %>
+  <%= render "shared/primary_button", path: new_admin_company_path, text: "Nueva Empresa", icon: :plus %>
+<% end %>
+
+<div class="card">
+  <div class="card-body" style="padding: 0;">
+    <% if @companies.any? %>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th>Coach</th>
+              <th>Miembros</th>
+              <th>Membresía</th>
+              <th>Estado</th>
+              <th style="text-align: right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @companies.each do |company| %>
+              <tr>
+                <td>
+                  <a href="<%= admin_company_path(company) %>" style="font-weight: 600; color: var(--brand); text-decoration: none;">
+                    <%= company.name %>
+                  </a>
+                  <div style="font-size: 13px; color: var(--text-muted); font-family: monospace;"><%= company.slug %></div>
+                </td>
+                <td><%= company.coach_name.presence || "—" %></td>
+                <td><%= company.participants.kept.count %></td>
+                <td>
+                  <% if company.covers_membership %>
+                    <span class="badge badge-success">Cubre membresía</span>
+                  <% else %>
+                    <span class="badge badge-neutral">Pago individual</span>
+                  <% end %>
+                </td>
+                <td>
+                  <% if company.active %>
+                    <span class="badge badge-success">Activa</span>
+                  <% else %>
+                    <span class="badge badge-neutral">Inactiva</span>
+                  <% end %>
+                </td>
+                <td class="table-actions">
+                  <%= render "shared/table_action_view", path: admin_company_path(company), title: "Ver empresa" %>
+                  <%= render "shared/table_action_edit", path: edit_admin_company_path(company), title: "Editar empresa" %>
+                  <%= button_to discard_admin_company_path(company), method: :post, class: "table-action-btn", form: { data: { turbo_confirm: "¿Archivar esta empresa?" } }, title: "Archivar" do %>🗄️<% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <div class="empty-state-title">No hay empresas</div>
+        <div class="empty-state-desc">Agrupa participantes por empresa para programas exclusivos, coach propio y facturación centralizada.</div>
+        <a href="<%= new_admin_company_path %>" class="btn btn-primary" style="margin-top: 16px;">Crear Empresa</a>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% if @discarded_companies.any? %>
+  <div class="card" style="margin-top: 24px;">
+    <div class="card-header"><h3 class="card-title">Empresas archivadas</h3></div>
+    <div class="card-body" style="padding: 0;">
+      <table class="table">
+        <tbody>
+          <% @discarded_companies.each do |company| %>
+            <tr>
+              <td style="font-weight: 600;"><%= company.name %></td>
+              <td class="table-actions">
+                <%= button_to "Restaurar", undiscard_admin_company_path(company), method: :post, class: "btn btn-secondary btn-sm" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>

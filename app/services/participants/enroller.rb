@@ -11,19 +11,22 @@ module Participants
     end
 
     def call
-      participant = Participant.create!(
+      participant = Participant.new(
         name: @name,
         phone_e164: @phone_e164,
         program: @program,
         timezone: @timezone,
         email: @email,
-        company: @company,
         role: @role,
         status: :active,
         current_day: 1,
         enrolled_at: Time.current,
         started_at: Time.current
       )
+      # `company` is the Company association; public self-enroll only has a free-text
+      # company name, so store it on the legacy string column for later admin mapping.
+      participant.write_attribute(:company, @company) if @company.present?
+      participant.save!
       SendWelcomeJob.perform_later(participant.id)
       participant
     end

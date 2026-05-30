@@ -13,9 +13,11 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
   end
 
   before do
+    PendingResponse.delete_all
     DailyReport.delete_all
     Conversation.delete_all
     Participant.delete_all
+    UnknownInbound.delete_all
     ENV["META_PHONE_NUMBER_ID"] = "1234"
     ENV["META_ACCESS_TOKEN"] = "tok"
     stub_request(:post, "https://graph.facebook.com/v21.0/1234/messages")
@@ -100,5 +102,40 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
     )
     described_class.new.perform(text_payload(text: "Procrastinar"))
     expect(participant.reload.initial_pattern).to eq("Procrastinar")
+  end
+
+  describe "free message daily cap" do
+    before do
+      Setting.set("max_free_messages_per_day", 2)
+      Setting.set("free_messages_cap_reply_text", "límite alcanzado")
+      allow_any_instance_of(Openai::FreeResponseGenerator).to receive(:call).and_return(
+        Openai::FreeResponseGenerator::Result.new(body: "ai reply", prompt_used: "p", tokens_input: 1, tokens_output: 1, model: "m")
+      )
+    end
+
+    it "replies up to the cap, sends the notice once, then stays silent" do
+      participant
+      4.times { |i| described_class.new.perform(text_payload(text: "msg #{i}")) }
+
+      bodies = participant.conversations.where(role: :assistant).pluck(:body)
+      expect(bodies.count("ai reply")).to eq(2)
+      expect(bodies.count("límite alcanzado")).to eq(1)
+    end
+
+    it "does not cap when max_free_messages_per_day is 0" do
+      Setting.set("max_free_messages_per_day", 0)
+      participant
+      4.times { |i| described_class.new.perform(text_payload(text: "msg #{i}")) }
+      expect(participant.conversations.where(role: :assistant).where(body: "ai reply").count).to eq(4)
+    end
+  end
+
+  it "reactivates a paused participant on inbound" do
+    allow_any_instance_of(Openai::FreeResponseGenerator).to receive(:call).and_return(
+      Openai::FreeResponseGenerator::Result.new(body: "ok", prompt_used: "p", tokens_input: 1, tokens_output: 1, model: "m")
+    )
+    participant.update!(status: :paused)
+    described_class.new.perform(text_payload(text: "volví"))
+    expect(participant.reload.status).to eq("active")
   end
 end

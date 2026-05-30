@@ -1411,17 +1411,17 @@ graph LR
           </tr>
           <tr>
             <td>11</td>
-            <td><strong><code>inactivity_pause_days</code> setting sin implementar</strong></td>
+            <td><strong><code>inactivity_pause_days</code></strong> <span class="risk risk-low">✅ Resuelto</span></td>
             <td><span class="risk risk-low">🟢 Bajo</span></td>
-            <td>UI del admin promete behavior que no existe.</td>
-            <td>Implementar o eliminar del <code>Setting::SCHEMA</code>.</td>
+            <td>Implementado: <code>PauseInactiveParticipantsJob</code> (cron diario 05:00 UTC) pausa participantes sin inbound en N días; un inbound los reactiva.</td>
+            <td>—</td>
           </tr>
           <tr>
             <td>12</td>
-            <td><strong><code>max_free_messages_per_day</code> sin implementar</strong></td>
+            <td><strong><code>max_free_messages_per_day</code></strong> <span class="risk risk-low">✅ Resuelto</span></td>
             <td><span class="risk risk-low">🟢 Bajo</span></td>
-            <td>Sin tope en mensajes libres = riesgo de costo runaway.</td>
-            <td>Implementar contador en <code>ProcessIncomingMessageJob</code>.</td>
+            <td>Implementado: <code>ProcessIncomingMessageJob#free_cap_reached?</code> topea mensajes libres/día y avisa una vez con <code>free_messages_cap_reply_text</code>.</td>
+            <td>—</td>
           </tr>
         </tbody>
       </table>

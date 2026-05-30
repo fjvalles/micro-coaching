@@ -104,7 +104,7 @@ RSpec.describe "Home", type: :request do
         expect(participant.name).to eq("Carlos")
         expect(participant.timezone).to eq("America/Santiago")
         expect(participant.status).to eq("active")
-        expect(participant.company).to eq("Comtraining S.A.")
+        expect(participant[:company]).to eq("Comtraining S.A.") # public enroll stores the legacy string column
         expect(participant.role).to eq("Gerente RRHH")
         expect(participant.email).to eq("carlos@comtraining.com")
       end

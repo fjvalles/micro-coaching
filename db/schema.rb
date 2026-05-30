@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_24_193418) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_30_120001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -30,6 +30,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_24_193418) do
     t.index ["email"], name: "index_admin_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
     t.index ["unlock_token"], name: "index_admin_users_on_unlock_token", unique: true
+  end
+
+  create_table "companies", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.string "coach_name"
+    t.string "contact_email"
+    t.boolean "active", default: true, null: false
+    t.boolean "covers_membership", default: true, null: false
+    t.text "notes"
+    t.datetime "discarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_companies_on_discarded_at"
+    t.index ["slug"], name: "index_companies_on_slug", unique: true
   end
 
   create_table "conversations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -128,6 +143,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_24_193418) do
     t.string "company"
     t.string "role"
     t.string "response_mode"
+    t.uuid "company_id"
+    t.index ["company_id"], name: "index_participants_on_company_id"
     t.index ["discarded_at"], name: "index_participants_on_discarded_at"
     t.index ["phone_e164"], name: "index_participants_on_phone_e164", unique: true
     t.index ["program_id"], name: "index_participants_on_program_id"
@@ -174,6 +191,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_24_193418) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "response_mode"
+    t.uuid "company_id"
+    t.index ["company_id"], name: "index_programs_on_company_id"
     t.index ["slug"], name: "index_programs_on_slug", unique: true
   end
 
@@ -289,10 +308,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_24_193418) do
   add_foreign_key "daily_reports", "participants"
   add_foreign_key "day_contents", "programs"
   add_foreign_key "methodology_insights", "programs"
+  add_foreign_key "participants", "companies"
   add_foreign_key "participants", "programs"
   add_foreign_key "pending_responses", "admin_users", column: "approved_by_id"
   add_foreign_key "pending_responses", "conversations"
   add_foreign_key "pending_responses", "participants"
+  add_foreign_key "programs", "companies"
   add_foreign_key "prompt_analyses", "prompt_templates"
   add_foreign_key "prompt_analyses", "prompt_versions"
   add_foreign_key "prompt_executions", "conversations"

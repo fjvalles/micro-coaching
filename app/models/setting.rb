@@ -30,8 +30,8 @@ class Setting < ApplicationRecord
     },
     "inactivity_pause_days" => {
       type: :integer, category: "timing", default: 5,
-      description: "Días sin respuesta antes de pausar al participante. (Scaffolded, no aplicado todavía.)",
-      validate: ->(v) { (1..30).cover?(v) || "debe estar entre 1 y 30" }
+      description: "Días sin mensaje entrante antes de pausar al participante (PauseInactiveParticipantsJob, diario). 0 = nunca pausar. Un mensaje entrante lo reactiva.",
+      validate: ->(v) { (0..30).cover?(v) || "debe estar entre 0 y 30" }
     },
     "default_timezone" => {
       type: :string, category: "timing", default: "America/Santiago",
@@ -81,7 +81,17 @@ class Setting < ApplicationRecord
     },
     "max_free_messages_per_day" => {
       type: :integer, category: "openai", default: 20,
-      description: "Tope de mensajes libres por participante por día. (Scaffolded, no aplicado todavía.)"
+      description: "Tope de mensajes libres (no-checkin) por participante por día. 0 = sin límite. Al superarlo, se envía free_messages_cap_reply_text una vez y se deja de responder hasta el día siguiente.",
+      validate: ->(v) { (0..200).cover?(v) || "debe estar entre 0 y 200" }
+    },
+    "free_messages_cap_reply_text" => {
+      type: :text, category: "openai",
+      default: "Por hoy llegamos al límite de mensajes. Retomamos mañana con calma. 🙏",
+      description: "Mensaje que se envía una vez cuando el participante supera max_free_messages_per_day."
+    },
+    "coach_name" => {
+      type: :string, category: "openai", default: "",
+      description: "Nombre del coach/asistente que firma las interacciones por WhatsApp. Se inyecta en el system prompt para humanizar. Vacío = sin nombre. (Override por empresa llega con el modelo Company.)"
     },
 
     # ── whatsapp ───────────────────────────────────────────────────────────

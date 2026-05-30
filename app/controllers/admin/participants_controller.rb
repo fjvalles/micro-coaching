@@ -28,13 +28,9 @@ module Admin
           .where(day_contents: { phase: DayContent.phases[params[:phase]] })
       end
 
-      # Filter by company
-      if params[:company].present?
-        if params[:company] == "none"
-          scope = scope.where(company: [ nil, "" ])
-        else
-          scope = scope.where(company: params[:company])
-        end
+      # Filter by company (association)
+      if params[:company_id].present?
+        scope = params[:company_id] == "none" ? scope.where(company_id: nil) : scope.where(company_id: params[:company_id])
       end
 
       # Filter by response mode
@@ -66,9 +62,9 @@ module Admin
       end
 
       @programs = Program.ordered
-      @companies = Participant.kept.distinct.pluck(:company).compact_blank.sort
+      @companies = Company.kept.ordered
       @day_contents_lookup = DayContent.all.each_with_object({}) { |dc, h| h[[ dc.program_id, dc.day_number ]] = dc.phase }
-      @participants = scope.includes(:program).order(created_at: :desc)
+      @participants = scope.includes(:program, :company).order(created_at: :desc)
     end
 
     def show
@@ -79,15 +75,18 @@ module Admin
     def new
       @participant = Participant.new(program_id: params[:program_id], status: :pending, current_day: 0, timezone: (Setting.fetch("default_timezone") || "America/Santiago"))
       @programs = Program.all.order(:name)
+      @companies = Company.kept.ordered
     end
 
     def edit
       @programs = Program.all.order(:name)
+      @companies = Company.kept.ordered
     end
 
     def create
       @participant = Participant.new(participant_params)
       @programs = Program.all.order(:name)
+      @companies = Company.kept.ordered
       if @participant.save
         redirect_to admin_participant_path(@participant), notice: "Participante creado exitosamente."
       else
@@ -97,6 +96,7 @@ module Admin
 
     def update
       @programs = Program.all.order(:name)
+      @companies = Company.kept.ordered
       if @participant.update(participant_params)
         redirect_to admin_participant_path(@participant), notice: "Participante actualizado exitosamente."
       else
@@ -149,7 +149,7 @@ module Admin
 
     def participant_params
       params.require(:participant).permit(
-        :program_id, :name, :phone_e164, :email, :company, :role, :status,
+        :program_id, :company_id, :name, :phone_e164, :email, :role, :status,
         :current_day, :timezone, :initial_pattern, :energy_map,
         :closing_manifesto, :pending_checkin_at, :response_mode
       )

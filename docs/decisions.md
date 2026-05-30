@@ -158,3 +158,17 @@ Decisiones que tomé durante la implementación, separadas de lo que el plan ya 
 ## Registro de Números Desconocidos (24-may-2026)
 
 - **Tabla `unknown_inbounds` con índice único en `wamid`.** Al recibir webhooks de números no registrados, se registra el evento en `unknown_inbounds` y se ignora el mensaje de manera segura. Esto previene llamadas costosas accidentales y spam a la API de OpenAI, y el índice en `wamid` actúa como guardrail contra reintentos duplicados del webhook de Meta.
+
+## Observabilidad, Límites de Uso y Coach Name (30-may-2026)
+
+- **Sentry sobre New Relic para error tracking.** En un solo host Hetzner con Kamal, un APM completo (New Relic) es desproporcionado en costo/peso. Se eligió `sentry-ruby/-rails/-sidekiq` por su free tier generoso, alertas por email/Slack listas y tracking de releases. El initializer es **inerte sin `SENTRY_DSN`**, así dev/test/CI no se ven afectados.
+- **Scrubbing de PII obligatorio (Ley 19.628).** La app maneja teléfonos y cuerpos de mensajes. `send_default_pii = false` + un `before_send` con scrubber recursivo (`ImpulsoSentryScrub`) que redacta teléfonos/emails y claves sensibles. Decisión consciente: preferimos perder algo de contexto de debugging antes que filtrar datos personales a un tercero.
+- **Enforce de `max_free_messages_per_day` e `inactivity_pause_days`.** Estaban scaffolded en `Setting::SCHEMA` sin consumidores. Se implementaron: tope de mensajes libres en `ProcessIncomingMessageJob#free_cap_reached?` (control de costo runaway) y auto-pausa diaria con reactivación al primer inbound (`PauseInactiveParticipantsJob`). Ambos con `0 = desactivado` para no romper instalaciones existentes.
+- **`coach_name` inyectado en un solo punto.** Se anexa en `Openai::ProgramManifesto.call` en vez de tocar los 4 generadores, manteniendo el prefijo de prompt-caching estable. El override por empresa se difiere al modelo `Company` (Fase 1).
+
+## Modelo Company / Multi-tenant (30-may-2026)
+
+- **`company` pasa de string a modelo `Company`.** Se agregó `companies` + `participants.company_id` + `programs.company_id`. Una migración de backfill no destructiva crea una `Company` por cada string distinto de `participants.company` y mapea `company_id`; la columna string legacy se conserva (deprecada) para reversibilidad y para el alta pública.
+- **Colisión de nombres asumida conscientemente.** `belongs_to :company` sombrea la columna `company`. Se eligió que la asociación sea dueña del nombre (estado final correcto) y se migraron todos los usos del string en la UI (`participants` index/show, `pending_responses` show) a la asociación; `Participants::Enroller` escribe el string legacy vía `write_attribute`. El valor legacy se lee con `participant[:company]`.
+- **Programas generales vs por empresa con un solo `company_id` nulable.** `nil` = general. Evita una tabla de membresía programa↔empresa para el caso actual (un programa pertenece a lo sumo a una empresa).
+- **`covers_membership` en `Company`.** La regla "no paga si pertenece a empresa" se modela a nivel empresa (default cubre), con `Participant#pays_individually?` derivado. Prepara Fase 2 (pagos) sin tablas de billing todavía.

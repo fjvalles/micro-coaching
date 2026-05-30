@@ -56,10 +56,11 @@ RSpec.describe "Admin::Participants", type: :request do
     end
 
     it "filters by company" do
-      p_with_company = create(:participant, name: "Company Person", program: program, company: "Comtraining")
+      company = create(:company, name: "Comtraining")
+      p_with_company = create(:participant, name: "Company Person", program: program, company: company)
       p_no_company = create(:participant, name: "No Company Person", program: program, company: nil)
 
-      get "/admin/participants", params: { company: "Comtraining" }
+      get "/admin/participants", params: { company_id: company.id }
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(p_with_company.name)
       expect(response.body).not_to include(p_no_company.name)

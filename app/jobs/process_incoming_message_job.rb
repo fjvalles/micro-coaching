@@ -32,6 +32,8 @@ class ProcessIncomingMessageJob < ApplicationJob
       return
     end
 
+    reactivate_if_paused(participant)
+
     if AUDIO_TYPES.include?(message.type)
       process_audio_message(participant, message)
       return
@@ -138,6 +140,8 @@ class ProcessIncomingMessageJob < ApplicationJob
       return
     end
 
+    return if free_cap_reached?(participant)
+
     enriched = enrich_with_voice(text, voice_analysis)
     result = Openai::FreeResponseGenerator.new(
       participant: participant, user_message: enriched
@@ -160,6 +164,28 @@ class ProcessIncomingMessageJob < ApplicationJob
 
   def ack(participant, body, moment: :free_assistant, **extra)
     Outbound::Dispatcher.new(participant: participant, moment: moment).send_text(body: body, ai: extra)
+  end
+
+  # Daily free-chat cap. Returns true (and stops the AI reply) once the participant
+  # exceeds max_free_messages_per_day. The over-limit notice is sent exactly once.
+  def free_cap_reached?(participant)
+    cap = Setting.fetch("max_free_messages_per_day").to_i
+    return false unless cap.positive?
+
+    used = participant.free_inbounds_today
+    return false if used <= cap
+
+    ack(participant, Setting.fetch("free_messages_cap_reply_text").to_s) if used == cap + 1
+    true
+  end
+
+  # Any inbound message reactivates a participant that PauseInactiveParticipantsJob paused.
+  def reactivate_if_paused(participant)
+    return unless participant.paused?
+
+    PaperTrail.request(whodunnit: "system:InboundReactivation", controller_info: { source: "system" }) do
+      participant.update!(status: :active)
+    end
   end
 
   def reject_non_text(participant)

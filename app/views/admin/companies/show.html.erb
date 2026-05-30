@@ -1,0 +1,69 @@
+<% content_for :title, @company.name %>
+
+<% content_for :header_actions do %>
+  <%= link_to "Editar", edit_admin_company_path(@company), class: "btn btn-secondary" %>
+<% end %>
+
+<div class="form-layout-columns">
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <div class="card">
+      <div class="card-header"><h3 class="card-title">Participantes (<%= @participants.count %>)</h3></div>
+      <div class="card-body" style="padding: 0;">
+        <% if @participants.any? %>
+          <table class="table">
+            <thead><tr><th>Nombre</th><th>Estado</th><th>Día</th></tr></thead>
+            <tbody>
+              <% @participants.each do |p| %>
+                <tr>
+                  <td><a href="<%= admin_participant_path(p) %>" style="color: var(--brand); font-weight: 600; text-decoration: none;"><%= p.name %></a></td>
+                  <td><%= translate_status(p.status) rescue p.status %></td>
+                  <td><%= p.current_day %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <div class="empty-state"><div class="empty-state-desc">Sin participantes en esta empresa.</div></div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3 class="card-title">Programas exclusivos (<%= @programs.count %>)</h3></div>
+      <div class="card-body" style="padding: 0;">
+        <% if @programs.any? %>
+          <table class="table">
+            <tbody>
+              <% @programs.each do |program| %>
+                <tr>
+                  <td><a href="<%= admin_program_path(program) %>" style="color: var(--brand); font-weight: 600; text-decoration: none;"><%= program.name %></a></td>
+                  <td style="text-align: right;"><%= program.active ? "Activo" : "Inactivo" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <div class="empty-state"><div class="empty-state-desc">Sin programas exclusivos. Los miembros usan los programas generales.</div></div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 24px;" class="sticky-sidebar-card">
+    <div class="card">
+      <div class="card-header"><h3 class="card-title">Detalles</h3></div>
+      <div class="card-body" style="display: flex; flex-direction: column; gap: 14px; font-size: 14px;">
+        <div><div style="color: var(--text-muted); font-size: 12px;">Slug</div><div style="font-family: monospace;"><%= @company.slug %></div></div>
+        <div><div style="color: var(--text-muted); font-size: 12px;">Coach</div><div><%= @company.resolved_coach_name.presence || "Sin nombre" %></div></div>
+        <div><div style="color: var(--text-muted); font-size: 12px;">Contacto</div><div><%= @company.contact_email.presence || "—" %></div></div>
+        <div>
+          <div style="color: var(--text-muted); font-size: 12px;">Membresía</div>
+          <div><%= @company.covers_membership ? "La empresa cubre el costo" : "Pago individual de cada miembro" %></div>
+        </div>
+        <% if @company.notes.present? %>
+          <div><div style="color: var(--text-muted); font-size: 12px;">Notas</div><div style="white-space: pre-wrap;"><%= @company.notes %></div></div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

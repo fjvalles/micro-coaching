@@ -1,6 +1,7 @@
 module Admin
   class ProgramsController < BaseController
     before_action :set_program, only: [ :show, :edit, :update, :destroy ]
+    before_action -> { @companies = Company.kept.ordered }, only: %i[new edit create update]
 
     def index
       @programs = Program.all.order(:name)
@@ -47,7 +48,7 @@ module Admin
     end
 
     def program_params
-      params.require(:program).permit(:name, :slug, :description, :manifesto, :total_days, :active, :response_mode)
+      params.require(:program).permit(:name, :slug, :description, :manifesto, :total_days, :active, :response_mode, :company_id)
     end
   end
 end

@@ -1,42 +1,443 @@
-<% content_for :title, "Pendiente · #{@pending.participant.name}" %>
+<% content_for :title, "Revisión · #{@pending.participant.name}" %>
 
-<div class="card">
-  <div class="card-header">
-    <h3 class="card-title"><%= @pending.participant.name %> — <%= @pending.moment %> (día <%= @pending.day_number %>)</h3>
-    <span class="badge badge-neutral">Modo: <%= @pending.mode %></span>
-  </div>
-  <div class="card-body">
-    <p><strong>Teléfono:</strong> <%= @pending.participant.phone_e164 %></p>
-    <p><strong>Entrega:</strong> <%= @pending.delivery_kind %><% if @pending.template_name.present? %> · template <code><%= @pending.template_name %></code><% end %></p>
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_pending_responses_path %>">Respuestas Pendientes</a>
+  <span>/</span>
+  <span>Revisión de Borrador</span>
+<% end %>
 
-    <% last_inbound = @pending.participant.conversations.kept.where(role: :user).order(created_at: :desc).first %>
-    <% if last_inbound %>
-      <div style="background:var(--bg-subtle); padding:12px; border-radius:6px; margin:16px 0;">
-        <strong>Último mensaje del participante:</strong>
-        <p style="margin-top:8px; white-space:pre-wrap;"><%= last_inbound.body.presence || last_inbound.transcription %></p>
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; align-items: start;">
+  <!-- Columna Izquierda: Edición, Acciones e Historial -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    
+    <!-- Tarjeta de Edición y Moderación -->
+    <div class="card">
+      <div class="card-header" style="background-color: #fafafa; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+        <h3 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+          <svg style="width: 18px; height: 18px; color: var(--brand);" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.83 20.013a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+          </svg>
+          Revisar Mensaje Borrador
+        </h3>
+        
+        <% status_badge = case @pending.status
+           when 'pending'  then 'badge-warning'
+           when 'approved' then 'badge-success'
+           when 'sent'     then 'badge-success'
+           when 'rejected' then 'badge-danger'
+           else 'badge-neutral'
+           end %>
+        <span class="badge <%= status_badge %>" style="text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;">
+          <%= @pending.status %>
+        </span>
       </div>
-    <% end %>
+      
+      <div class="card-body">
+        <% if @pending.rejected? && @pending.rejection_reason.present? %>
+          <div style="background-color: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); padding: 14px 16px; border-radius: var(--radius-md); margin-bottom: 20px; font-size: 13.5px;">
+            <strong>Motivo de rechazo previo:</strong> <%= @pending.rejection_reason %>
+          </div>
+        <% end %>
 
-    <%= form_with model: @pending, url: admin_pending_response_path(@pending), method: :patch, local: true do |f| %>
-      <div style="margin-bottom:12px;">
-        <label><strong>Borrador</strong></label>
-        <%= f.text_area :draft_body, rows: 8, style: "width:100%; font-family:inherit; padding:8px;" %>
-      </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <%= f.submit "Guardar cambios", class: "btn" %>
-        <%= button_to "Aprobar", approve_admin_pending_response_path(@pending), method: :post, class: "btn btn-primary" %>
-        <%= button_to "Aprobar y enviar ahora", send_now_admin_pending_response_path(@pending), method: :post, class: "btn btn-success" %>
-        <%= button_to "Rechazar", reject_admin_pending_response_path(@pending), method: :post, class: "btn btn-danger",
-                      data: { confirm: "¿Rechazar este borrador?" } %>
-        <%= link_to "Volver", admin_pending_responses_path, class: "btn" %>
-      </div>
-    <% end %>
+        <%= form_with model: @pending, url: admin_pending_response_path(@pending), method: :patch, local: true do |f| %>
+          <div class="form-group" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label class="form-label" for="pending_response_draft_body" style="font-weight: 600; margin-bottom: 0;">Contenido del mensaje a enviar</label>
+              <span style="font-size: 12px; color: var(--text-muted);">
+                Usa variables de texto o emojis libremente.
+              </span>
+            </div>
+            
+            <% if @pending.delivery_kind == 'template' %>
+              <div style="background-color: var(--info-bg); border: 1px solid var(--info-border); color: var(--info); padding: 12px 14px; border-radius: var(--radius-md); margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                <svg style="width: 16px; height: 16px; flex-shrink: 0;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                </svg>
+                <span>Este mensaje es un <strong>Template de WhatsApp</strong> (<code><%= @pending.template_name %></code>). Asegúrate de no romper los marcadores de posición necesarios.</span>
+              </div>
+            <% end %>
 
+            <%= f.text_area :draft_body, rows: 10, class: "form-textarea", 
+                            style: "font-family: inherit; font-size: 14.5px; line-height: 1.5; padding: 16px; border-color: var(--border); box-shadow: var(--shadow-sm);",
+                            placeholder: "Escribe el borrador aquí..." %>
+          </div>
+
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 24px;">
+            <% if @pending.actionable? %>
+              <%= f.submit "Guardar Borrador", class: "btn btn-secondary" %>
+              
+              <button type="submit" formaction="<%= approve_admin_pending_response_path(@pending) %>" formmethod="post" class="btn btn-primary">
+                <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                Aprobar
+              </button>
+              
+              <button type="submit" formaction="<%= send_now_admin_pending_response_path(@pending) %>" formmethod="post" class="btn" style="background-color: var(--success); color: white; border: 1px solid transparent; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);">
+                <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                </svg>
+                Aprobar y Enviar Ahora
+              </button>
+            <% else %>
+              <div style="font-size: 13.5px; color: var(--text-muted); font-style: italic; display: flex; align-items: center; gap: 8px;">
+                <svg style="width: 18px; height: 18px; color: var(--text-muted);" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 0 5.636 5.636m12.728 12.728L5.636 5.636" />
+                </svg>
+                Este borrador ya fue procesado (<%= @pending.status %>) y no acepta modificaciones ni aprobaciones.
+              </div>
+            <% end %>
+            
+            <%= link_to "Volver", admin_pending_responses_path, class: "btn btn-secondary" %>
+          </div>
+        <% end %>
+
+        <% if @pending.actionable? %>
+          <!-- Formulario de Rechazo Inline -->
+          <%= form_with url: reject_admin_pending_response_path(@pending), method: :post, local: true do |f| %>
+            <div style="background-color: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-md); padding: 16px;">
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" for="rejection_reason" style="color: #b91c1c; font-weight: 600;">Rechazar Respuesta</label>
+                <%= f.text_field :rejection_reason, class: "form-input", placeholder: "Ej. Tono frío, corregir el día de envío, esperar confirmación... (Opcional)", style: "border-color: var(--danger-border);" %>
+              </div>
+              
+              <%= f.submit "Rechazar Borrador", class: "btn btn-danger", data: { confirm: "¿Rechazar este borrador?" } %>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Historial de Conversación Reciente -->
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-header" style="background-color: #fafafa; border-bottom: 1px solid var(--border);">
+        <h3 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+          <svg style="width: 18px; height: 18px; color: var(--brand);" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+          </svg>
+          Historial de Conversación Contextual (Últimos 15 mensajes)
+        </h3>
+      </div>
+      <div class="card-body">
+        <% if @conversations.any? %>
+          <div class="chat-container" style="max-height: 480px;">
+            <% @conversations.reverse_each do |msg| %>
+              <div class="chat-bubble-wrapper <%= msg.role %>">
+                <div class="chat-bubble">
+                  <%= msg.body.presence || msg.transcription %>
+                  <% if msg.error_message.present? %>
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(239,68,68,0.2); color: var(--danger); font-size: 11px;">
+                      ⚠️ Error: <%= msg.error_message %>
+                    </div>
+                  <% end %>
+                </div>
+                <div class="chat-meta">
+                  <span style="font-weight: 600;"><%= translate_role(msg.role).upcase %></span>
+                  <span>·</span>
+                  <span>Día <%= msg.day_number %></span>
+                  <span>·</span>
+                  <span><%= translate_moment(msg.moment) %></span>
+                  <span>·</span>
+                  <span><%= l(msg.created_at, format: :short) rescue msg.created_at.strftime("%d/%m %H:%M") %></span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="empty-state" style="padding: 30px 16px;">
+            <div style="font-size: 28px; margin-bottom: 8px;">💬</div>
+            <div class="empty-state-title" style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">Sin mensajes previos</div>
+            <div class="empty-state-desc" style="font-size: 12px; color: var(--text-muted);">Este participante aún no registra mensajes enviados o recibidos en el sistema.</div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Detalles del Prompt IA (Colapsable) -->
     <% if @pending.prompt_used.present? %>
-      <details style="margin-top:24px;">
-        <summary>Prompt IA usado (<%= @pending.model_used %> · <%= @pending.tokens_input %>/<%= @pending.tokens_output %> tokens)</summary>
-        <pre style="white-space:pre-wrap; font-size:11px; padding:12px; background:var(--bg-subtle);"><%= @pending.prompt_used %></pre>
-      </details>
+      <div class="card" style="margin-bottom: 0;">
+        <div class="card-body" style="padding: 16px;">
+          <details class="energy-map-raw-details">
+            <summary style="font-size: 13.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none;">
+              <svg class="chevron-icon" style="width: 16px; height: 16px; transition: transform 0.2s;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+              Ver Diagnósticos y Prompt IA
+              <span class="badge badge-neutral" style="font-size: 10px; padding: 2px 6px; font-weight: normal;"><%= @pending.model_used %></span>
+            </summary>
+            
+            <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
+                <div style="background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; text-align: center;">
+                  <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Tokens Entrada</div>
+                  <div style="font-size: 16px; font-weight: 700; color: var(--text-main);"><%= @pending.tokens_input || 0 %></div>
+                </div>
+                <div style="background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; text-align: center;">
+                  <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Tokens Salida</div>
+                  <div style="font-size: 16px; font-weight: 700; color: var(--text-main);"><%= @pending.tokens_output || 0 %></div>
+                </div>
+                <div style="background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; text-align: center;">
+                  <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Total Tokens</div>
+                  <div style="font-size: 16px; font-weight: 700; color: var(--brand);"><%= (@pending.tokens_input.to_i + @pending.tokens_output.to_i) %></div>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 12px;">
+                <span class="form-label" style="font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Cuerpo Original Generado</span>
+                <pre style="white-space: pre-wrap; font-family: monospace; font-size: 12px; line-height: 1.5; padding: 12px; background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); max-height: 200px; overflow-y: auto;"><%= @pending.original_body.presence || "Igual al borrador" %></pre>
+              </div>
+
+              <div>
+                <span class="form-label" style="font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Prompt del Sistema y Usuario</span>
+                <pre style="white-space: pre-wrap; font-family: monospace; font-size: 11px; line-height: 1.5; padding: 12px; background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); max-height: 350px; overflow-y: auto;"><%= @pending.prompt_used %></pre>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Columna Derecha: Tarjeta de Perfil y Metadatos de Envío -->
+  <div style="display: flex; flex-direction: column; gap: 24px; position: sticky; top: 100px;">
+    
+    <!-- Tarjeta de Perfil -->
+    <div class="card" style="margin-bottom: 0;">
+      <%
+        initials = @participant.name.to_s.split.map(&:first).join.upcase[0..1]
+        initials = "?" if initials.blank?
+      %>
+      
+      <!-- Hero Header -->
+      <div class="profile-hero" style="padding: 24px 20px;">
+        <div class="profile-avatar" style="width: 48px; height: 48px; font-size: 18px; border-radius: var(--radius-md);">
+          <%= initials %>
+        </div>
+        <div class="profile-hero-meta">
+          <h2 class="profile-hero-name" style="font-size: 18px; line-height: 1.2; word-break: break-word;"><%= @participant.name %></h2>
+          <div class="profile-hero-subtitle" style="font-size: 12px; margin-top: 2px;">
+            <% if @participant.role.present? %>
+              <span><%= @participant.role %></span>
+            <% end %>
+            <% pr_company_name = @participant.company&.name || @participant[:company] %>
+            <% if pr_company_name.present? %>
+              <% if @participant.role.present? %>
+                <span class="dot-separator">·</span>
+              <% end %>
+              <span><%= pr_company_name %></span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-info-sections" style="padding: 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px;">
+        <div class="profile-info-row" style="margin: 0;">
+          <div class="info-icon-wrapper" style="width: 28px; height: 28px;">
+            <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+            </svg>
+          </div>
+          <div class="info-content">
+            <span class="info-label" style="font-size: 10px;">Teléfono (E.164)</span>
+            <span class="info-value" style="font-family: monospace; font-size: 13px;"><%= @participant.phone_e164 %></span>
+          </div>
+        </div>
+
+        <div class="profile-info-row" style="margin: 0;">
+          <div class="info-icon-wrapper" style="width: 28px; height: 28px;">
+            <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+            </svg>
+          </div>
+          <div class="info-content">
+            <span class="info-label" style="font-size: 10px;">Programa y Progreso</span>
+            <span class="info-value" style="font-size: 13px;">
+              <% if @participant.program %>
+                <a href="<%= admin_program_path(@participant.program) %>" style="color: var(--brand); font-weight: 500;"><%= @participant.program.name %></a>
+              <% else %>
+                Sin programa
+              <% end %>
+              <div style="margin-top: 2px; display: flex; align-items: center; gap: 6px;">
+                <span>Día <%= @participant.current_day %></span>
+                <% if @participant.status.to_sym == :active %>
+                  <span class="badge badge-info" style="font-size: 9px; padding: 2px 5px; text-transform: uppercase;"><%= translate_phase(@participant.phase) %></span>
+                <% end %>
+              </div>
+            </span>
+          </div>
+        </div>
+
+        <div class="profile-info-row" style="margin: 0;">
+          <div class="info-icon-wrapper" style="width: 28px; height: 28px;">
+            <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <div class="info-content">
+            <span class="info-label" style="font-size: 10px;">Estado del Participante</span>
+            <span class="info-value" style="font-size: 13px; margin-top: 2px;">
+              <% p_badge = case @participant.status.to_sym
+                 when :active then 'badge-success'
+                 when :pending then 'badge-warning'
+                 when :completed then 'badge-info'
+                 when :paused then 'badge-danger'
+                 else 'badge-neutral'
+                 end %>
+              <span class="badge <%= p_badge %>" style="font-size: 10px; padding: 2px 6px;">
+                <%= translate_status(@participant.status) %>
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 14px; text-align: center;">
+          <%= link_to admin_participant_path(@participant), class: "btn btn-secondary btn-sm", style: "width: 100%; display: flex; justify-content: center; font-size: 12px; gap: 4px;" do %>
+            <svg style="width: 13px; height: 13px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+            </svg>
+            Ver Perfil Completo
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metadatos de Envío -->
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-header" style="background-color: #fafafa; border-bottom: 1px solid var(--border);">
+        <h3 class="card-title" style="margin: 0; font-size: 14px;">Detalles de la Respuesta</h3>
+      </div>
+      
+      <div class="card-body" style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+          <span style="color: var(--text-muted); font-weight: 500;">Modo Generación:</span>
+          <span class="badge badge-neutral" style="font-size: 11px;"><%= translate_response_mode(@pending.mode) %></span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+          <span style="color: var(--text-muted); font-weight: 500;">Momento:</span>
+          <span style="font-weight: 600; color: var(--text-main); font-size: 12px; text-transform: uppercase;"><%= translate_moment(@pending.moment) %></span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+          <span style="color: var(--text-muted); font-weight: 500;">Día encolado:</span>
+          <span style="font-weight: 600; color: var(--text-main);">Día <%= @pending.day_number %></span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+          <span style="color: var(--text-muted); font-weight: 500;">Tipo de Entrega:</span>
+          <span class="badge badge-info" style="font-size: 11px; text-transform: uppercase;"><%= @pending.delivery_kind %></span>
+        </div>
+
+        <% if @pending.template_name.present? %>
+          <div style="font-size: 12px; background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px;">
+            <div style="color: var(--text-muted); font-weight: 500; margin-bottom: 2px;">Nombre del Template:</div>
+            <code style="font-size: 11px; color: var(--brand-text); word-break: break-all;"><%= @pending.template_name %></code>
+          </div>
+        <% end %>
+
+        <div style="display: flex; flex-direction: column; font-size: 13px; border-top: 1px dashed var(--border); padding-top: 12px; gap: 4px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted); font-weight: 500;">Creado hace:</span>
+            <span style="color: var(--text-main);"><%= time_ago_in_words(@pending.created_at) %></span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); align-self: flex-end;">
+            (<%= @pending.created_at.strftime("%d/%m/%Y %H:%M") %>)
+          </div>
+        </div>
+
+        <% if @pending.acted_at.present? %>
+          <div style="display: flex; flex-direction: column; font-size: 13px; border-top: 1px dashed var(--border); padding-top: 12px; gap: 4px;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted); font-weight: 500;">Procesado hace:</span>
+              <span style="color: var(--text-main);"><%= time_ago_in_words(@pending.acted_at) %></span>
+            </div>
+            <% if @pending.approved_by.present? %>
+              <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                <span>Moderador:</span>
+                <span style="font-weight: 500;"><%= @pending.approved_by.name %></span>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Mapa de Energía Semanal (Compacto) -->
+    <%
+      day_mappings = [
+        { label: "Lun", keys: ["lunes", "monday"] },
+        { label: "Mar", keys: ["martes", "tuesday"] },
+        { label: "Mié", keys: ["miercoles", "miércoles", "wednesday"] },
+        { label: "Jue", keys: ["jueves", "thursday"] },
+        { label: "Vie", keys: ["viernes", "friday"] },
+        { label: "Sáb", keys: ["sabado", "sábado", "saturday"] },
+        { label: "Dom", keys: ["domingo", "sunday"] }
+      ]
+
+      raw_map = @participant.energy_map.presence || {}
+      normalized_map = {}
+      if raw_map.is_a?(Hash)
+        raw_map.each do |k, v|
+          norm_k = k.to_s.downcase.gsub('á', 'a').gsub('é', 'e').gsub('í', 'i').gsub('ó', 'o').gsub('ú', 'u')
+          normalized_map[norm_k] = v
+        end
+      end
+
+      active_days = []
+      day_mappings.each do |day_def|
+        found_key = day_def[:keys].find { |k| normalized_map.key?(k) }
+        if found_key
+          values = normalized_map[found_key]
+          values_array = Array(values).map { |v| v.to_i rescue 0 }
+          active_days << { label: day_def[:label], values: values_array }
+        end
+      end
+    %>
+
+    <% if active_days.any? %>
+      <div class="card" style="margin-bottom: 0;">
+        <div class="card-header" style="background-color: #fafafa; border-bottom: 1px solid var(--border);">
+          <h3 class="card-title" style="margin: 0; font-size: 14px;">Mapa de Energía</h3>
+        </div>
+        <div class="card-body" style="padding: 16px;">
+          <div class="energy-map-grid" style="grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 8px; margin-top: 0;">
+            <% active_days.each do |day| %>
+              <%
+                m_level = day[:values][0] || 0
+                e_level = day[:values][1] || 0
+              %>
+              <div class="energy-day-column" style="padding: 8px 6px; gap: 8px; border-radius: var(--radius-sm);">
+                <div class="energy-day-title" style="font-size: 11px; padding-bottom: 4px; font-weight: 700; border-bottom-width: 1px;"><%= day[:label] %></div>
+                
+                <!-- Mañana -->
+                <div class="energy-period" style="gap: 2px;">
+                  <span style="font-size: 10px;" title="Mañana">☀️ <%= m_level > 0 ? "#{m_level}/5" : "-" %></span>
+                  <% if m_level > 0 %>
+                    <div class="energy-bar" data-level="<%= m_level %>" style="height: 3px; width: 30px; display: flex; gap: 1px;">
+                      <% 5.times do |i| %>
+                        <div class="energy-bar-dot" style="flex: 1; height: 100%; border-radius: 1px; background-color: <%= i < m_level ? 'var(--brand)' : '#cbd5e1' %>"></div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+                
+                <!-- Tarde -->
+                <div class="energy-period" style="gap: 2px;">
+                  <span style="font-size: 10px;" title="Tarde/Noche">🌙 <%= e_level > 0 ? "#{e_level}/5" : "-" %></span>
+                  <% if e_level > 0 %>
+                    <div class="energy-bar" data-level="<%= e_level %>" style="height: 3px; width: 30px; display: flex; gap: 1px;">
+                      <% 5.times do |i| %>
+                        <div class="energy-bar-dot" style="flex: 1; height: 100%; border-radius: 1px; background-color: <%= i < e_level ? 'var(--brand)' : '#cbd5e1' %>"></div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
     <% end %>
   </div>
 </div>

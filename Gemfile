@@ -28,6 +28,11 @@ gem "google-apis-drive_v3", "~> 0.50"
 gem "paper_trail", "~> 16.0"
 gem "rack-attack"
 
+# Error tracking + alerting (only active when SENTRY_DSN is set)
+gem "sentry-ruby"
+gem "sentry-rails"
+gem "sentry-sidekiq"
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "brakeman", require: false

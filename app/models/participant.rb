@@ -4,11 +4,13 @@ class Participant < ApplicationRecord
   has_paper_trail meta: { source: proc { PaperTrail.request.controller_info.to_h[:source] } }
 
   belongs_to :program, optional: true
+  belongs_to :company, optional: true
 
   enum :status, { pending: 0, active: 1, completed: 2, paused: 3 }
 
   has_many :conversations, dependent: :destroy
   has_many :daily_reports, dependent: :destroy
+  has_many :pending_responses, dependent: :destroy
 
   validates :name, presence: true
   validates :phone_e164, presence: true, uniqueness: true,
@@ -23,6 +25,18 @@ class Participant < ApplicationRecord
     day_content&.phase&.to_sym || :pending
   end
 
+  # Per-company coach override; nil falls back to the global coach_name Setting
+  # inside Openai::ProgramManifesto.
+  def coach_name
+    company&.coach_name.presence
+  end
+
+  # Individuals pay for themselves. Company members don't pay individually unless
+  # their company opts out of covering membership.
+  def pays_individually?
+    company_id.blank? || company&.covers_membership == false
+  end
+
   def latest_report
     @latest_report ||= daily_reports.order(reported_at: :desc).first
   end
@@ -32,13 +46,24 @@ class Participant < ApplicationRecord
   end
 
   def in_24h_window?(now = Time.current)
-    last_inbound = conversations.kept
-                                .where(role: "user")
-                                .order(created_at: :desc)
-                                .pick(:created_at)
+    last_inbound = last_inbound_at
     return false unless last_inbound
 
     (now - last_inbound) < 24.hours
+  end
+
+  def last_inbound_at
+    conversations.kept.where(role: "user").maximum(:created_at)
+  end
+
+  # Count of free-chat inbound messages (moment: free_user) received today in the
+  # participant's local timezone. Drives the max_free_messages_per_day cap.
+  # Check-in / welcome inbounds are reclassified off free_user, so they don't count.
+  def free_inbounds_today(now = Time.current)
+    conversations.kept
+                 .where(role: "user", moment: "free_user")
+                 .where("created_at >= ?", local_time(now).beginning_of_day)
+                 .count
   end
 
   def day_content

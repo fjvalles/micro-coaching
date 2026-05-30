@@ -8,7 +8,7 @@
   current_query[:phase] = params[:phase] if params[:phase].present?
   current_query[:enrolled_from] = params[:enrolled_from] if params[:enrolled_from].present?
   current_query[:enrolled_to] = params[:enrolled_to] if params[:enrolled_to].present?
-  current_query[:company] = params[:company] if params[:company].present?
+  current_query[:company_id] = params[:company_id] if params[:company_id].present?
   current_query[:response_mode] = params[:response_mode] if params[:response_mode].present?
 
   clear_query = ->(key) { current_query.except(key) }
@@ -82,18 +82,18 @@
       <!-- Company Dropdown -->
       <%= render layout: "shared/filter_dropdown", locals: {
             label: "Empresa",
-            selected_values: params[:company].present? ? (params[:company] == "none" ? ["Sin empresa"] : [params[:company]]) : [],
-            clear_url: admin_participants_path(clear_query.call(:company)),
-            is_active: params[:company].present?
+            selected_values: params[:company_id].present? ? (params[:company_id] == "none" ? ["Sin empresa"] : Array(@companies.find { |c| c.id.to_s == params[:company_id] }&.name).compact) : [],
+            clear_url: admin_participants_path(clear_query.call(:company_id)),
+            is_active: params[:company_id].present?
           } do %>
         <label class="filter-option">
-          <%= f.radio_button :company, "none", checked: params[:company] == "none", data: { auto_submit_filter: true } %>
+          <%= f.radio_button :company_id, "none", checked: params[:company_id] == "none", data: { auto_submit_filter: true } %>
           <span>Sin empresa</span>
         </label>
         <% @companies.each do |comp| %>
           <label class="filter-option">
-            <%= f.radio_button :company, comp, checked: params[:company] == comp, data: { auto_submit_filter: true } %>
-            <span><%= comp %></span>
+            <%= f.radio_button :company_id, comp.id, checked: params[:company_id] == comp.id.to_s, data: { auto_submit_filter: true } %>
+            <span><%= comp.name %></span>
           </label>
         <% end %>
       <% end %>
@@ -174,8 +174,9 @@
                   <% end %>
                 </td>
                 <td>
-                  <% if p.company.present? %>
-                    <span style="font-weight: 500; color: var(--text-main);"><%= p.company %></span>
+                  <% company_name = p.company&.name || p[:company] %>
+                  <% if company_name.present? %>
+                    <span style="font-weight: 500; color: var(--text-main);"><%= company_name %></span>
                   <% else %>
                     <span style="color: var(--text-muted); font-style: italic; font-size: 13px;">Sin empresa</span>
                   <% end %>

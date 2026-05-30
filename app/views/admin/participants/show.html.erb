@@ -68,9 +68,10 @@
             <% else %>
               <span style="font-style: italic; color: var(--text-muted);">Sin cargo</span>
             <% end %>
-            <% if @participant.company.present? %>
+            <% participant_company_name = @participant.company&.name || @participant[:company] %>
+            <% if participant_company_name.present? %>
               <span class="dot-separator">·</span>
-              <span><%= @participant.company %></span>
+              <span><%= participant_company_name %></span>
             <% end %>
           </div>
         </div>
@@ -120,7 +121,7 @@
             </div>
             <div class="info-content">
               <span class="info-label">Empresa</span>
-              <span class="info-value"><%= @participant.company.presence || '(Sin empresa)' %></span>
+              <span class="info-value"><%= (@participant.company&.name || @participant[:company]).presence || '(Sin empresa)' %></span>
             </div>
           </div>
         </div>

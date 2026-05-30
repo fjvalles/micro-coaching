@@ -12,6 +12,12 @@ Rails.application.routes.draw do
         resources :day_contents, only: [ :index, :new, :create ], controller: "day_contents"
       end
       resources :day_contents
+      resources :companies do
+        member do
+          post :discard
+          post :undiscard
+        end
+      end
       resources :participants do
         member do
           post :enroll

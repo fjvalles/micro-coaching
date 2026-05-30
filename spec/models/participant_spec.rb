@@ -28,13 +28,13 @@ RSpec.describe Participant, type: :model do
     end
 
     it "returns :see for days 1-4" do
-      [1, 2, 3, 4].each { |d| expect(create(:participant, program: program, current_day: d).phase).to eq(:see) }
+      [ 1, 2, 3, 4 ].each { |d| expect(create(:participant, program: program, current_day: d).phase).to eq(:see) }
     end
     it "returns :choose for days 5-10" do
-      [5, 7, 10].each { |d| expect(create(:participant, program: program, current_day: d).phase).to eq(:choose) }
+      [ 5, 7, 10 ].each { |d| expect(create(:participant, program: program, current_day: d).phase).to eq(:choose) }
     end
     it "returns :anchor for days 11-14" do
-      [11, 13, 14].each { |d| expect(create(:participant, program: program, current_day: d).phase).to eq(:anchor) }
+      [ 11, 13, 14 ].each { |d| expect(create(:participant, program: program, current_day: d).phase).to eq(:anchor) }
     end
     it "returns :pending out of range" do
       expect(create(:participant, program: program, current_day: 0).phase).to eq(:pending)
@@ -65,6 +65,62 @@ RSpec.describe Participant, type: :model do
       p.discard
       expect(p.discarded_at).to be_present
       expect(Participant.kept).not_to include(p)
+    end
+  end
+
+  describe "#free_inbounds_today" do
+    let(:participant) { create(:participant, timezone: "America/Santiago") }
+
+    it "counts only free_user inbound messages from today" do
+      create(:conversation, participant: participant, role: :user, moment: :free_user)
+      create(:conversation, participant: participant, role: :user, moment: :free_user)
+      create(:conversation, participant: participant, role: :user, moment: :checkin_response)
+      create(:conversation, participant: participant, role: :assistant, moment: :free_assistant)
+      expect(participant.free_inbounds_today).to eq(2)
+    end
+
+    it "excludes messages from previous days" do
+      create(:conversation, participant: participant, role: :user, moment: :free_user, created_at: 2.days.ago)
+      expect(participant.free_inbounds_today).to eq(0)
+    end
+  end
+
+  describe "#last_inbound_at" do
+    let(:participant) { create(:participant) }
+
+    it "returns the most recent inbound timestamp" do
+      create(:conversation, participant: participant, role: :user, created_at: 3.days.ago)
+      recent = create(:conversation, participant: participant, role: :user, created_at: 1.hour.ago)
+      expect(participant.last_inbound_at).to be_within(1.second).of(recent.created_at)
+    end
+
+    it "is nil when there are no inbound messages" do
+      expect(participant.last_inbound_at).to be_nil
+    end
+  end
+
+  describe "company membership" do
+    it "coach_name returns the company override" do
+      company = create(:company, coach_name: "Sofía")
+      expect(create(:participant, company: company).coach_name).to eq("Sofía")
+    end
+
+    it "coach_name is nil without a company override" do
+      expect(create(:participant, company: nil).coach_name).to be_nil
+    end
+
+    it "individuals pay individually" do
+      expect(create(:participant, company: nil).pays_individually?).to be true
+    end
+
+    it "covered company members do not pay individually" do
+      company = create(:company, covers_membership: true)
+      expect(create(:participant, company: company).pays_individually?).to be false
+    end
+
+    it "company members pay individually if the company opts out of coverage" do
+      company = create(:company, covers_membership: false)
+      expect(create(:participant, company: company).pays_individually?).to be true
     end
   end
 end

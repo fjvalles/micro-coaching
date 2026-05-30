@@ -1,0 +1,73 @@
+<%= form_with(model: [ :admin, company ], local: true) do |f| %>
+  <% if company.errors.any? %>
+    <div style="background-color: var(--danger-bg); border: 1px solid var(--danger-border); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px; color: var(--danger);">
+      <h4 style="font-weight: 600; margin-bottom: 8px;">Por favor corrige los siguientes errores:</h4>
+      <ul style="padding-left: 20px;">
+        <% company.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-layout-columns">
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header"><h3 class="card-title">Información de la Empresa</h3></div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="form-grid-2col">
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :name, "Nombre", class: "form-label" %>
+              <%= f.text_field :name, class: "form-input", placeholder: "Ej. Fintech S.A.", required: true %>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :slug, "Slug (URL)", class: "form-label" %>
+              <%= f.text_field :slug, class: "form-input", placeholder: "Se genera del nombre si lo dejas vacío" %>
+              <p class="form-help">Minúsculas, números y guiones.</p>
+            </div>
+          </div>
+          <div class="form-grid-2col">
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :coach_name, "Nombre del Coach (opcional)", class: "form-label" %>
+              <%= f.text_field :coach_name, class: "form-input", placeholder: "Ej. Sofía" %>
+              <p class="form-help">Sobrescribe el coach_name global para los participantes de esta empresa.</p>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :contact_email, "Email de contacto", class: "form-label" %>
+              <%= f.email_field :contact_email, class: "form-input", placeholder: "rrhh@empresa.com" %>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <%= f.label :notes, "Notas internas", class: "form-label" %>
+            <%= f.text_area :notes, class: "form-textarea", style: "min-height: 90px; margin-bottom: 0;" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 24px;" class="sticky-sidebar-card">
+      <div class="card form-card" style="margin-bottom: 0;">
+        <div class="card-header"><h3 class="card-title">Facturación y Estado</h3></div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 0;">
+            <%= f.check_box :covers_membership, style: "width: 18px; height: 18px; accent-color: var(--brand); cursor: pointer;" %>
+            <%= f.label :covers_membership, "La empresa cubre la membresía", style: "font-weight: 600; cursor: pointer; font-size: 14px;" %>
+          </div>
+          <p class="form-help" style="margin-top: -10px;">Si está activo, los participantes de esta empresa no pagan individualmente.</p>
+
+          <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 0;">
+            <%= f.check_box :active, style: "width: 18px; height: 18px; accent-color: var(--brand); cursor: pointer;" %>
+            <%= f.label :active, "Empresa activa", style: "font-weight: 600; cursor: pointer; font-size: 14px;" %>
+          </div>
+        </div>
+      </div>
+
+      <div class="card form-card" style="background-color: var(--bg-secondary); margin-bottom: 0;">
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
+          <%= f.submit company.new_record? ? "Crear Empresa" : "Guardar Cambios", class: "btn btn-primary", style: "width: 100%;" %>
+          <%= link_to "Cancelar", company.new_record? ? admin_companies_path : admin_company_path(company), class: "btn btn-secondary", style: "width: 100%;" %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

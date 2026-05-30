@@ -41,7 +41,7 @@ module Openai
 
       [
         { role: "system", content: <<~SYS },
-          #{Openai::ProgramManifesto.call(@participant.program)}
+          #{Openai::ProgramManifesto.call(@participant.program, coach_name: @participant.coach_name)}
 
           Vas a generar el MANIFIESTO DE CIERRE — una pieza personal, escrita en segunda
           persona, de 120 a 200 palabras, sin títulos ni viñetas, que recoja la carta del

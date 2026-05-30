@@ -345,6 +345,53 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 
 ---
 
+## 16. Límites de uso, auto-pausa e identidad del coach
+
+### 16.1 Tope diario de mensajes libres (`max_free_messages_per_day`)
+- Solo aplica a la conversación **libre** (`handle_free`), no a check-ins ni al patrón inicial.
+- Se cuenta `Participant#free_inbounds_today`: mensajes entrantes con `moment: free_user` en el **día local** del participante. Los inbounds reclasificados a `welcome`/`checkin_response` ya no cuentan.
+- Al superar el tope, se envía **una sola vez** `free_messages_cap_reply_text` (en el mensaje que cruza el límite, `used == cap + 1`) y luego se guarda silencio hasta el día siguiente. No se llama a OpenAI mientras esté topeado.
+- `0` = sin límite. **Enforce:** `ProcessIncomingMessageJob#free_cap_reached?`.
+
+### 16.2 Auto-pausa por inactividad (`inactivity_pause_days`)
+- `PauseInactiveParticipantsJob` (cron diario, 05:00 UTC) pausa participantes `active` sin **ningún mensaje entrante** en los últimos N días.
+- Ventana de gracia: no pausa a quien se enroló hace menos de N días (`enrolled_at`).
+- Un mensaje entrante **reactiva** automáticamente al participante (`ProcessIncomingMessageJob#reactivate_if_paused`, `status: active`), auditado con `whodunnit: system:InboundReactivation`.
+- `0` = nunca pausar. Pausas y reactivaciones quedan en PaperTrail con `source: system`.
+
+### 16.3 Nombre del coach (`coach_name`)
+- Setting global de texto. Si está presente, `Openai::ProgramManifesto.call` anexa la identidad del coach al system prompt de **todas** las llamadas generativas (matinal, libre, check-in, manifiesto), humanizando la interacción.
+- Vacío = sin nombre (comportamiento previo). El override por empresa llegará con el modelo `Company`.
+
+---
+
+## 17. Observabilidad y errores
+
+- **Sentry** captura excepciones de web y Sidekiq cuando `SENTRY_DSN` está presente; inerte si no.
+- **Privacidad (Ley 19.628):** `send_default_pii = false` y `before_send` aplica un scrubber recursivo (`ImpulsoSentryScrub`) que redacta teléfonos, emails y claves sensibles (`body`, `raw_text`, `transcription`, `initial_pattern`, etc.) antes de enviar cualquier evento. **Nunca** sale PII cruda hacia el tercero.
+- Excepciones ruidosas no accionables (`RecordNotFound`, `RoutingError`, `InvalidAuthenticityToken`) se excluyen. Alertas (email/Slack) se configuran en el proyecto Sentry.
+
+---
+
+## 18. Empresas (multi-tenant)
+
+### 18.1 `Company` agrupa participantes
+- `Participant#company_id` → `Company` (opcional). Un participante puede ser **individual** (sin empresa) o pertenecer a una empresa.
+- ⚠️ `belongs_to :company` **sombrea** la columna string legacy `company`. El valor legacy se lee con `participant[:company]`; la asociación con `participant.company`. El alta pública (`Participants::Enroller`) sigue escribiendo el string legacy para mapeo posterior.
+
+### 18.2 Programas generales vs por empresa
+- `Program#company_id` nulo = **general** (disponible para todos). Con empresa = **exclusivo** de esa empresa.
+- `Program.available_to(company)` = generales + los de esa empresa. `Program.default` prefiere un programa general activo.
+
+### 18.3 Coach por empresa
+- `Company#coach_name` sobrescribe el `coach_name` global. `Participant#coach_name` devuelve el override de su empresa (o nil → global). Se inyecta vía `Openai::ProgramManifesto.call(program, coach_name:)`.
+
+### 18.4 Membresía y pago
+- `Company#covers_membership` (default true): si la empresa cubre, sus miembros **no pagan individualmente**. `Participant#pays_individually?` = sin empresa, o empresa que no cubre.
+- Regla de portal (Fase 3): un miembro de empresa no podrá modificar su membresía ni datos asociados; los gestiona la empresa/admin.
+
+---
+
 ## 13. Edge cases conocidos
 
 - **Participante sin `DayContent`.** Si no existe `DayContent(program, current_day)`, `MorningWakeForParticipantJob` retorna sin enviar. Sin error.

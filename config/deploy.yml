@@ -38,7 +38,9 @@ env:
     PROGRAM_LOCALE: es
     APP_HOST: impulso.comtraining.cl
     MAILER_FROM: "Impulso <noreply@impulso.comtraining.cl>"
+    SENTRY_TRACES_SAMPLE_RATE: "0.1"
   secret:
+    - SENTRY_DSN
     - RAILS_MASTER_KEY
     - DATABASE_URL
     - REDIS_URL
