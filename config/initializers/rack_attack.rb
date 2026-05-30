@@ -17,6 +17,16 @@ class Rack::Attack
     end
   end
 
+  # Throttle portal magic-link requests: 5/min per IP (anti email-bombing)
+  throttle("portal/magic_link/ip", limit: 5, period: 1.minute) do |req|
+    req.ip if req.path == "/portal/acceso" && req.post?
+  end
+
+  # And by target email: 3 links per 10 min
+  throttle("portal/magic_link/email", limit: 3, period: 10.minutes) do |req|
+    req.params["email"].to_s.downcase.presence if req.path == "/portal/acceso" && req.post?
+  end
+
   self.throttled_responder = lambda do |req|
     [ 429, { "Content-Type" => "text/plain" }, [ "Rate limit exceeded. Try again later.\n" ] ]
   end

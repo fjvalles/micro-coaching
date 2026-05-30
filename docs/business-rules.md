@@ -412,6 +412,20 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 
 ---
 
+## 20. Portal del participante
+
+### 20.1 Login passwordless (magic-link)
+- `/portal/acceso`: el participante ingresa su email → se envía un enlace firmado (`Participant.generates_token_for :portal_login`, expira 30 min, se invalida si cambia el email).
+- Respuesta **uniforme**: nunca se revela si el email existe (anti-enumeración). Rack-Attack limita 5/min por IP y 3/10min por email (anti email-bombing).
+- `/portal/sesion/:token` valida el token, hace `reset_session` (anti session-fixation) y guarda `session[:portal_participant_id]` (cookie cifrada). `current_participant` vive en `ApplicationController`.
+
+### 20.2 Cuenta (solo lectura en v1)
+- `/portal` muestra progreso (día/total, fase, estado), reportes diarios propios y, si `pays_individually?` + `webpay_enabled` + precio > 0, un CTA de pago.
+- El portal es **read-only**: no se editan datos. Esto satisface "el miembro de empresa no modifica su membresía"; la edición de perfil queda para una iteración futura.
+- Layout `portal` es mobile-first y enlaza el manifest PWA para permitir "instalar como app".
+
+---
+
 ## 13. Edge cases conocidos
 
 - **Participante sin `DayContent`.** Si no existe `DayContent(program, current_day)`, `MorningWakeForParticipantJob` retorna sin enviar. Sin error.

@@ -1,0 +1,12 @@
+<% content_for :title, "Acceso — Impulso" %>
+
+<div class="card" style="margin-top: 24px;">
+  <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 6px;">Entra a tu cuenta</h1>
+  <p style="color: #6b7280; margin: 0 0 20px;">Te enviaremos un enlace de acceso a tu correo. Sin contraseñas.</p>
+
+  <%= form_with url: portal_login_path, method: :post do %>
+    <label for="email" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Correo electrónico</label>
+    <%= email_field_tag :email, params[:email], required: true, autofocus: true, class: "input", placeholder: "tucorreo@ejemplo.com", style: "margin-bottom: 16px;" %>
+    <button type="submit" class="btn btn-primary">Enviar enlace de acceso</button>
+  <% end %>
+</div>

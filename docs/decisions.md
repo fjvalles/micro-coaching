@@ -181,3 +181,10 @@ Decisiones que tomé durante la implementación, separadas de lo que el plan ya 
 - **Montos en CLP con IVA incluido; comisión congelada al confirmar.** `assign_commission_snapshot!` guarda comisión Transbank (+IVA) y neto recibido con las tasas vigentes al pago, para que cambios futuros de tasa no alteren el histórico. El IVA débito se desglosa on-the-fly del bruto.
 - **Ingresos (CLP) separados de costos (USD).** No se mezclan monedas en un P&L combinado todavía; `/admin/payments` muestra ingresos, `/admin/finances` costos. Un consolidado con FX queda pendiente.
 - **`PeriodFilterable` concern.** Se extrajo el filtro de períodos compartido entre `FinancesController` y `Admin::PaymentsController` (reuse, no duplicar).
+
+## Portal del participante — auth passwordless (30-may-2026)
+
+- **Magic-link en vez de un segundo Devise.** Los participantes se identifican por teléfono/email y no necesitan contraseña. Se usó `generates_token_for :portal_login` (firmado, expira 30 min, se invalida al cambiar el email) + `session` cifrada, evitando el peso/superficie de un segundo modelo Devise.
+- **Defensa en profundidad.** Respuesta uniforme en la solicitud de link (anti-enumeración de emails), Rack-Attack por IP y por email (anti email-bombing), `reset_session` al iniciar sesión (anti session-fixation), y `current_participant` filtra por `.kept` (un participante archivado no puede entrar).
+- **Portal read-only en v1.** Ver progreso/reportes + CTA de pago para individuos. No se edita perfil: satisface trivialmente "el miembro de empresa no modifica su membresía" y reduce superficie de ataque. La edición se difiere.
+- **PWA reaprovechada.** El layout del portal enlaza el `manifest` existente para permitir instalar la cuenta como app; no se construyó un service worker nuevo.

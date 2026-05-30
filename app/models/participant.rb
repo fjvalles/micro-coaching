@@ -8,6 +8,11 @@ class Participant < ApplicationRecord
 
   enum :status, { pending: 0, active: 1, completed: 2, paused: 3 }
 
+  # Passwordless portal login. Token embeds email so changing it invalidates old links.
+  generates_token_for :portal_login, expires_in: 30.minutes do
+    email
+  end
+
   has_many :conversations, dependent: :destroy
   has_many :daily_reports, dependent: :destroy
   has_many :pending_responses, dependent: :destroy

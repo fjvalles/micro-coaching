@@ -80,5 +80,14 @@ Rails.application.routes.draw do
   post "pagos",         to: "payments#create"
   match "pagos/retorno", to: "payments#commit", as: :pago_retorno, via: %i[get post]
 
+  # Portal del participante (login passwordless por magic-link).
+  namespace :portal do
+    get    "acceso",       to: "sessions#new",     as: :login
+    post   "acceso",       to: "sessions#create"
+    get    "sesion/:token", to: "sessions#show",   as: :session
+    delete "salir",        to: "sessions#destroy", as: :logout
+    root to: "dashboard#show"
+  end
+
   root to: "home#index"
 end
