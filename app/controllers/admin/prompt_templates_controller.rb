@@ -3,7 +3,38 @@ module Admin
     before_action :set_template, only: [ :show, :edit, :update, :analyze, :apply_suggestion ]
 
     def index
-      @templates = PromptTemplate.kept.ordered.includes(:program)
+      scope = PromptTemplate.kept.ordered.includes(:program)
+
+      # Search query
+      if params[:q].present?
+        q = "%#{params[:q]}%"
+        scope = scope.where("prompt_templates.name ILIKE :q OR prompt_templates.key ILIKE :q OR prompt_templates.description ILIKE :q", q: q)
+      end
+
+      # Filter by program
+      if params[:program_id].present?
+        if params[:program_id] == "none"
+          scope = scope.where(program_id: nil)
+        else
+          scope = scope.where(program_id: params[:program_id])
+        end
+      end
+
+      # Filter by day number
+      if params[:day_number].present?
+        if params[:day_number] == "none"
+          scope = scope.where(day_number: nil)
+        else
+          scope = scope.where(day_number: params[:day_number])
+        end
+      end
+
+      @templates = scope
+      @programs = Program.ordered
+
+      # Eager load count/max values to prevent N+1 queries
+      @executions_count = PromptExecution.group(:prompt_template_id).count
+      @last_analysis_date = PromptAnalysis.group(:prompt_template_id).maximum(:created_at)
     end
 
     def show

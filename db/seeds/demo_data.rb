@@ -3,9 +3,11 @@
 puts "--- Seeding Demo Data ---"
 
 # Deletes existing demo participants to guarantee clean idempotency
-["+56911111111", "+56922222222", "+56933333333"].each do |phone|
+[ "+56911111111", "+56922222222", "+56933333333", "+56944444444", "+56955555555", "+56966666666", "+56977777777", "+56988888888" ].each do |phone|
   Participant.find_by(phone_e164: phone)&.destroy
 end
+UnknownInbound.where(wamid: [ "wamid.seed_unknown_1", "wamid.seed_unknown_2" ]).destroy_all
+
 
 # 1. Impulso Liderazgo en Acción
 prog_liderazgo = Program.find_by!(slug: "impulso-liderazgo-en-accion")
@@ -23,8 +25,8 @@ camila = Participant.create!(
   started_at: 15.days.ago,
   completed_at: Date.current.beginning_of_day + 8.hours,
   energy_map: {
-    "lunes" => [3, 4], "martes" => [2, 4], "miercoles" => [2, 3],
-    "jueves" => [3, 4], "viernes" => [4, 5]
+    "lunes" => [ 3, 4 ], "martes" => [ 2, 4 ], "miercoles" => [ 2, 3 ],
+    "jueves" => [ 3, 4 ], "viernes" => [ 4, 5 ]
   }
 )
 
@@ -99,7 +101,7 @@ camila_responses = {
     summary: "Cierre de programa: Definición de hábito permanente y estrategia de recordatorio físico para sortear momentos de alta presión.",
     pattern: "Hábito definitivo: Indagación apreciativa"
   }
-};
+}
 
 camila_manifesto = <<~TEXT
 Camila, aquí tienes tu Manifiesto de Liderazgo en Acción:
@@ -129,8 +131,8 @@ mateo = Participant.create!(
   started_at: 15.days.ago,
   completed_at: Date.current.beginning_of_day + 8.hours,
   energy_map: {
-    "lunes" => [4, 4], "martes" => [3, 4], "miercoles" => [2, 3],
-    "jueves" => [3, 3], "viernes" => [4, 4]
+    "lunes" => [ 4, 4 ], "martes" => [ 3, 4 ], "miercoles" => [ 2, 3 ],
+    "jueves" => [ 3, 3 ], "viernes" => [ 4, 4 ]
   }
 )
 
@@ -205,7 +207,7 @@ mateo_responses = {
     summary: "Cierre de programa: Selección de la conducta clave a sostener y establecimiento de guardrail para momentos de urgencia de la tarde.",
     pattern: "Hábito definitivo: Monocanal oficial"
   }
-};
+}
 
 mateo_manifesto = <<~TEXT
 Mateo, aquí está tu Manifiesto del Cambio en Acción:
@@ -235,8 +237,8 @@ sofia = Participant.create!(
   started_at: 15.days.ago,
   completed_at: Date.current.beginning_of_day + 8.hours,
   energy_map: {
-    "lunes" => [3, 3], "martes" => [2, 3], "miercoles" => [2, 2],
-    "jueves" => [3, 4], "viernes" => [4, 5]
+    "lunes" => [ 3, 3 ], "martes" => [ 2, 3 ], "miercoles" => [ 2, 2 ],
+    "jueves" => [ 3, 4 ], "viernes" => [ 4, 5 ]
   }
 )
 
@@ -311,7 +313,7 @@ sofia_responses = {
     summary: "Cierre de programa: Selección de bloques de desconexión controlada matutinos como hábito definitivo y barreras de inicio como recordatorio.",
     pattern: "Hábito definitivo: Desconexión dosificada"
   }
-};
+}
 
 sofia_manifesto = <<~TEXT
 Sofía, aquí tienes tu Manifiesto de Productividad Sostenible:
@@ -331,7 +333,7 @@ def populate_demo_history!(participant, program, responses, manifesto_text)
 
   # Create Day 0 / Welcome interactions
   welcome_content = "¡Hola #{participant.name}! Bienvenido/a a #{program.name}. Escríbeme: #{program.manifesto.split("\n").last}" # best effort fallback
-  
+
   # Welcome out
   Conversation.create!(
     participant: participant,
@@ -344,7 +346,7 @@ def populate_demo_history!(participant, program, responses, manifesto_text)
     delivered_at: 15.days.ago.beginning_of_day + 10.hours + 2.seconds,
     read_at: 15.days.ago.beginning_of_day + 10.hours + 1.minute
   )
-  
+
   # Welcome response in
   Conversation.create!(
     participant: participant,
@@ -362,7 +364,7 @@ def populate_demo_history!(participant, program, responses, manifesto_text)
   (1..14).each do |day|
     day_content = DayContent.find_by!(program: program, day_number: day)
     day_data = responses[day]
-    
+
     base_time = (15 - day).days.ago
 
     # 1. morning_wake (assistant)
@@ -442,7 +444,7 @@ def populate_demo_history!(participant, program, responses, manifesto_text)
     delivered_at: Date.current.beginning_of_day + 8.hours + 2.seconds,
     read_at: Date.current.beginning_of_day + 8.hours + 5.minutes
   )
-  
+
   participant.update!(closing_manifesto: manifesto_text)
 end
 
@@ -451,3 +453,449 @@ populate_demo_history!(mateo, prog_cambio, mateo_responses, mateo_manifesto)
 populate_demo_history!(sofia, prog_productividad, sofia_responses, sofia_manifesto)
 
 puts "Successfully seeded 3 completed participants with full 14-day history."
+
+# ----------------- Additional Edge Cases / Test Data -----------------
+puts "--- Seeding Additional Test Cases (Active, Paused, Pending, Stuck, Pending Responses, Unknown Inbounds, Failed Messages) ---"
+
+# Helper for partial participant history (used for active/paused/stuck)
+def populate_partial_history!(participant, program, responses, max_day)
+  puts "Seeding partial history for #{participant.name} up to Day #{max_day}..."
+
+  # Create Day 0 / Welcome interactions
+  welcome_content = "¡Hola #{participant.name}! Bienvenido/a a #{program.name}. Escríbeme: #{program.manifesto.split("\n").last}"
+
+  Conversation.create!(
+    participant: participant,
+    day_number: 0,
+    moment: :welcome,
+    role: :assistant,
+    body: welcome_content,
+    created_at: (max_day + 1).days.ago.beginning_of_day + 10.hours,
+    sent_at: (max_day + 1).days.ago.beginning_of_day + 10.hours,
+    delivered_at: (max_day + 1).days.ago.beginning_of_day + 10.hours + 2.seconds,
+    read_at: (max_day + 1).days.ago.beginning_of_day + 10.hours + 1.minute
+  )
+
+  Conversation.create!(
+    participant: participant,
+    day_number: 0,
+    moment: :welcome,
+    role: :user,
+    body: participant.initial_pattern || "Quiero mejorar en mi día a día.",
+    created_at: (max_day + 1).days.ago.beginning_of_day + 10.hours + 5.minutes,
+    sent_at: (max_day + 1).days.ago.beginning_of_day + 10.hours + 5.minutes,
+    delivered_at: (max_day + 1).days.ago.beginning_of_day + 10.hours + 5.minutes + 1.second,
+    read_at: (max_day + 1).days.ago.beginning_of_day + 10.hours + 5.minutes + 1.second
+  )
+
+  # Create Days 1 to max_day
+  (1..max_day).each do |day|
+    day_content = DayContent.find_by!(program: program, day_number: day)
+    day_data = responses[day] || {
+      response: "Hoy intenté aplicar lo propuesto. Noto que me cuesta un poco, pero le veo sentido.",
+      summary: "Avance del participante observando conductas y buscando focos.",
+      pattern: "Práctica inicial"
+    }
+
+    base_time = (max_day - day + 1).days.ago
+
+    # 1. morning_wake (assistant)
+    Conversation.create!(
+      participant: participant,
+      day_number: day,
+      moment: :morning_wake,
+      role: :assistant,
+      body: day_content.morning_template.gsub("{name}", participant.name),
+      created_at: base_time.beginning_of_day + 7.hours + 30.minutes,
+      sent_at: base_time.beginning_of_day + 7.hours + 30.minutes,
+      delivered_at: base_time.beginning_of_day + 7.hours + 30.minutes + 2.seconds,
+      read_at: base_time.beginning_of_day + 7.hours + 35.minutes
+    )
+
+    # 2. iareto (assistant)
+    Conversation.create!(
+      participant: participant,
+      day_number: day,
+      moment: :iareto,
+      role: :assistant,
+      body: day_content.iareto_text,
+      created_at: base_time.beginning_of_day + 8.hours,
+      sent_at: base_time.beginning_of_day + 8.hours,
+      delivered_at: base_time.beginning_of_day + 8.hours + 2.seconds,
+      read_at: base_time.beginning_of_day + 8.hours + 10.minutes
+    )
+
+    # 3. checkin_question (assistant)
+    Conversation.create!(
+      participant: participant,
+      day_number: day,
+      moment: :checkin_question,
+      role: :assistant,
+      body: day_content.checkin_questions,
+      created_at: base_time.beginning_of_day + 20.hours,
+      sent_at: base_time.beginning_of_day + 20.hours,
+      delivered_at: base_time.beginning_of_day + 20.hours + 2.seconds,
+      read_at: base_time.beginning_of_day + 20.hours + 15.minutes
+    )
+
+    # 4. checkin_response (user)
+    Conversation.create!(
+      participant: participant,
+      day_number: day,
+      moment: :checkin_response,
+      role: :user,
+      body: day_data[:response],
+      created_at: base_time.beginning_of_day + 20.hours + 20.minutes,
+      sent_at: base_time.beginning_of_day + 20.hours + 20.minutes,
+      delivered_at: base_time.beginning_of_day + 20.hours + 20.minutes + 1.second,
+      read_at: base_time.beginning_of_day + 20.hours + 20.minutes + 1.second
+    )
+
+    # 5. DailyReport
+    DailyReport.create!(
+      participant: participant,
+      day_number: day,
+      raw_text: day_data[:response],
+      ai_summary: day_data[:summary],
+      ai_key_pattern: day_data[:pattern],
+      reported_at: base_time.beginning_of_day + 20.hours + 21.minutes,
+      created_at: base_time.beginning_of_day + 20.hours + 21.minutes,
+      updated_at: base_time.beginning_of_day + 20.hours + 21.minutes
+    )
+  end
+end
+
+# 4. Active Participant (Tomás Silva - Day 3 Liderazgo)
+tomas = Participant.create!(
+  name: "Tomás Silva",
+  phone_e164: "+56944444444",
+  email: "tomas.silva@lider.cl",
+  status: :active,
+  current_day: 3,
+  timezone: "America/Santiago",
+  company: "Líder Group",
+  role: "Engineering Manager",
+  initial_pattern: "Tiendo a no delegar la revisión técnica final de los pulls requests porque me preocupa que se suban bugs a producción.",
+  enrolled_at: 3.days.ago,
+  started_at: 3.days.ago,
+  energy_map: { "lunes" => [ 3, 4 ], "martes" => [ 2, 4 ], "miercoles" => [ 3, 3 ] }
+)
+populate_partial_history!(tomas, prog_liderazgo, camila_responses, 2)
+
+# On day 3, Tomas received morning_wake, iareto, checkin_question, but hasn't responded yet
+day3_content = DayContent.find_by!(program: prog_liderazgo, day_number: 3)
+Conversation.create!(
+  participant: tomas,
+  day_number: 3,
+  moment: :morning_wake,
+  role: :assistant,
+  body: day3_content.morning_template.gsub("{name}", tomas.name),
+  created_at: 4.hours.ago,
+  sent_at: 4.hours.ago,
+  delivered_at: 4.hours.ago + 2.seconds,
+  read_at: 4.hours.ago + 10.minutes
+)
+Conversation.create!(
+  participant: tomas,
+  day_number: 3,
+  moment: :iareto,
+  role: :assistant,
+  body: day3_content.iareto_text,
+  created_at: 3.hours.ago + 30.minutes,
+  sent_at: 3.hours.ago + 30.minutes,
+  delivered_at: 3.hours.ago + 30.minutes + 2.seconds,
+  read_at: 3.hours.ago + 35.minutes
+)
+Conversation.create!(
+  participant: tomas,
+  day_number: 3,
+  moment: :checkin_question,
+  role: :assistant,
+  body: day3_content.checkin_questions,
+  created_at: 1.hour.ago,
+  sent_at: 1.hour.ago,
+  delivered_at: 1.hour.ago + 2.seconds,
+  read_at: 1.hour.ago + 5.minutes
+)
+tomas.update!(pending_checkin_at: 1.hour.ago)
+
+
+# 5. Active Participant with Pending Responses (Valentina Gómez - Day 5 Cambio)
+valentina = Participant.create!(
+  name: "Valentina Gómez",
+  phone_e164: "+56955555555",
+  email: "valentina.gomez@empresa.com",
+  status: :active,
+  current_day: 5,
+  timezone: "America/Santiago",
+  company: "Empresa S.A.",
+  role: "Analista de Procesos",
+  initial_pattern: "Siento resistencia a usar los nuevos flujos digitales en la intranet porque la interfaz es muy confusa y lenta.",
+  enrolled_at: 5.days.ago,
+  started_at: 5.days.ago,
+  response_mode: "approve", # Force approve mode to trigger pending responses
+  energy_map: { "lunes" => [ 3, 3 ], "martes" => [ 3, 4 ], "miercoles" => [ 4, 4 ], "jueves" => [ 3, 3 ] }
+)
+populate_partial_history!(valentina, prog_cambio, mateo_responses, 4)
+
+# On Day 5, Valentina receives checkin_question, responds to it, and the AI generates a reply that is pending approval
+day5_content = DayContent.find_by!(program: prog_cambio, day_number: 5)
+Conversation.create!(
+  participant: valentina,
+  day_number: 5,
+  moment: :morning_wake,
+  role: :assistant,
+  body: day5_content.morning_template.gsub("{name}", valentina.name),
+  created_at: 8.hours.ago,
+  sent_at: 8.hours.ago,
+  delivered_at: 8.hours.ago + 2.seconds,
+  read_at: 8.hours.ago + 5.minutes
+)
+Conversation.create!(
+  participant: valentina,
+  day_number: 5,
+  moment: :iareto,
+  role: :assistant,
+  body: day5_content.iareto_text,
+  created_at: 7.hours.ago + 30.minutes,
+  sent_at: 7.hours.ago + 30.minutes,
+  delivered_at: 7.hours.ago + 30.minutes + 2.seconds,
+  read_at: 7.hours.ago + 32.minutes
+)
+Conversation.create!(
+  participant: valentina,
+  day_number: 5,
+  moment: :checkin_question,
+  role: :assistant,
+  body: day5_content.checkin_questions,
+  created_at: 3.hours.ago,
+  sent_at: 3.hours.ago,
+  delivered_at: 3.hours.ago + 2.seconds,
+  read_at: 3.hours.ago + 1.minute
+)
+valentina.update!(pending_checkin_at: 3.hours.ago)
+
+user_reply = Conversation.create!(
+  participant: valentina,
+  day_number: 5,
+  moment: :checkin_response,
+  role: :user,
+  body: "Hoy me costó mucho usar SAP porque no había internet en la bodega de mermas, así que volví a usar la planilla Excel vieja temporalmente.",
+  created_at: 2.hours.ago,
+  sent_at: 2.hours.ago,
+  delivered_at: 2.hours.ago + 1.second,
+  read_at: 2.hours.ago + 1.second
+)
+
+# Ensure an AdminUser exists for pending responses approvals/rejections
+admin_user = AdminUser.first
+if admin_user.nil?
+  admin_user = AdminUser.create!(
+    email: "admin@impulso.com",
+    password: "password123",
+    password_confirmation: "password123",
+    name: "Admin Default"
+  )
+  puts "Created default admin user for seeds: admin@impulso.com / password123"
+end
+
+# 1. PENDING RESPONSE (Pending approval)
+PendingResponse.create!(
+  participant: valentina,
+  conversation: user_reply,
+  mode: "approve",
+  moment: "checkin_response",
+  day_number: 5,
+  draft_body: "Valentina, es muy comprensible que recurras al Excel si no hay señal. ¿Cómo crees que podemos reportar rápido esa falta de red para que TI lo resuelva y no vuelvas a quedar con doble registro?",
+  original_body: "Valentina, es muy comprensible que recurras al Excel si no hay señal. ¿Cómo crees que podemos reportar rápido esa falta de red para que TI lo resuelva y no vuelvas a quedar con doble registro?",
+  delivery_kind: "text",
+  status: "pending",
+  created_at: 2.hours.ago + 1.minute,
+  updated_at: 2.hours.ago + 1.minute
+)
+
+# 2. REJECTED RESPONSE (to show rejected history)
+PendingResponse.create!(
+  participant: valentina,
+  mode: "suggest",
+  moment: "free_assistant",
+  day_number: 3,
+  draft_body: "Hola Valentina, es importante que sigas usando SAP siempre. Saludos.",
+  original_body: "Hola Valentina, es importante que sigas usando SAP siempre. Saludos.",
+  delivery_kind: "text",
+  status: "rejected",
+  rejection_reason: "Tono demasiado cortante e imperativo, no empático.",
+  created_at: 2.days.ago,
+  updated_at: 2.days.ago
+)
+
+# 3. APPROVED RESPONSE (already acted upon/sent)
+convo_approved = Conversation.create!(
+  participant: valentina,
+  day_number: 4,
+  moment: :free_assistant,
+  role: :assistant,
+  body: "Excelente observación sobre el apoyo mutuo en bodega. Habilitar la ayuda entre operarios reduce la curva de aprendizaje muchísimo.",
+  created_at: 1.day.ago,
+  sent_at: 1.day.ago,
+  delivered_at: 1.day.ago + 2.seconds,
+  read_at: 1.day.ago + 10.minutes
+)
+PendingResponse.create!(
+  participant: valentina,
+  conversation: convo_approved,
+  mode: "approve",
+  moment: "free_assistant",
+  day_number: 4,
+  draft_body: "Excelente observación sobre el apoyo mutuo en bodega. Habilitar la ayuda entre operarios reduce la curva de aprendizaje muchísimo.",
+  original_body: "Excelente observación sobre el apoyo mutuo en bodega. Habilitar la ayuda entre operarios reduce la curva de aprendizaje muchísimo.",
+  delivery_kind: "text",
+  status: "sent",
+  approved_by: admin_user,
+  acted_at: 1.day.ago + 1.minute,
+  created_at: 1.day.ago,
+  updated_at: 1.day.ago + 1.minute
+)
+
+
+# 6. Paused Participant (Andrés Castro - Day 8 Productividad)
+andres = Participant.create!(
+  name: "Andrés Castro",
+  phone_e164: "+56966666666",
+  email: "andres.castro@consultores.cl",
+  status: :paused,
+  current_day: 8,
+  timezone: "America/Santiago",
+  company: "Austral Consultores",
+  role: "Consultor Senior",
+  initial_pattern: "Siento que me quedo pegado respondiendo correos pequeños en vez de preparar el informe de auditoría.",
+  enrolled_at: 8.days.ago,
+  started_at: 8.days.ago,
+  energy_map: { "lunes" => [ 3, 4 ], "martes" => [ 2, 3 ], "miercoles" => [ 4, 4 ] }
+)
+populate_partial_history!(andres, prog_productividad, sofia_responses, 7)
+
+
+# 7. Pending Participant (Elena Ruiz - Day 0 Liderazgo)
+elena = Participant.create!(
+  name: "Elena Ruiz",
+  phone_e164: "+56977777777",
+  email: "elena.ruiz@innovacion.cl",
+  status: :pending,
+  current_day: 0,
+  timezone: "America/Santiago",
+  company: "Innovación Activa",
+  role: "Project Manager",
+  enrolled_at: 1.day.ago,
+  started_at: nil,
+  energy_map: { "lunes" => [ 3, 4 ], "martes" => [ 3, 4 ] }
+)
+welcome_msg = "¡Hola Elena! Bienvenido/a a Impulso Liderazgo en Acción. Escríbeme: ¿Qué hábito de liderazgo necesitas fortalecer durante estas dos semanas?"
+Conversation.create!(
+  participant: elena,
+  day_number: 0,
+  moment: :welcome,
+  role: :assistant,
+  body: welcome_msg,
+  created_at: 1.day.ago + 10.hours,
+  sent_at: 1.day.ago + 10.hours,
+  delivered_at: 1.day.ago + 10.hours + 2.seconds,
+  read_at: 1.day.ago + 10.hours + 1.minute
+)
+
+
+# 8. Stuck Active Participant (Ignacio Pérez - Day 4 Liderazgo, enrolled 6 days ago, inactive for last 3 days)
+ignacio = Participant.create!(
+  name: "Ignacio Pérez",
+  phone_e164: "+56988888888",
+  email: "ignacio.perez@holding.cl",
+  status: :active,
+  current_day: 4,
+  timezone: "America/Santiago",
+  company: "Holding Industrial",
+  role: "Jefe de Operaciones",
+  initial_pattern: "Suelo gritar o alzar la voz en reuniones cuando las metas de despacho no se cumplen a tiempo.",
+  enrolled_at: 6.days.ago,
+  started_at: 6.days.ago,
+  created_at: 6.days.ago, # Ensure matches stuck query (created_at < 3.days.ago)
+  energy_map: { "lunes" => [ 3, 3 ], "martes" => [ 4, 4 ], "miercoles" => [ 3, 3 ] }
+)
+# Populate days 1 & 2 (completed)
+populate_partial_history!(ignacio, prog_liderazgo, camila_responses, 2)
+
+# On Day 3 (3 days ago) and Day 4 (2 days ago), he received messages but didn't respond
+[ 3, 4 ].each do |day|
+  day_content = DayContent.find_by!(program: prog_liderazgo, day_number: day)
+  base_time = (5 - day).days.ago
+
+  Conversation.create!(
+    participant: ignacio,
+    day_number: day,
+    moment: :morning_wake,
+    role: :assistant,
+    body: day_content.morning_template.gsub("{name}", ignacio.name),
+    created_at: base_time.beginning_of_day + 7.hours + 30.minutes,
+    sent_at: base_time.beginning_of_day + 7.hours + 30.minutes,
+    delivered_at: base_time.beginning_of_day + 7.hours + 30.minutes + 2.seconds,
+    read_at: base_time.beginning_of_day + 7.hours + 35.minutes
+  )
+
+  Conversation.create!(
+    participant: ignacio,
+    day_number: day,
+    moment: :iareto,
+    role: :assistant,
+    body: day_content.iareto_text,
+    created_at: base_time.beginning_of_day + 8.hours,
+    sent_at: base_time.beginning_of_day + 8.hours,
+    delivered_at: base_time.beginning_of_day + 8.hours + 2.seconds,
+    read_at: base_time.beginning_of_day + 8.hours + 10.minutes
+  )
+
+  Conversation.create!(
+    participant: ignacio,
+    day_number: day,
+    moment: :checkin_question,
+    role: :assistant,
+    body: day_content.checkin_questions,
+    created_at: base_time.beginning_of_day + 20.hours,
+    sent_at: base_time.beginning_of_day + 20.hours,
+    delivered_at: base_time.beginning_of_day + 20.hours + 2.seconds,
+    read_at: base_time.beginning_of_day + 20.hours + 15.minutes
+  )
+end
+
+
+# 9. Failed Message / Delivery Errors (For visual statistics)
+Conversation.create!(
+  participant: tomas,
+  day_number: 1,
+  moment: :morning_wake,
+  role: :assistant,
+  body: "Hola Tomás, comencemos el día enfocados en el liderazgo.",
+  error_message: "Meta Cloud API Error: Recipient phone number not in WhatsApp Sandbox registry",
+  created_at: 2.days.ago,
+  updated_at: 2.days.ago
+)
+
+
+# 10. Unknown Inbound Messages
+UnknownInbound.create!(
+  phone: "+56999999999",
+  wamid: "wamid.seed_unknown_1",
+  message_type: "text",
+  body_preview: "Hola, me gustaría saber si el programa de liderazgo sirve para empresas de retail.",
+  received_at: 1.hour.ago,
+  created_at: 1.hour.ago
+)
+
+UnknownInbound.create!(
+  phone: "+56999998888",
+  wamid: "wamid.seed_unknown_2",
+  message_type: "text",
+  body_preview: "Quiero inscribirme",
+  received_at: 1.day.ago,
+  created_at: 1.day.ago
+)
+
+puts "Successfully seeded additional test cases (Active, Paused, Pending, Stuck, Pending Responses, Unknown Inbounds, Failed Messages)."

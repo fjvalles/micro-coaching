@@ -4,6 +4,7 @@ RSpec.describe Outbound::Dispatcher do
   let(:participant) { create(:participant) }
 
   before do
+    PendingResponse.delete_all
     Setting.set("response_mode", "auto")
     allow_any_instance_of(Whatsapp::Client).to receive(:send_text).and_return(
       Whatsapp::Client::Response.new(success?: true, wamid: "wamid.test")

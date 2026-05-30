@@ -12,3 +12,46 @@
   </p>
   <%= render_markdown_file("docs/learning-system.md") %>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+  (function() {
+    function initMermaid() {
+      if (typeof mermaid !== 'undefined') {
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'neutral',
+          securityLevel: 'loose',
+          flowchart: { useMaxWidth: true, htmlLabels: true }
+        });
+        
+        // Convert any .language-mermaid pre/code elements to simple divs for mermaid to render
+        document.querySelectorAll('.md pre code.language-mermaid').forEach((codeBlock, idx) => {
+          const pre = codeBlock.parentElement;
+          if (pre && pre.tagName.toLowerCase() === 'pre') {
+            const container = document.createElement('div');
+            container.className = 'mermaid';
+            container.id = 'mermaid-tab-diagram-' + idx;
+            container.textContent = codeBlock.textContent;
+            pre.replaceWith(container);
+          }
+        });
+
+        try {
+          mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+        } catch (e) {
+          console.error("Mermaid initialization failed", e);
+        }
+      }
+    }
+
+    // Bind to Turbo and load states
+    document.addEventListener("turbo:load", initMermaid);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initMermaid);
+    } else {
+      initMermaid();
+    }
+  })();
+</script>
+

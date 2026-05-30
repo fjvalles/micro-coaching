@@ -1,43 +1,154 @@
 <% content_for :title, "Prompts" %>
 
+<%
+  current_query = {}
+  current_query[:q] = params[:q] if params[:q].present?
+  current_query[:program_id] = params[:program_id] if params[:program_id].present?
+  current_query[:day_number] = params[:day_number] if params[:day_number].present?
+
+  clear_query = ->(key) { current_query.except(key) }
+%>
+
+<% content_for :header_actions do %>
+  <%= render "shared/search_field", id: "prompt-search", value: params[:q], form_id: "prompt-filters", placeholder: "Buscar por nombre, clave...", style_type: :header %>
+<% end %>
+
+<div style="margin-bottom: 24px;">
+  <%= form_with url: admin_prompt_templates_path, method: :get, local: true, html: { id: "prompt-filters", class: "filter-toolbar" } do |f| %>
+    <div class="filter-toolbar-row">
+      <!-- Program Filter Dropdown -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Programa",
+            selected_values: params[:program_id].present? ? (params[:program_id] == "none" ? ["Globales / Sin programa"] : Array(@programs.find { |pr| pr.id.to_s == params[:program_id] }&.name).compact) : [],
+            clear_url: admin_prompt_templates_path(clear_query.call(:program_id)),
+            is_active: params[:program_id].present?
+          } do %>
+        <label class="filter-option">
+          <%= f.radio_button :program_id, "", checked: params[:program_id].blank?, data: { auto_submit_filter: true } %>
+          <span>Todos</span>
+        </label>
+        <label class="filter-option">
+          <%= f.radio_button :program_id, "none", checked: params[:program_id] == "none", data: { auto_submit_filter: true } %>
+          <span>Globales / Sin programa</span>
+        </label>
+        <% @programs.each do |pr| %>
+          <label class="filter-option">
+            <%= f.radio_button :program_id, pr.id, checked: params[:program_id] == pr.id.to_s, data: { auto_submit_filter: true } %>
+            <span><%= pr.name %></span>
+          </label>
+        <% end %>
+      <% end %>
+
+      <!-- Day Number Filter Dropdown -->
+      <%= render layout: "shared/filter_dropdown", locals: {
+            label: "Día",
+            selected_values: params[:day_number].present? ? (params[:day_number] == "none" ? ["Sin día"] : ["Día #{params[:day_number]}"]) : [],
+            clear_url: admin_prompt_templates_path(clear_query.call(:day_number)),
+            is_active: params[:day_number].present?
+          } do %>
+        <label class="filter-option">
+          <%= f.radio_button :day_number, "", checked: params[:day_number].blank?, data: { auto_submit_filter: true } %>
+          <span>Todos</span>
+        </label>
+        <label class="filter-option">
+          <%= f.radio_button :day_number, "none", checked: params[:day_number] == "none", data: { auto_submit_filter: true } %>
+          <span>Sin día (globales)</span>
+        </label>
+        <% (0..15).each do |day| %>
+          <label class="filter-option">
+            <%= f.radio_button :day_number, day, checked: params[:day_number] == day.to_s, data: { auto_submit_filter: true } %>
+            <span>Día <%= day %></span>
+          </label>
+        <% end %>
+      <% end %>      
+<% if current_query.any? %>
+        <%= link_to "Limpiar", admin_prompt_templates_path, class: "filter-reset-link" %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
 <div class="card">
-  <div class="card-header">
-    <h2 style="font-size: 16px; font-weight: 600; margin: 0;">Plantillas registradas (<%= @templates.size %>)</h2>
-  </div>
   <div class="card-body" style="padding: 0;">
     <% if @templates.empty? %>
-      <div class="empty-state" style="padding: 24px;">
-        <div class="empty-state-title">Sin prompts aún</div>
-        <div class="empty-state-desc">Las plantillas se registran solas la primera vez que un generador de IA se ejecuta o cuando editás el system prompt de un día.</div>
+      <div class="empty-state" style="padding: 40px;">
+        <div class="empty-state-title">No se encontraron prompts</div>
+        <div class="empty-state-desc">Las plantillas se registran solas la primera vez que un generador de IA se ejecuta o cuando editas el prompt de sistema de un día. Intenta ajustar tus filtros de búsqueda.</div>
+        <% if current_query.any? %>
+          <%= link_to "Limpiar filtros", admin_prompt_templates_path, class: "btn btn-secondary", style: "margin-top: 16px;" %>
+        <% end %>
       </div>
     <% else %>
       <div class="table-responsive">
-        <table class="table">
+        <table class="table" style="margin-bottom: 0;">
           <thead>
             <tr>
-              <th>Sección</th>
+              <th>Nombre / Clave</th>
               <th>Programa</th>
-              <th>Día</th>
-              <th>Versión</th>
-              <th>Ejecuciones</th>
-              <th>Último análisis</th>
+              <th style="text-align: center;">Día</th>
+              <th style="text-align: center;">Origen</th>
+              <th style="text-align: center;">Versión Activa</th>
+              <th style="text-align: center;">Ejecuciones</th>
+              <th>Último Análisis</th>
               <th style="text-align: right;">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <% @templates.each do |t| %>
               <tr>
-                <td>
-                  <div style="font-weight: 600;"><%= t.name %></div>
-                  <div style="font-size: 12px; font-family: monospace; color: var(--text-muted);"><%= t.key %></div>
+                <td style="max-width: 300px;">
+                  <div style="font-weight: 600; color: var(--text-main); font-size: 14px;"><%= t.name %></div>
+                  <div style="font-size: 11px; font-family: monospace; color: var(--text-muted); margin-top: 2px; word-break: break-all;"><%= t.key %></div>
+                  <% if t.description.present? %>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="<%= t.description %>">
+                      <%= t.description %>
+                    </div>
+                  <% end %>
                 </td>
-                <td><%= t.program&.slug || "—" %></td>
-                <td><%= t.day_number || "—" %></td>
-                <td>v<%= t.current_version %></td>
-                <td><%= t.prompt_executions.count %></td>
-                <td><%= t.prompt_analyses.maximum(:created_at)&.strftime("%Y-%m-%d %H:%M") || "—" %></td>
-                <td class="table-actions">
-                  <%= link_to "Ver", admin_prompt_template_path(t), class: "btn btn-secondary btn-sm" %>
+                <td>
+                  <% if t.program %>
+                    <a href="<%= admin_program_path(t.program) %>" style="color: var(--text-main); font-weight: 500; text-decoration: none;">
+                      <%= t.program.name %>
+                    </a>
+                  <% else %>
+                    <span style="color: var(--text-muted); font-size: 13px; font-style: italic;">Global</span>
+                  <% end %>
+                </td>
+                <td style="text-align: center;">
+                  <% if t.day_number %>
+                    <span class="badge badge-info" style="font-weight: 500;">Día <%= t.day_number %></span>
+                  <% else %>
+                    <span class="badge badge-neutral" style="font-size: 10px;">—</span>
+                  <% end %>
+                </td>
+                <td style="text-align: center;">
+                  <% source_badge_class = case t.source
+                     when "admin" then 'badge-success'
+                     when "service" then 'badge-neutral'
+                     when "day_content" then 'badge-info'
+                     else 'badge-neutral'
+                     end %>
+                  <span class="badge <%= source_badge_class %>" style="font-size: 11px; font-weight: 500; text-transform: uppercase;">
+                    <%= t.source %>
+                  </span>
+                </td>
+                <td style="text-align: center;">
+                  <span class="badge badge-success" style="font-family: monospace; font-size: 11px; font-weight: 600;">v<%= t.current_version %></span>
+                </td>
+                <td style="text-align: center; font-weight: 600; color: var(--text-main);">
+                  <%= number_with_delimiter(@executions_count[t.id] || 0) %>
+                </td>
+                <td style="font-size: 13px; color: var(--text-muted); white-space: nowrap;">
+                  <% last_analysis = @last_analysis_date[t.id] %>
+                  <% if last_analysis %>
+                    <strong><%= last_analysis.strftime("%d %b") %></strong>, <%= last_analysis.strftime("%H:%M") %>
+                  <% else %>
+                    <span style="color: var(--text-muted); font-style: italic;">Sin análisis</span>
+                  <% end %>
+                </td>
+                <td class="table-actions" style="text-align: right; white-space: nowrap;">
+                  <%= render "shared/table_action_view", path: admin_prompt_template_path(t), title: "Ver prompt" %>
+                  <%= render "shared/table_action_edit", path: edit_admin_prompt_template_path(t), title: "Editar prompt" %>
                 </td>
               </tr>
             <% end %>

@@ -8,6 +8,8 @@ module Admin
     end
 
     def show
+      @participant = @pending.participant
+      @conversations = @participant.conversations.kept.order(created_at: :desc).limit(15)
     end
 
     def update
@@ -19,8 +21,12 @@ module Admin
     end
 
     def approve
-      @pending.update!(status: "approved", approved_by: current_admin_user, acted_at: Time.current)
-      redirect_to admin_pending_responses_path, notice: "Aprobado."
+      if @pending.update(pending_params)
+        @pending.update!(status: "approved", approved_by: current_admin_user, acted_at: Time.current)
+        redirect_to admin_pending_responses_path, notice: "Aprobado."
+      else
+        render :show, status: :unprocessable_entity
+      end
     end
 
     def send_now

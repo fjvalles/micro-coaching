@@ -43,4 +43,9 @@ CLAUDE.md
 DECISIONS.md
 .agents
 .codex
-AGENTS.md
+
+# Kamal deploy secrets — never commit
+.kamal/secrets
+
+# Node modules (jsbundling/cssbundling)
+/node_modules

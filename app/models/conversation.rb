@@ -2,6 +2,7 @@ class Conversation < ApplicationRecord
   include Discard::Model
 
   belongs_to :participant
+  has_many :pending_responses, dependent: :destroy
 
   enum :moment, {
     welcome: 0,

@@ -27,28 +27,32 @@ El programa de 14 días está estructurado en tres fases secuenciales basadas en
 
 ```mermaid
 graph TD
+    subgraph Fase_Ver ["1. FASE VER (Ver / See) - Días 1 a 5"]
+        A["Día 1-5: Autoconciencia"] --> B["Identificar disparadores"]
+        B --> C["Reconocer patrones automáticos"]
+    end
+
+    subgraph Fase_Elegir ["2. FASE ELEGIR (Elegir / Choose) - Días 6 a 10"]
+        D["Día 6-10: Experimentación"] --> E["Definir alternativas de respuesta"]
+        E --> F["Pausar antes de actuar"]
+    end
+
+    subgraph Fase_Anclar ["3. FASE ANCLAR (Anclar / Anchor) - Días 11 a 14"]
+        G["Día 11-14: Consolidación"] --> H["Vincular a hábitos existentes"]
+        H --> I["Celebración de micro-victorias"]
+    end
+
+    C --> D
+    F --> G
+    I --> J["Día 15: Manifiesto Final"]
+
     classDef see fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#4338ca;
     classDef choose fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#b45309;
     classDef anchor fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#047857;
 
-    subgraph Fase_Ver ["1. FASE VER (Ver / See) - Días 1 a 5"]
-        A[Día 1-5: Autoconciencia] :::see --> B[Identificar disparadores] :::see
-        B --> C[Reconocer patrones automáticos] :::see
-    end
-
-    subgraph Fase_Elegir ["2. FASE ELEGIR (Elegir / Choose) - Días 6 a 10"]
-        D[Día 6-10: Experimentación] :::choose --> E[Definir alternativas de respuesta] :::choose
-        E --> F[Pausar antes de actuar] :::choose
-    end
-
-    subgraph Fase_Anclar ["3. FASE ANCLAR (Anclar / Anchor) - Días 11 a 14"]
-        G[Día 11-14: Consolidación] :::anchor --> H[Vincular a hábitos existentes] :::anchor
-        H --> I[Celebración de micro-victorias] :::anchor
-    end
-
-    Fase_Ver --> Fase_Elegir
-    Fase_Elegir --> Fase_Anclar
-    Fase_Anclar --> J[Día 15: Manifiesto Final] :::anchor
+    class A,B,C see;
+    class D,E,F choose;
+    class G,H,I,J anchor;
 ```
 
 ### Fase 1: VER (Días 1 a 5)

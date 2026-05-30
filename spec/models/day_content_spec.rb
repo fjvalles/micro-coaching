@@ -18,6 +18,7 @@ RSpec.describe DayContent, type: :model do
   end
 
   it "seeds 14 days for each seeded program" do
+    PendingResponse.delete_all
     DayContent.delete_all
     Conversation.delete_all
     DailyReport.delete_all
