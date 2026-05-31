@@ -4,6 +4,7 @@ class Payment < ApplicationRecord
   belongs_to :participant, optional: true
   belongs_to :company, optional: true
   belongs_to :program, optional: true
+  belongs_to :subscription, optional: true
 
   # pending  → created, redirected to Webpay
   # authorized → committed OK

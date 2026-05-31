@@ -52,14 +52,19 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 - `AdvanceDayJob` — daily at 06:00 UTC, calls `Participants::DayAdvancer`
 - `RefreshMethodologyInsightsJob` — daily at 03:30 UTC, materializes methodology insights for the admin dashboard
 - `DailyBackupJob` — daily at 03:00 UTC, runs `pg_dump` and uploads the encrypted custom database backup to Google Drive
+- `PauseInactiveParticipantsJob` — daily at 05:00 UTC, pauses `active` participants with no inbound in `inactivity_pause_days`
+- `SubscriptionBillingJob` — daily at 08:00 UTC, charges due Webpay Oneclick subscriptions; dunning to `past_due` after `subscription_max_retries`
 
 ## Domain model
 
 | Model | Key fields |
 |-------|-----------|
-| `Program` | `slug`, `total_days`, `manifesto`, `active`, `response_mode` |
+| `Company` | `name`, `slug`, `coach_name` (override), `covers_membership`, `active`; soft-deleted (`discard`). `has_many :participants, :programs` |
+| `Program` | `slug`, `total_days`, `manifesto`, `active`, `response_mode`, `company_id` (nil = general) |
 | `DayContent` | `program_id`, `day_number`, `phase` (see/choose/anchor), `morning_template`, `iareto_text`, `checkin_questions`, `ai_system_prompt` |
-| `Participant` | `phone_e164`, `status` (pending/active/completed/paused), `current_day`, `timezone`, `initial_pattern`, `energy_map` (jsonb), `pending_checkin_at`, `company`, `role`, `response_mode` |
+| `Participant` | `phone_e164`, `status` (pending/active/completed/paused/awaiting_payment), `current_day`, `timezone`, `initial_pattern`, `energy_map` (jsonb), `pending_checkin_at`, `company_id` (assoc shadows legacy `company` string), `role`, `response_mode`. `payment_required?` gates individual enroll |
+| `Payment` | Webpay Plus/Oneclick: `amount` (CLP, IVA-incl), `status` (pending/authorized/rejected/failed/aborted/refunded), `buy_order`, `token`, `commission_amount`, `net_amount`; `belongs_to :participant/:company/:program/:subscription` |
+| `Subscription` | Webpay Oneclick recurring: `status` (pending/active/past_due/canceled/paused), `amount_clp`, `plan`, `tbk_user`/`tbk_username` (recurring token), `billing_interval_days`, `next_billing_at`, `billing_cycle_count`, `failed_attempts`; soft-deleted (`discard`); `has_many :payments`. ⚠️ scope with `.kept` |
 | `Conversation` | `moment` (welcome/morning_wake/iareto/checkin_question/checkin_response/free_user/free_assistant/manifesto), `role` (user/assistant/system), `day_number`, delivery timestamps, `media_id`, `transcription`, `voice_analysis` (jsonb) |
 | `DailyReport` | `ai_summary`, `ai_key_pattern` (OpenAI output), `raw_text` |
 | `Setting` | key/value store — `wake_hour`, `response_mode`, etc. |
@@ -96,10 +101,14 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/methodology/InsightBuilder` — builds 6 scopes of nightly aggregated insights
 - `app/services/participants/MessageClassifier` — classifies inbound message as `initial_pattern_answer | checkin_response | free_user`
 - `app/services/participants/DayAdvancer` — advances `current_day`, sets `started_at` / `completed_at`
-- `app/services/participants/Enroller` — sets `status: :active`, stamps `enrolled_at`
+- `app/services/participants/Enroller` — creates participant; activates immediately via `Activator` unless individual payment is required (`payment_required?`), in which case leaves `:awaiting_payment`
 - `app/services/participants/AudioProcessor` — orchestrates audio downloading, transcription, paralinguistic analysis
 - `app/services/backups/DatabaseDumper` — dumps PostgreSQL database
 - `app/services/backups/GoogleDriveUploader` — uploads backups to Google Drive
+- `app/services/participants/Activator` — single activation path (sets `status: :active`, `current_day: 1`, fires `SendWelcomeJob`); idempotent; shared by `Enroller`, admin enroll, and payment commit
+- `app/services/finances/CostCalculator` — single source of truth for USD operating costs over a range (OpenAI usage priced from `PromptExecution` + prorated manual fixed costs); shared by `Admin::FinancesController` and `Admin::ProfitLossController`
+- `app/services/webpay/Client` — Transbank Webpay Plus wrapper (`create`/`commit`) for one-time payments; honors `webpay_enabled` + `webpay_environment`
+- `app/services/webpay/OneclickClient` — Transbank Webpay Oneclick (Mall) wrapper: inscription (`start`/`finish`) + recurring `charge`; honors `webpay_oneclick_enabled` kill-switch
 
 ## Panel de Administración (Nativo)
 

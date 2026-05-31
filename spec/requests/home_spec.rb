@@ -126,6 +126,17 @@ RSpec.describe "Home", type: :request do
         expect(response).to redirect_to(root_path)
         expect(flash[:alert]).to include("ya está registrado")
       end
+
+      it "redirects an individual to payment when membership is charged" do
+        Setting.set("webpay_enabled", true)
+        Setting.set("membership_price_clp", 15_000)
+
+        post enroll_path, params: { name: "Paga", phone: "+56999998888", timezone: "America/Santiago" }
+
+        participant = Participant.order(:created_at).last
+        expect(participant.status).to eq("awaiting_payment")
+        expect(response).to redirect_to(pagos_path(participant_id: participant.id))
+      end
     end
   end
 

@@ -119,13 +119,7 @@ module Admin
         return
       end
 
-      @participant.update!(
-        status: :active,
-        current_day: 1,
-        enrolled_at: Time.current,
-        started_at: Time.current
-      )
-      SendWelcomeJob.perform_later(@participant.id)
+      Participants::Activator.new(@participant).call
       redirect_to admin_participant_path(@participant), notice: "#{@participant.name} inscrito. Bienvenida enviada por WhatsApp."
     end
 

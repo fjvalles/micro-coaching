@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_30_120002) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_30_130002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -173,12 +173,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_120002) do
     t.datetime "paid_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "subscription_id"
     t.index ["buy_order"], name: "index_payments_on_buy_order", unique: true
     t.index ["company_id"], name: "index_payments_on_company_id"
     t.index ["paid_at"], name: "index_payments_on_paid_at"
     t.index ["participant_id"], name: "index_payments_on_participant_id"
     t.index ["program_id"], name: "index_payments_on_program_id"
     t.index ["status"], name: "index_payments_on_status"
+    t.index ["subscription_id"], name: "index_payments_on_subscription_id"
     t.index ["token"], name: "index_payments_on_token"
   end
 
@@ -311,6 +313,35 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_120002) do
     t.index ["key"], name: "index_settings_on_key", unique: true
   end
 
+  create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "participant_id"
+    t.uuid "company_id"
+    t.uuid "program_id"
+    t.integer "status", default: 0, null: false
+    t.string "plan"
+    t.integer "amount_clp", default: 0, null: false
+    t.string "tbk_user"
+    t.string "tbk_username"
+    t.string "card_last4"
+    t.integer "billing_interval_days", default: 30, null: false
+    t.datetime "next_billing_at"
+    t.integer "billing_cycle_count", default: 0, null: false
+    t.datetime "last_billed_at"
+    t.integer "failed_attempts", default: 0, null: false
+    t.datetime "started_at"
+    t.datetime "canceled_at"
+    t.datetime "discarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_subscriptions_on_company_id"
+    t.index ["discarded_at"], name: "index_subscriptions_on_discarded_at"
+    t.index ["next_billing_at"], name: "index_subscriptions_on_next_billing_at"
+    t.index ["participant_id"], name: "index_subscriptions_on_participant_id"
+    t.index ["program_id"], name: "index_subscriptions_on_program_id"
+    t.index ["status"], name: "index_subscriptions_on_status"
+    t.index ["tbk_user"], name: "index_subscriptions_on_tbk_user"
+  end
+
   create_table "unknown_inbounds", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "phone"
     t.string "wamid"
@@ -344,6 +375,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_120002) do
   add_foreign_key "payments", "companies"
   add_foreign_key "payments", "participants"
   add_foreign_key "payments", "programs"
+  add_foreign_key "payments", "subscriptions"
   add_foreign_key "pending_responses", "admin_users", column: "approved_by_id"
   add_foreign_key "pending_responses", "conversations"
   add_foreign_key "pending_responses", "participants"
@@ -357,4 +389,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_120002) do
   add_foreign_key "prompt_templates", "programs"
   add_foreign_key "prompt_versions", "admin_users", column: "author_id"
   add_foreign_key "prompt_versions", "prompt_templates"
+  add_foreign_key "subscriptions", "companies"
+  add_foreign_key "subscriptions", "participants"
+  add_foreign_key "subscriptions", "programs"
 end

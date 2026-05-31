@@ -4,7 +4,20 @@
 > Esto resume **qué se hizo**, **el estado actual** y **los pasos detallados** para lo que falta.
 > Léelo junto a `CLAUDE.md`, `docs/business-rules.md` y `docs/decisions.md`.
 
-_Última actualización: 2026-05-30._
+_Última actualización: 2026-05-30 (sesión 2)._
+
+---
+
+## 0. Entregado en la sesión 2 (2026-05-30)
+
+Rama `feat/roadmap-batch-pnl-payments-subscriptions`. 40 archivos (17 mod, 23 nuevos). Suite 362 ej / 0 fallos; rubocop 0; brakeman 0 nuevos.
+
+- ✅ **Alta gateada por pago (individuos)** — estado `awaiting_payment`, `Participants::Activator` (ruta única de activación idempotente), `Participant#payment_required?`, `home#enroll → /pagos → commit activa`. Miembros cubiertos por empresa se activan directo. (business-rules §21)
+- ✅ **P&L consolidado CLP/USD** — `/admin/resultado`, `Finances::CostCalculator` (fuente única de costos USD, compartida con Finanzas), Setting `usd_clp_rate`. Margen = ingreso recibido (CLP) − costos (USD→CLP). (business-rules §23)
+- ✅ **Suscripciones recurrentes (Webpay Oneclick)** — `Subscription` + `Webpay::OneclickClient` + `/suscripcion` + `SubscriptionBillingJob` (cron diario + dunning→`past_due`) + `/admin/subscriptions` (MRR). ⚠️ **Kill-switch `webpay_oneclick_enabled` OFF hasta tener credenciales productivas Transbank Oneclick y verificarlas end-to-end.** (business-rules §22)
+- ✅ **Caps de uso ya estaban enforced** — corregido "Known gaps" obsoleto en CLAUDE.md (`max_free_messages_per_day` + `inactivity_pause_days` ya funcionaban). 
+
+Pendiente de despliegue: `kamal app exec 'bin/rails db:migrate'` (tabla `subscriptions` + `payments.subscription_id`). Setear `usd_clp_rate`. Para suscripciones en prod: setear `WEBPAY_ONECLICK_*`, `subscription_price_clp`, flip `webpay_oneclick_enabled=true`.
 
 ---
 
@@ -103,13 +116,14 @@ Pasos:
 
 ---
 
-## 4. Follow-ups / deuda técnica creada esta sesión
+## 4. Follow-ups / deuda técnica
 
-- **Alta gateada por pago**: hoy `/pagos` es standalone. Falta exigir pago al inscribir individuos (`Enroller`/`home#enroll` → crear pago → activar al `authorized`). Webhook/commit ya marca `Payment.authorized`.
-- **Suscripciones recurrentes**: Webpay actual = pago único. Para recurrencia evaluar Webpay **Oneclick**/Patpass (el SDK ya lo soporta).
+- ~~**Alta gateada por pago**~~ ✅ Entregado sesión 2 (§0).
+- ~~**Suscripciones recurrentes**~~ ✅ Entregado sesión 2 (§0) — build completo, kill-switch OFF pendiente credenciales Oneclick prod.
+- ~~**P&L consolidado CLP/USD**~~ ✅ Entregado sesión 2 (§0) — pendiente solo auto-fetch del tipo de cambio (hoy `usd_clp_rate` manual).
+- **Verificar campos del SDK Oneclick contra integración real** cuando lleguen credenciales: nombres de respuesta (`tbk_user`, `details[].response_code`, `card_number_4_last_digits`) cubiertos por specs con dobles; confirmar con una corrida real antes de flip del kill-switch.
 - **Edición de perfil en portal**: hoy read-only (consciente). Si se habilita, **bloquear** edición de membresía/datos para miembros de empresa (`pays_individually?` / `company_id`).
 - **Migrar string `company` legacy → `Company`**: UI admin para mapear participantes viejos (string `participant[:company]`) a un `Company` y limpiar la columna.
-- **P&L consolidado CLP/USD**: ingresos en CLP (`/admin/payments`), costos en USD (`/admin/finances`). Falta tipo de cambio + vista unificada.
 - **Onboarding nativo del participante** (web/WhatsApp): hoy hay `SendWelcomeJob`/`SendWelcomeQuestionJob` (WhatsApp) y portal sin flujo guiado.
 - **Push notifications PWA**: manifest listo, falta service worker push + suscripción.
 - **`CLAUDE.md`/`AGENTS.md` están gitignored** en este repo: mantener ambos en sync localmente (el hook pre-push exige modelos/servicios documentados en `AGENTS.md`).

@@ -50,7 +50,9 @@ Rails.application.routes.draw do
 
       get "audit_log", to: "audit_logs#index", as: :audit_log
       get "finances",  to: "finances#index",   as: :finances
+      get "resultado", to: "profit_loss#index", as: :profit_loss
       resources :payments, only: [ :index, :show ]
+      resources :subscriptions, only: [ :index ]
 
       get "docs",           to: "docs#index",     as: :docs
       get "docs/strategy",  to: "docs#strategy",  as: :docs_strategy
@@ -79,6 +81,11 @@ Rails.application.routes.draw do
   get  "pagos",         to: "payments#new",    as: :pagos
   post "pagos",         to: "payments#create"
   match "pagos/retorno", to: "payments#commit", as: :pago_retorno, via: %i[get post]
+
+  # Suscripciones (Webpay Oneclick — cobro recurrente). retorno acepta GET y POST.
+  get   "suscripcion",         to: "subscriptions#new",    as: :suscripcion
+  post  "suscripcion",         to: "subscriptions#create"
+  match "suscripcion/retorno", to: "subscriptions#commit", as: :suscripcion_retorno, via: %i[get post]
 
   # Portal del participante (login passwordless por magic-link).
   namespace :portal do

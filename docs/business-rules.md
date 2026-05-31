@@ -57,10 +57,11 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 ## 3. Estados del participante
 
 ### 3.1 Enum
-- `pending` — creado pero no activo (rara vez usado; Enroller activa directamente)
+- `pending` — creado pero no activo (rara vez usado; Enroller activa directamente cuando no se requiere pago)
 - `active` — recibiendo mensajes
 - `completed` — terminó día 14 con check-in
-- `paused` — admin pausó manualmente
+- `paused` — admin pausó manualmente o auto-pausa por inactividad (§16.2)
+- `awaiting_payment` — alta de individuo que debe pagar antes de activarse (§21). El pago confirmado lo activa vía `Participants::Activator`. No recibe mensajes broadcast.
 
 ### 3.2 Solo `:active` recibe mensajes broadcast
 - **Regla.** `MorningWakeJob`, `CheckinEveningJob`, `AdvanceDayJob` solo procesan `:active`.
@@ -394,6 +395,8 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 
 ## 19. Pagos (Webpay Plus / Transbank)
 
+> Pagos one-time (membresía). Para cobro recurrente ver §22 (Oneclick). El alta gateada por pago: §21.
+
 ### 19.1 Flujo
 - `/pagos` (público) muestra el precio (`membership_price_clp`, IVA incluido) → `POST /pagos` crea un `Payment` (pending), inicia transacción Webpay (`Webpay::Client#create`) y redirige a Transbank.
 - Transbank retorna a `/pagos/retorno`: `token_ws` = flujo normal → `commit`; `TBK_TOKEN` = el usuario abandonó → `aborted`.
@@ -408,7 +411,8 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 - `/admin/payments` (Ingresos) agrega bruto, IVA débito, neto ventas, comisión Transbank y neto recibido por período. Independiente del tracker de costos (USD) en `/admin/finances`.
 
 ### 19.4 Quién paga
-- Individuos (sin empresa) pagan su membresía. Miembros de empresa con `covers_membership` no pagan individualmente (`Participant#pays_individually?`). El gating del alta por pago se hará en el portal (Fase 3).
+- Individuos (sin empresa) pagan su membresía. Miembros de empresa con `covers_membership` no pagan individualmente (`Participant#pays_individually?`).
+- El gating del alta por pago está **enforced** (§21).
 
 ---
 
@@ -423,6 +427,60 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 - `/portal` muestra progreso (día/total, fase, estado), reportes diarios propios y, si `pays_individually?` + `webpay_enabled` + precio > 0, un CTA de pago.
 - El portal es **read-only**: no se editan datos. Esto satisface "el miembro de empresa no modifica su membresía"; la edición de perfil queda para una iteración futura.
 - Layout `portal` es mobile-first y enlaza el manifest PWA para permitir "instalar como app".
+
+---
+
+## 21. Alta gateada por pago (individuos)
+
+### 21.1 Cuándo aplica
+- **Regla.** `Participant#payment_required?` = `pays_individually?` **Y** `membership_price_clp > 0` **Y** `webpay_enabled`. Solo entonces el alta se gatea por pago.
+- **Por qué.** Miembros cubiertos por empresa, o cuando los pagos están apagados / precio en 0, no deben bloquearse: se activan de inmediato.
+- **Enforce.** `app/models/participant.rb#payment_required?`.
+
+### 21.2 Flujo
+- `Participants::Enroller`: si `payment_required?`, crea el participante en `:awaiting_payment` (`current_day: 0`, sin `started_at`, **sin** `SendWelcomeJob`). Si no, activa de inmediato vía `Participants::Activator`.
+- Alta pública (`home#enroll`): tras crear, si quedó `awaiting_payment` → redirige a `/pagos?participant_id=…`. El resto ve la página de arranque de WhatsApp.
+- `PaymentsController#commit`: al autorizar, si el participante está `awaiting_payment`, `Participants::Activator` lo activa (día 1 + bienvenida). Idempotente.
+
+### 21.3 `Participants::Activator` (ruta única de activación)
+- **Regla.** Toda activación pasa por `Activator`: setea `status: :active`, `current_day: 1`, `enrolled_at`/`started_at` (si faltan) y encola `SendWelcomeJob`. Es **idempotente** (no-op + sin bienvenida si ya está `active`).
+- **Por qué.** Antes la lógica "activar + bienvenida" estaba duplicada en `Enroller` y el admin enroll. Una sola ruta evita dobles bienvenidas y comportamiento divergente.
+- **Enforce.** `app/services/participants/activator.rb`; usado por `Enroller`, `Admin::ParticipantsController#enroll`, `PaymentsController#commit`, y `SubscriptionsController` (primer cobro).
+
+---
+
+## 22. Suscripciones recurrentes (Webpay Oneclick)
+
+> ⚠️ **Build completo, producción pendiente.** El kill-switch `webpay_oneclick_enabled` permanece **OFF** hasta tener y verificar credenciales productivas de Transbank Oneclick. Las credenciales de integración del SDK funcionan en dev/test.
+
+### 22.1 Inscripción + primer cobro
+- `/suscripcion` (público) muestra `subscription_price_clp` → `POST /suscripcion` crea una `Subscription` (`pending`), inicia la inscripción de tarjeta (`Webpay::OneclickClient#start_inscription`) y redirige a Transbank.
+- Retorno en `/suscripcion/retorno`: `finish_inscription` obtiene el token recurrente (`tbk_user`); luego se hace el **primer cobro** (`charge`). Si autoriza → `Subscription` `active`, se registra un `Payment` ligado, y si el participante estaba `awaiting_payment` se activa (§21.3). Sin token = `aborted`/`canceled`.
+
+### 22.2 Cobro recurrente y dunning
+- `SubscriptionBillingJob` (cron diario 08:00 UTC) cobra las suscripciones `active` cuyo `next_billing_at <= now` (`Subscription.billable`).
+- **Idempotente:** un cobro exitoso avanza `next_billing_at` (sale del scope `billable`); un fallo reprograma a mañana e incrementa `failed_attempts`. Re-correr el mismo día no duplica cobros.
+- **Dunning:** superados `subscription_max_retries`, la suscripción pasa a `past_due` y se emite aviso a Sentry. `0 = sin recurrencia`.
+- **Enforce.** `app/jobs/subscription_billing_job.rb`, `app/models/subscription.rb` (`billable`, `schedule_next_cycle!`, `record_charge!`).
+
+### 22.3 Tokenización (seguridad)
+- Solo se almacena el token recurrente de Transbank (`tbk_user` + `tbk_username`), **nunca** el número de tarjeta. El cobro usa el token contra el commerce code hijo del Mall.
+
+### 22.4 Visibilidad
+- `/admin/subscriptions`: conteo de activas, MRR (suma de `amount_clp` de activas, IVA incl.) y desglose por estado. Cada cobro aparece en `/admin/payments` como `Payment` ligado a su `Subscription`.
+
+---
+
+## 23. Resultado consolidado (P&L CLP/USD)
+
+### 23.1 Conversión y margen
+- **Regla.** `/admin/resultado` compara **ingreso recibido** (CLP, `Payment` autorizados netos de comisión Transbank) contra **costos operativos** (USD de `Finances::CostCalculator`) convertidos a CLP con el Setting manual `usd_clp_rate`. Margen = ingreso recibido − costos (CLP).
+- **Por qué.** Ingresos nacen en CLP (Webpay) y costos en USD (OpenAI, hosting). Sin un tipo de cambio común no hay una sola vista de margen.
+- **Enforce.** `app/controllers/admin/profit_loss_controller.rb`, `app/services/finances/cost_calculator.rb`. Tipo de cambio en `Setting "usd_clp_rate"` (auto-fetch es mejora futura).
+
+### 23.2 Fuente única de costos
+- **Regla.** El cálculo de costos USD (precios OpenAI por modelo + prorrateo de costos fijos) vive solo en `Finances::CostCalculator`; tanto Finanzas como Resultado lo consumen.
+- **Por qué.** Evita que las dos vistas diverjan en precios o en la matemática de prorrateo.
 
 ---
 

@@ -6,7 +6,7 @@ class Participant < ApplicationRecord
   belongs_to :program, optional: true
   belongs_to :company, optional: true
 
-  enum :status, { pending: 0, active: 1, completed: 2, paused: 3 }
+  enum :status, { pending: 0, active: 1, completed: 2, paused: 3, awaiting_payment: 4 }
 
   # Passwordless portal login. Token embeds email so changing it invalidates old links.
   generates_token_for :portal_login, expires_in: 30.minutes do
@@ -40,6 +40,15 @@ class Participant < ApplicationRecord
   # their company opts out of covering membership.
   def pays_individually?
     company_id.blank? || company&.covers_membership == false
+  end
+
+  # True when this participant must pay before being activated: they pay for
+  # themselves AND individual membership is actually being charged (price set +
+  # Webpay enabled). Drives payment-gated enrollment and the portal pay CTA.
+  def payment_required?
+    pays_individually? &&
+      Setting.fetch("membership_price_clp").to_i.positive? &&
+      Setting.fetch("webpay_enabled")
   end
 
   def latest_report

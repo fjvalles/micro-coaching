@@ -88,6 +88,13 @@ class HomeController < ApplicationController
         email: email
       ).call
 
+      # Payment-gated individuals pay first; activation + welcome happen on the
+      # Webpay commit. Everyone else (company-covered, or payments off) is already
+      # active and gets the WhatsApp kick-off page below.
+      if participant.awaiting_payment?
+        redirect_to pagos_path(participant_id: participant.id) and return
+      end
+
       # Get wa.me link with custom text to facilitate immediate interaction
       # Use either Meta configuration or fallback to a dummy/real number if configured.
       # Meta Business Phone is generally not suitable for direct user messaging wa.me links,

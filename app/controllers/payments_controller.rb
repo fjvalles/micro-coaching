@@ -87,6 +87,7 @@ class PaymentsController < ApplicationController
         raw_response: result.raw
       )
       payment.save!
+      activate_participant(payment.participant)
       @status = :authorized
     elsif result.success?
       payment.update!(status: :rejected, response_code: result.response_code, raw_response: result.raw)
@@ -95,5 +96,13 @@ class PaymentsController < ApplicationController
       payment.update!(status: :failed, raw_response: { error: result.error })
       @status = :failed
     end
+  end
+
+  # Payment-gated enroll: a successful first charge activates the participant and
+  # fires the welcome (idempotent — no-op if they were already active).
+  def activate_participant(participant)
+    return unless participant&.awaiting_payment?
+
+    Participants::Activator.new(participant).call
   end
 end

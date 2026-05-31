@@ -1,0 +1,29 @@
+<% content_for :title, "Suscripción mensual — Impulso" %>
+
+<div style="max-width: 460px; margin: 64px auto; padding: 36px; background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.06); font-family: system-ui, sans-serif;">
+  <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 6px;">Suscripción Impulso</h1>
+  <p style="color: #6b7280; margin-bottom: 24px;">Acompañamiento continuo de micro-coaching por WhatsApp, con cobro mensual automático.</p>
+
+  <% if @participant %>
+    <p style="margin-bottom: 16px;">Hola <strong><%= @participant.name %></strong>, activa tu suscripción mensual.</p>
+  <% end %>
+
+  <% if @enabled %>
+    <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 24px;">
+      <span style="font-size: 34px; font-weight: 800;">$<%= number_with_delimiter(@price, delimiter: ".") %></span>
+      <span style="color: #6b7280;">CLP / mes · IVA incluido</span>
+    </div>
+
+    <%= form_with url: suscripcion_path, method: :post do %>
+      <%= hidden_field_tag :participant_id, @participant&.id %>
+      <button type="submit" style="width: 100%; padding: 14px; background: #111827; color: #fff; border: 0; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;">
+        Suscribirme con Webpay Oneclick
+      </button>
+    <% end %>
+    <p style="margin-top: 14px; font-size: 12px; color: #9ca3af; text-align: center;">
+      Registras tu tarjeta una vez con Transbank; los cobros mensuales se hacen de forma automática. Puedes cancelar cuando quieras.
+    </p>
+  <% else %>
+    <p style="color: #6b7280;">Las suscripciones no están habilitadas en este momento. Escríbenos para más información.</p>
+  <% end %>
+</div>

@@ -285,6 +285,32 @@ class Setting < ApplicationRecord
       type: :float, category: "finances", default: 0.19,
       description: "Tasa de IVA (Chile 19% = 0.19). Se usa para desglosar IVA débito de los ingresos y el IVA de la comisión.",
       validate: ->(v) { (0.0..1.0).cover?(v) || "debe estar entre 0.0 y 1.0" }
+    },
+    "usd_clp_rate" => {
+      type: :float, category: "finances", default: 950.0,
+      description: "Tipo de cambio USD→CLP usado en el P&L consolidado (/admin/resultado) para convertir los costos en USD a CLP. Actualízalo manualmente.",
+      validate: ->(v) { v > 0 || "debe ser > 0" }
+    },
+
+    # ── suscripciones (Webpay Oneclick) ──────────────────────────────────────
+    "webpay_oneclick_enabled" => {
+      type: :boolean, category: "finances", default: false,
+      description: "Kill-switch de suscripciones recurrentes (Webpay Oneclick). Si es false, no se inician inscripciones ni se cobran suscripciones."
+    },
+    "subscription_price_clp" => {
+      type: :integer, category: "finances", default: 0,
+      description: "Monto recurrente de la suscripción en CLP (IVA incluido). 0 = sin suscripción.",
+      validate: ->(v) { v >= 0 || "debe ser >= 0" }
+    },
+    "subscription_billing_interval_days" => {
+      type: :integer, category: "finances", default: 30,
+      description: "Días entre cobros recurrentes de una suscripción Oneclick.",
+      validate: ->(v) { (1..365).cover?(v) || "debe estar entre 1 y 365" }
+    },
+    "subscription_max_retries" => {
+      type: :integer, category: "finances", default: 3,
+      description: "Reintentos de cobro recurrente antes de marcar la suscripción como past_due.",
+      validate: ->(v) { (0..10).cover?(v) || "debe estar entre 0 y 10" }
     }
   }.freeze
 

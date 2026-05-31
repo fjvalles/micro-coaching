@@ -4,7 +4,7 @@ RSpec.describe Participant, type: :model do
   it { is_expected.to validate_presence_of(:name) }
   it { is_expected.to validate_presence_of(:phone_e164) }
   it { is_expected.to validate_presence_of(:timezone) }
-  it { is_expected.to define_enum_for(:status).with_values(pending: 0, active: 1, completed: 2, paused: 3) }
+  it { is_expected.to define_enum_for(:status).with_values(pending: 0, active: 1, completed: 2, paused: 3, awaiting_payment: 4) }
   it { is_expected.to have_many(:conversations) }
   it { is_expected.to have_many(:daily_reports) }
 
@@ -121,6 +121,32 @@ RSpec.describe Participant, type: :model do
     it "company members pay individually if the company opts out of coverage" do
       company = create(:company, covers_membership: false)
       expect(create(:participant, company: company).pays_individually?).to be true
+    end
+  end
+
+  describe "#payment_required?" do
+    before do
+      Setting.set("webpay_enabled", true)
+      Setting.set("membership_price_clp", 15_000)
+    end
+
+    it "is true for an individual when membership is charged" do
+      expect(create(:participant, company: nil).payment_required?).to be true
+    end
+
+    it "is false when Webpay is disabled" do
+      Setting.set("webpay_enabled", false)
+      expect(create(:participant, company: nil).payment_required?).to be false
+    end
+
+    it "is false when the price is zero" do
+      Setting.set("membership_price_clp", 0)
+      expect(create(:participant, company: nil).payment_required?).to be false
+    end
+
+    it "is false for a covered company member" do
+      company = create(:company, covers_membership: true)
+      expect(create(:participant, company: company).payment_required?).to be false
     end
   end
 end

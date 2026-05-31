@@ -1,0 +1,28 @@
+<% content_for :title, "Resultado de la suscripción — Impulso" %>
+
+<%
+  config = {
+    authorized: { icon: "✅", title: "¡Suscripción activa!",        msg: "Tu tarjeta quedó registrada y realizamos el primer cobro. Los próximos cobros serán automáticos.", color: "#16a34a" },
+    rejected:   { icon: "❌", title: "Cobro rechazado",             msg: "Registramos tu tarjeta pero el primer cobro fue rechazado. Intenta nuevamente con otro medio de pago.", color: "#dc2626" },
+    aborted:    { icon: "↩️", title: "Suscripción cancelada",       msg: "No completaste el registro de tu tarjeta. Puedes volver a intentarlo cuando quieras.", color: "#d97706" },
+    failed:     { icon: "⚠️", title: "No pudimos registrar la tarjeta", msg: "Ocurrió un problema técnico durante la inscripción. Intenta nuevamente.", color: "#dc2626" },
+  }[@status] || { icon: "❓", title: "Estado desconocido", msg: "", color: "#6b7280" }
+%>
+
+<div style="max-width: 460px; margin: 64px auto; padding: 36px; background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.06); font-family: system-ui, sans-serif; text-align: center;">
+  <div style="font-size: 48px; margin-bottom: 12px;"><%= config[:icon] %></div>
+  <h1 style="font-size: 22px; font-weight: 700; color: <%= config[:color] %>; margin-bottom: 10px;"><%= config[:title] %></h1>
+  <p style="color: #6b7280; margin-bottom: 20px;"><%= config[:msg] %></p>
+
+  <% if @status == :authorized && @payment %>
+    <div style="text-align: left; background: #f9fafb; border-radius: 10px; padding: 16px; font-size: 14px; color: #374151;">
+      <div>Orden: <strong><%= @payment.buy_order %></strong></div>
+      <div>Monto: <strong>$<%= number_with_delimiter(@payment.amount, delimiter: ".") %> CLP / mes</strong></div>
+      <% if @subscription&.next_billing_at %><div>Próximo cobro: <strong><%= l(@subscription.next_billing_at.to_date, format: :long) rescue @subscription.next_billing_at.to_date %></strong></div><% end %>
+    </div>
+  <% end %>
+
+  <% if @status.in?(%i[rejected aborted failed]) %>
+    <a href="<%= suscripcion_path %>" style="display: inline-block; margin-top: 18px; padding: 12px 20px; background: #111827; color: #fff; border-radius: 10px; text-decoration: none; font-weight: 600;">Intentar de nuevo</a>
+  <% end %>
+</div>
