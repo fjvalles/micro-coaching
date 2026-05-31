@@ -48,6 +48,7 @@ Rails.application.routes.draw do
       end
       post "response_mode", to: "response_modes#update", as: :update_response_mode
 
+      get "health",    to: "health#show",        as: :health
       get "audit_log", to: "audit_logs#index", as: :audit_log
       get "finances",  to: "finances#index",   as: :finances
       get "resultado", to: "profit_loss#index", as: :profit_loss

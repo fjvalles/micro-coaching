@@ -54,6 +54,7 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 - `DailyBackupJob` — daily at 03:00 UTC, runs `pg_dump` and uploads the encrypted custom database backup to Google Drive
 - `PauseInactiveParticipantsJob` — daily at 05:00 UTC, pauses `active` participants with no inbound in `inactivity_pause_days`
 - `SubscriptionBillingJob` — daily at 08:00 UTC, charges due Webpay Oneclick subscriptions; dunning to `past_due` after `subscription_max_retries`
+- `CapacityAlertJob` — every 15 min, warns Sentry past `capacity_queue_latency_alert_seconds` / `capacity_backlog_alert_threshold` (0 = off)
 
 ## Domain model
 
@@ -107,6 +108,7 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/backups/GoogleDriveUploader` — uploads backups to Google Drive
 - `app/services/participants/Activator` — single activation path (sets `status: :active`, `current_day: 1`, fires `SendWelcomeJob`); idempotent; shared by `Enroller`, admin enroll, and payment commit
 - `app/services/finances/CostCalculator` — single source of truth for USD operating costs over a range (OpenAI usage priced from `PromptExecution` + prorated manual fixed costs); shared by `Admin::FinancesController` and `Admin::ProfitLossController`
+- `app/services/ops/CapacitySnapshot` — read-only Sidekiq/DB-pool/Redis capacity snapshot (graceful if Redis down); shared by `Admin::HealthController` and `CapacityAlertJob`
 - `app/services/webpay/Client` — Transbank Webpay Plus wrapper (`create`/`commit`) for one-time payments; honors `webpay_enabled` + `webpay_environment`
 - `app/services/webpay/OneclickClient` — Transbank Webpay Oneclick (Mall) wrapper: inscription (`start`/`finish`) + recurring `charge`; honors `webpay_oneclick_enabled` kill-switch
 

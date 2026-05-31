@@ -292,6 +292,18 @@ class Setting < ApplicationRecord
       validate: ->(v) { v > 0 || "debe ser > 0" }
     },
 
+    # ── capacidad / ops ──────────────────────────────────────────────────────
+    "capacity_queue_latency_alert_seconds" => {
+      type: :integer, category: "admin", default: 120,
+      description: "Latencia (segundos) de una cola Sidekiq que dispara alerta a Sentry en CapacityAlertJob. 0 = desactivado.",
+      validate: ->(v) { v >= 0 || "debe ser >= 0" }
+    },
+    "capacity_backlog_alert_threshold" => {
+      type: :integer, category: "admin", default: 1000,
+      description: "Backlog total (encolados + reintentos) que dispara alerta a Sentry en CapacityAlertJob. 0 = desactivado.",
+      validate: ->(v) { v >= 0 || "debe ser >= 0" }
+    },
+
     # ── suscripciones (Webpay Oneclick) ──────────────────────────────────────
     "webpay_oneclick_enabled" => {
       type: :boolean, category: "finances", default: false,

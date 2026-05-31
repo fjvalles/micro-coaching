@@ -1,0 +1,115 @@
+<% content_for :title, "Salud del sistema" %>
+
+<% content_for :breadcrumbs do %>
+  <span class="breadcrumb-sep">›</span>
+  <span>Salud</span>
+<% end %>
+
+<% sk = @snapshot.sidekiq %>
+
+<% if @snapshot.redis_error.present? %>
+  <div class="card" style="margin-bottom:24px; border-left:4px solid #ef4444;">
+    <div class="card-body">
+      <strong style="color:#ef4444;">Redis/Sidekiq no disponible.</strong>
+      <span style="color:var(--text-muted); font-size:13px;"><%= @snapshot.redis_error %></span>
+      <p style="margin:6px 0 0; font-size:12px; color:var(--text-muted);">El worker o Redis puede estar caído. Las métricas de colas no se pueden leer.</p>
+    </div>
+  </div>
+<% end %>
+
+<!-- KPI cards -->
+<div class="stats-grid" style="margin-bottom:32px;">
+  <div class="stat-card" style="border-left-color:<%= @backlog_breached ? '#ef4444' : '#10b981' %>;">
+    <div class="stat-header">
+      <span>Backlog</span>
+      <% if @backlog_threshold.positive? %>
+        <span class="badge <%= @backlog_breached ? 'badge-danger' : 'badge-success' %>">límite <%= number_with_delimiter(@backlog_threshold) %></span>
+      <% end %>
+    </div>
+    <div class="stat-value" style="font-size:1.6rem;"><%= number_with_delimiter(@snapshot.backlog) %></div>
+    <div class="stat-desc">Encolados + reintentos pendientes</div>
+  </div>
+
+  <div class="stat-card" style="border-left-color:<%= @latency_breached ? '#ef4444' : '#10b981' %>;">
+    <div class="stat-header">
+      <span>Latencia máx. de cola</span>
+      <% if @latency_threshold.positive? %>
+        <span class="badge <%= @latency_breached ? 'badge-danger' : 'badge-success' %>">límite <%= @latency_threshold %>s</span>
+      <% end %>
+    </div>
+    <div class="stat-value" style="font-size:1.6rem;"><%= @snapshot.max_latency.round(1) %>s</div>
+    <div class="stat-desc">Espera de la cola más rezagada</div>
+  </div>
+
+  <div class="stat-card" style="border-left-color:var(--brand);">
+    <div class="stat-header"><span>Procesos / Workers</span></div>
+    <div class="stat-value" style="font-size:1.6rem;"><%= sk[:processes] || 0 %> / <%= sk[:busy] || 0 %></div>
+    <div class="stat-desc">Procesos Sidekiq vivos · jobs ejecutándose</div>
+  </div>
+
+  <div class="stat-card" style="border-left-color:#f59e0b;">
+    <div class="stat-header"><span>Memoria Redis</span></div>
+    <div class="stat-value" style="font-size:1.6rem;"><%= @snapshot.redis&.dig(:used_memory_human) || "—" %></div>
+    <div class="stat-desc">Pico: <%= @snapshot.redis&.dig(:used_memory_peak_human) || "—" %> · máx: <%= @snapshot.redis&.dig(:maxmemory_human) || "sin límite" %></div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px;">
+  <!-- Sidekiq queues -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Colas Sidekiq</h2>
+      <%= link_to "Sidekiq Web", "/sidekiq", class: "btn btn-sm btn-secondary", style: "font-size:12px; padding:4px 10px;", target: "_blank", rel: "noopener" %>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <% if @snapshot.queues.empty? %>
+        <p style="padding:16px; color:var(--text-muted); font-size:13px;">Sin colas activas (o Redis no disponible).</p>
+      <% else %>
+        <table class="data-table">
+          <thead><tr><th>Cola</th><th style="text-align:right;">Tamaño</th><th style="text-align:right;">Latencia</th></tr></thead>
+          <tbody>
+            <% @snapshot.queues.sort_by { |q| -q[:latency].to_f }.each do |q| %>
+              <tr>
+                <td><code style="font-size:12px;"><%= q[:name] %></code></td>
+                <td style="text-align:right;"><%= number_with_delimiter(q[:size]) %></td>
+                <td style="text-align:right; <%= 'color:#ef4444; font-weight:600;' if @latency_threshold.positive? && q[:latency].to_f > @latency_threshold %>"><%= q[:latency].round(1) %>s</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Sidekiq totals + DB pool -->
+  <div class="card">
+    <div class="card-header"><h2 class="card-title">Cola y base de datos</h2></div>
+    <div class="card-body" style="padding:0;">
+      <table class="data-table">
+        <tbody>
+          <tr><td>Encolados</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:enqueued] || 0) %></td></tr>
+          <tr><td>Programados</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:scheduled] || 0) %></td></tr>
+          <tr><td>Reintentos</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:retry] || 0) %></td></tr>
+          <tr><td>Muertos (dead)</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:dead] || 0) %></td></tr>
+          <tr><td>Procesados (histórico)</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:processed] || 0) %></td></tr>
+          <tr><td>Fallidos (histórico)</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:failed] || 0) %></td></tr>
+          <% pool = @snapshot.db_pool %>
+          <tr style="border-top:2px solid var(--border);"><td>Pool AR — tamaño</td><td style="text-align:right; font-family:monospace;"><%= pool[:size] || "—" %></td></tr>
+          <tr><td>Pool AR — en uso</td><td style="text-align:right; font-family:monospace;"><%= pool[:busy] || "—" %></td></tr>
+          <tr><td>Pool AR — esperando</td><td style="text-align:right; font-family:monospace; <%= 'color:#ef4444; font-weight:600;' if pool[:waiting].to_i.positive? %>"><%= pool[:waiting] || "—" %></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <p style="font-size:12px; color:var(--text-muted); margin:0;">
+      Umbrales de alerta (editar en <%= link_to "Configuración", admin_settings_path %>): latencia de cola
+      <strong><%= @latency_threshold.positive? ? "#{@latency_threshold}s" : "off" %></strong>,
+      backlog <strong><%= @backlog_threshold.positive? ? number_with_delimiter(@backlog_threshold) : "off" %></strong>.
+      <code>CapacityAlertJob</code> revisa cada 15 min y avisa a Sentry al superarlos. Errores de aplicación se rastrean en Sentry.
+    </p>
+  </div>
+</div>

@@ -16,8 +16,10 @@ Rama `feat/roadmap-batch-pnl-payments-subscriptions`. 40 archivos (17 mod, 23 nu
 - ✅ **P&L consolidado CLP/USD** — `/admin/resultado`, `Finances::CostCalculator` (fuente única de costos USD, compartida con Finanzas), Setting `usd_clp_rate`. Margen = ingreso recibido (CLP) − costos (USD→CLP). (business-rules §23)
 - ✅ **Suscripciones recurrentes (Webpay Oneclick)** — `Subscription` + `Webpay::OneclickClient` + `/suscripcion` + `SubscriptionBillingJob` (cron diario + dunning→`past_due`) + `/admin/subscriptions` (MRR). ⚠️ **Kill-switch `webpay_oneclick_enabled` OFF hasta tener credenciales productivas Transbank Oneclick y verificarlas end-to-end.** (business-rules §22)
 - ✅ **Caps de uso ya estaban enforced** — corregido "Known gaps" obsoleto en CLAUDE.md (`max_free_messages_per_day` + `inactivity_pause_days` ya funcionaban). 
+- ✅ **Monitoreo de capacidad (3.1)** — `/admin/health` (`Ops::CapacitySnapshot`: colas Sidekiq, pool AR, memoria Redis, degrada si Redis cae) + `CapacityAlertJob` (cron 15 min → Sentry) + umbrales Setting `capacity_*`. (business-rules §24)
+- ⏭️ **Visor de conversaciones tiempo-real (3.4) — diferido.** El layout admin no carga JS (Turbo/ActionCable no cableados en cliente; `cable.js` roto). Requiere pipeline de assets + verificación en navegador. Ver decisions.md.
 
-Pendiente de despliegue: `kamal app exec 'bin/rails db:migrate'` (tabla `subscriptions` + `payments.subscription_id`). Setear `usd_clp_rate`. Para suscripciones en prod: setear `WEBPAY_ONECLICK_*`, `subscription_price_clp`, flip `webpay_oneclick_enabled=true`.
+Pendiente de despliegue: `kamal app exec 'bin/rails db:migrate'` (tabla `subscriptions` + `payments.subscription_id`). Setear `usd_clp_rate`. Para suscripciones en prod: setear `WEBPAY_ONECLICK_*`, `subscription_price_clp`, flip `webpay_oneclick_enabled=true`. Capacidad: ajustar `capacity_queue_latency_alert_seconds` / `capacity_backlog_alert_threshold` si los defaults (120s / 1000) no aplican.
 
 ---
 
@@ -59,8 +61,9 @@ Rama mergeada a `main` y pusheada. 4 commits:
 
 ## 3. Backlog restante (de los 24 pedidos originales) — con pasos
 
-### 3.1 Monitoreo de capacidad del servidor  ⟶ recomendado siguiente (ops, bajo riesgo)
+### 3.1 Monitoreo de capacidad del servidor  ✅ ENTREGADO (sesión 3, ver §0)
 Objetivo: saber cuándo el servidor está al límite (no solo errores, que ya cubre Sentry).
+> Hecho: `Ops::CapacitySnapshot` + `Admin::HealthController` (`/admin/health`) + `CapacityAlertJob` (cron 15 min) + Settings `capacity_*`. Métricas de host (node_exporter) siguen diferidas (paso 3 abajo).
 Pasos:
 1. `Admin::HealthController#show` (o tab en dashboard): leer `Sidekiq::Stats.new` (enqueued, retry_size, dead_size), `Sidekiq::Queue.new(q).latency` por cola, pool de AR (`ActiveRecord::Base.connection_pool.stat`), Redis `INFO memory`.
 2. `CapacityAlertJob` (cron cada 10–15 min en `schedule.yml`): si `queue.latency > N` o backlog > M, `Sentry.capture_message("Sidekiq backlog…", level: :warning)`.
@@ -84,8 +87,11 @@ Pasos:
 3. Rediseñar `app/views/admin/daily_reports/show` + vista en portal participante. Ligar a `MethodologyInsight` para agregados de empresa.
 4. Para empresa: vista por `Company` con métricas anónimas (ya hay base en `methodology/insight_builder.rb`).
 
-### 3.4 Visor de conversaciones en tiempo real
-ActionCable + turbo-rails ya están. Pasos:
+### 3.4 Visor de conversaciones en tiempo real  ⏭️ DIFERIDO (sesión 3)
+> **Bloqueador descubierto:** el layout admin (`app/views/layouts/admin.html.erb`) **no carga JavaScript** — solo `stylesheet_link_tag`; el JS del panel es inline vanilla (drawer de ayuda). Además `app/javascript/cable.js` tiene error de sintaxis (`export consumer =`), señal de que el cliente ActionCable nunca se cableó. Habilitar streams exige: cargar bundle JS en admin + importar turbo/actioncable + arreglar `cable.js` + rebuild de assets + **verificación en navegador** (no confiable headless). Server-side (broadcast desde el modelo) es trivial; el cliente es el trabajo real. Retomar cuando se pueda verificar en navegador.
+
+ActionCable + turbo-rails ya están (gemas). Pasos (cuando se retome):
+0. **Cablear JS en admin**: `javascript_include_tag`/import de `@hotwired/turbo-rails` en el layout admin; arreglar `cable.js`; rebuild esbuild.
 1. `Conversation` → `after_create_commit { broadcast_append_to "participant_#{participant_id}_convo", target: "messages", partial: ... }`.
 2. En `admin/conversations/show`: `<%= turbo_stream_from "participant_#{@participant.id}_convo" %>` + contenedor `#messages`.
 3. Verificar `config/cable.yml` (Redis en prod) y que el worker no rompa.
