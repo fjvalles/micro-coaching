@@ -5,35 +5,63 @@
   <span>Habilidades</span>
 <% end %>
 
+<div class="stats-grid" style="margin-bottom:32px;">
+  <div class="stat-card" style="border-left-color:var(--brand);">
+    <div class="stat-header"><span>Habilidades en catálogo</span></div>
+    <div class="stat-value" style="font-size:1.6rem;"><%= @skills_count %></div>
+    <div class="stat-desc">Competencias humanas del participante</div>
+  </div>
+  <div class="stat-card" style="border-left-color:#10b981;">
+    <div class="stat-header"><span>Detecciones totales</span></div>
+    <div class="stat-value" style="font-size:1.6rem;"><%= @detections_total %></div>
+    <div class="stat-desc">En check-in y chat libre</div>
+  </div>
+  <div class="stat-card" style="border-left-color:#f59e0b;">
+    <div class="stat-header"><span>Participantes con detección</span></div>
+    <div class="stat-value" style="font-size:1.6rem;"><%= @participants_tagged %></div>
+    <div class="stat-desc">Con al menos una habilidad detectada</div>
+  </div>
+</div>
+
 <div class="card">
   <div class="card-header">
     <h2 class="card-title">Catálogo de habilidades del participante</h2>
-    <span class="badge badge-neutral"><%= @skills.size %></span>
+    <span class="badge badge-neutral"><%= @skills_count %></span>
   </div>
   <div class="card-body" style="padding:0;">
     <p style="padding:12px 16px; color:var(--text-muted); font-size:13px; margin:0;">
       Competencias humanas que el coaching detecta en las conversaciones (check-in y chat libre) y
       refuerza en los mensajes generativos. No son habilidades de la IA.
     </p>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Habilidad</th>
-          <th>Slug</th>
-          <th style="text-align:right;">Detecciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @skills.each do |skill| %>
+    <% if @skills.to_a.empty? %>
+      <p style="padding:16px; color:var(--text-muted); font-size:13px;">Catálogo vacío. Siembra con <code>Skills::Importer</code>.</p>
+    <% else %>
+      <table class="data-table">
+        <thead>
           <tr>
-            <td><%= skill.position %></td>
-            <td><%= link_to skill.name, admin_skill_path(skill) %></td>
-            <td><code style="font-size:12px;"><%= skill.slug %></code></td>
-            <td style="text-align:right;"><%= skill.detections_count %></td>
+            <th style="width:48px;">#</th>
+            <th>Habilidad</th>
+            <th>Slug</th>
+            <th style="text-align:right;">Detecciones</th>
           </tr>
-        <% end %>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <% @skills.each do |skill| %>
+            <tr>
+              <td style="color:var(--text-muted);"><%= skill.position %></td>
+              <td><%= link_to skill.name, admin_skill_path(skill) %></td>
+              <td><code style="font-size:12px;"><%= skill.slug %></code></td>
+              <td style="text-align:right;">
+                <% if skill.detections_count.to_i.positive? %>
+                  <span class="badge badge-success"><%= skill.detections_count %></span>
+                <% else %>
+                  <span style="color:var(--text-muted);">0</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
   </div>
 </div>
