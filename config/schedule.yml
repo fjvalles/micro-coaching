@@ -27,3 +27,8 @@ pause_inactive_participants:
   cron: "0 5 * * *"
   class: PauseInactiveParticipantsJob
   description: "Pause active participants with no inbound message in inactivity_pause_days days (an inbound reactivates them)"
+
+coach_session_reminder:
+  cron: "0 * * * *"
+  class: CoachSessionReminderJob
+  description: "Hourly: WhatsApp reminder for confirmed 1-1 coach sessions starting within coach_session_reminder_lead_hours"

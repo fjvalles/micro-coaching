@@ -54,6 +54,7 @@ Rails.application.routes.draw do
       get "resultado", to: "profit_loss#index", as: :profit_loss
       resources :payments, only: [ :index, :show ]
       resources :subscriptions, only: [ :index ]
+      resources :coach_sessions
 
       get "docs",           to: "docs#index",     as: :docs
       get "docs/strategy",  to: "docs#strategy",  as: :docs_strategy

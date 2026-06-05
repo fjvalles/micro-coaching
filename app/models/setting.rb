@@ -303,6 +303,11 @@ class Setting < ApplicationRecord
       description: "Backlog total (encolados + reintentos) que dispara alerta a Sentry en CapacityAlertJob. 0 = desactivado.",
       validate: ->(v) { v >= 0 || "debe ser >= 0" }
     },
+    "coach_session_reminder_lead_hours" => {
+      type: :integer, category: "program", default: 24,
+      description: "Horas de antelación con que CoachSessionReminderJob envía el recordatorio WhatsApp de una sesión 1-1 confirmada. 0 = no enviar recordatorios.",
+      validate: ->(v) { (0..168).cover?(v) || "debe estar entre 0 y 168" }
+    },
 
     # ── suscripciones (Webpay Oneclick) ──────────────────────────────────────
     "webpay_oneclick_enabled" => {
