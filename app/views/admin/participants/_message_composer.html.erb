@@ -1,0 +1,97 @@
+<%#
+  Reusable composer for admin manual sends. Locals:
+    templates  — Array of {name,label,variables} hashes
+    in_window  — Boolean; when false the free-text option is disabled (24h window closed)
+    scope      — DOM-unique string so multiple composers on a page don't collide (e.g. "single"/"broadcast")
+%>
+<% scope ||= "single" %>
+<% in_window = true if in_window.nil? %>
+
+<div class="msg-composer" data-scope="<%= scope %>">
+  <div style="display:flex; gap:16px; margin-bottom:12px;">
+    <label style="display:flex; align-items:center; gap:6px; font-size:14px; <%= "opacity:.5;" unless in_window %>">
+      <input type="radio" name="kind" value="text" data-kind="<%= scope %>"
+             <%= "checked" if in_window %> <%= "disabled" unless in_window %>>
+      Texto libre
+    </label>
+    <label style="display:flex; align-items:center; gap:6px; font-size:14px;">
+      <input type="radio" name="kind" value="template" data-kind="<%= scope %>" <%= "checked" unless in_window %>>
+      Plantilla
+    </label>
+  </div>
+
+  <% unless in_window %>
+    <p style="font-size:12px; color:var(--text-muted); margin:0 0 12px;">
+      Fuera de la ventana de 24h: WhatsApp solo permite enviar plantillas aprobadas.
+    </p>
+  <% end %>
+
+  <!-- Free text -->
+  <div data-panel="text-<%= scope %>" style="<%= "display:none;" unless in_window %>">
+    <textarea name="body" rows="4" placeholder="Escribe el mensaje…"
+              style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font-size:14px; resize:vertical;"></textarea>
+  </div>
+
+  <!-- Template -->
+  <div data-panel="template-<%= scope %>" style="<%= "display:none;" if in_window %>">
+    <% if templates.any? %>
+      <select name="template_name" data-template-select="<%= scope %>"
+              style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font-size:14px;">
+        <option value="">— Elige una plantilla —</option>
+        <% templates.each do |t| %>
+          <option value="<%= t["name"] %>" data-vars="<%= (t["variables"] || []).to_json %>">
+            <%= t["label"].presence || t["name"] %>
+          </option>
+        <% end %>
+      </select>
+      <div data-vars-area="<%= scope %>" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;"></div>
+    <% else %>
+      <p style="font-size:13px; color:var(--text-muted); margin:0;">
+        No hay plantillas configuradas. Agrégalas en
+        <a href="<%= admin_settings_path %>">Ajustes → admin_message_templates</a>.
+      </p>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var scope = "<%= scope %>";
+    var root  = document.querySelector('.msg-composer[data-scope="' + scope + '"]');
+    if (!root) return;
+
+    var textPanel = root.querySelector('[data-panel="text-' + scope + '"]');
+    var tplPanel  = root.querySelector('[data-panel="template-' + scope + '"]');
+    var select    = root.querySelector('[data-template-select="' + scope + '"]');
+    var varsArea  = root.querySelector('[data-vars-area="' + scope + '"]');
+
+    root.querySelectorAll('input[data-kind="' + scope + '"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        var isText = this.value === 'text';
+        if (textPanel) textPanel.style.display = isText ? '' : 'none';
+        if (tplPanel)  tplPanel.style.display  = isText ? 'none' : '';
+      });
+    });
+
+    if (select) {
+      select.addEventListener('change', function () {
+        varsArea.innerHTML = '';
+        var opt = this.options[this.selectedIndex];
+        var vars = [];
+        try { vars = JSON.parse(opt.getAttribute('data-vars') || '[]'); } catch (e) {}
+        vars.forEach(function (label, i) {
+          var wrap = document.createElement('label');
+          wrap.style.cssText = 'display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-muted);';
+          wrap.textContent = '{{' + (i + 1) + '}} ' + label;
+          var input = document.createElement('input');
+          input.type = 'text';
+          input.name = 'variables[]';
+          input.placeholder = label;
+          input.style.cssText = 'padding:8px; border:1px solid var(--border); border-radius:6px; font-size:14px; color:var(--text-main);';
+          wrap.appendChild(input);
+          varsArea.appendChild(wrap);
+        });
+      });
+    }
+  })();
+</script>

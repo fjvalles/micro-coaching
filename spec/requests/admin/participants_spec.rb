@@ -145,4 +145,48 @@ RSpec.describe "Admin::Participants", type: :request do
       expect(response).to redirect_to(admin_participant_path(participant))
     end
   end
+
+  describe "POST /admin/participants/:id/send_message" do
+    let!(:active) { create(:participant, program: program, status: :active) }
+
+    before do
+      Setting.set("response_mode", "auto")
+      allow_any_instance_of(Whatsapp::Client).to receive(:send_text).and_return(
+        Whatsapp::Client::Response.new(success?: true, wamid: "wamid.x")
+      )
+      create(:conversation, participant: active, role: :user, created_at: 1.hour.ago) # open 24h window
+    end
+
+    it "sends a free-text message and redirects with a notice" do
+      post "/admin/participants/#{active.id}/send_message", params: { kind: "text", body: "Hola directo" }
+      expect(response).to redirect_to(admin_participant_path(active))
+      expect(active.conversations.kept.where(moment: :admin_manual, body: "Hola directo")).to exist
+    end
+
+    it "redirects with an alert when out of the 24h window" do
+      Conversation.delete_all
+      post "/admin/participants/#{active.id}/send_message", params: { kind: "text", body: "Hola" }
+      expect(flash[:alert]).to include("ventana de 24h")
+    end
+  end
+
+  describe "POST /admin/participants/broadcast" do
+    let!(:a) { create(:participant, program: program, status: :active) }
+    let!(:b) { create(:participant, program: program, status: :active) }
+
+    it "enqueues a BroadcastMessageJob for the selected participants" do
+      expect {
+        post "/admin/participants/broadcast",
+             params: { participant_ids: [ a.id, b.id ], kind: "template", template_name: "bienvenida_piloto" }
+      }.to have_enqueued_job(BroadcastMessageJob)
+      expect(response).to redirect_to(admin_participants_path)
+    end
+
+    it "redirects with an alert when nothing is selected" do
+      expect {
+        post "/admin/participants/broadcast", params: { participant_ids: [], kind: "template", template_name: "t" }
+      }.not_to have_enqueued_job(BroadcastMessageJob)
+      expect(flash[:alert]).to be_present
+    end
+  end
 end

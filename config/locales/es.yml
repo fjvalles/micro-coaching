@@ -93,6 +93,9 @@ es:
           free_user: "Respuesta Libre (Usuario)"
           free_assistant: "Respuesta Libre (Asistente)"
           manifesto: "Manifiesto de Cierre"
+  errors:
+    messages:
+      confirmation: "no coincide con %{attribute}"
   date:
     formats:
       default: "%d/%m/%Y"
