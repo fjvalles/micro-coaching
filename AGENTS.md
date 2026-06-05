@@ -76,6 +76,7 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 | `PromptExecution` | `prompt_template_id`, `prompt_version_id`, `rendered_messages` (jsonb), `output_body`, tokens, latency |
 | `UnknownInbound` | `phone`, `wamid`, `message_type`, `body_preview`, `received_at` |
 | `MethodologyInsight` | `scope`, `payload` (jsonb), `generated_at`, `program_id` |
+| `CoachSession` | `participant_id`, `scheduled_at`, `duration_minutes`, `status` (scheduled/confirmed/completed/cancelled), `notes`, `reminder_sent_at` |
 
 All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `discard` gem for soft deletes — always scope with `.kept`.
 
