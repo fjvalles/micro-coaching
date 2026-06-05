@@ -114,6 +114,12 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/ops/CapacitySnapshot` — read-only Sidekiq/DB-pool/Redis capacity snapshot (graceful if Redis down); shared by `Admin::HealthController` and `CapacityAlertJob`
 - `app/services/webpay/Client` — Transbank Webpay Plus wrapper (`create`/`commit`) for one-time payments; honors `webpay_enabled` + `webpay_environment`
 - `app/services/webpay/OneclickClient` — Transbank Webpay Oneclick (Mall) wrapper: inscription (`start`/`finish`) + recurring `charge`; honors `webpay_oneclick_enabled` kill-switch
+- `app/services/skills/Importer` — parses `db/seeds/skills_source/*.txt` into the `Skill` catalog; idempotent upsert by slug (dedupe first-wins)
+- `app/services/skills/TextParser` — parses one skill `.txt` into structured sections; header matching by prefix
+- `app/services/skills/CoachingHint` — builds a coaching nudge for the participant's dominant skill (30d); injected into `FreeResponseGenerator` + `MorningMessageGenerator`
+- `app/services/openai/SkillTagger` — classifies an inbound message against the skill catalog (JSON mode); returns 0–3 skills with confidence; run via `TagConversationSkillsJob`
+- `app/services/openai/SkillCatalog` — builds the stable catalog prefix for the SkillTagger prompt (promotes prompt caching)
+- `app/services/outbound/AdminMessage` — sends a manual admin message (free text or template) to one participant; used by `SendAdminMessageJob` / `BroadcastMessageJob`
 
 ## Panel de Administración (Nativo)
 
