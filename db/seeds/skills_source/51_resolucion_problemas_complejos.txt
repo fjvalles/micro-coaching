@@ -1,0 +1,75 @@
+RESOLUCIÓN DE PROBLEMAS COMPLEJOS
+
+Definición
+La resolución de problemas complejos es la capacidad de enfrentar
+situaciones que no tienen una respuesta evidente, donde las variables
+son múltiples, la información es incompleta y las soluciones obvias
+suelen fallar. No es ser hábil en lo técnico ni tener mucha
+experiencia: es la disciplina de descomponer lo confuso en partes
+manejables, identificar lo que realmente está en juego y construir una
+salida cuando el camino no está señalizado.
+
+Por qué importa en el trabajo
+Sin esta habilidad, los profesionales se paralizan ante lo
+desconocido, atacan síntomas en lugar de causas o adoptan la primera
+solución que aparece sin haberla puesto a prueba. Lo que queda en
+manos humanas es justamente lo que no tiene receta.
+
+Señales de que te falta esta habilidad
+- "No sé por dónde empezar" frente a un problema nuevo.
+- Atacas síntomas sin entender la causa.
+- Adoptas la primera solución sin generar alternativas.
+- Confundes esfuerzo con avance.
+- Te frustras cuando no hay receta clara.
+
+Prácticas que ayudan a desarrollarla
+1. Reformular el problema: una pregunta bien hecha es media solución.
+2. Distinguir causas de síntomas: atacar el síntoma alivia, atacar la
+   causa resuelve.
+3. Generar varias hipótesis: comprometerte con una sin haber
+   considerado otras es atajo.
+4. Probar con bajo costo: experimentos pequeños te dan información
+   sin riesgo.
+5. Revisar después: los problemas complejos enseñan más cuando se
+   analizan al cierre.
+
+Gestos cotidianos
+- Definir bien el problema antes de proponer soluciones.
+- Separar los hechos de las interpretaciones.
+- Identificar las variables clave.
+- Contrastar hipótesis antes de actuar.
+- Descomponer un problema grande en partes.
+- Probar pequeño antes de comprometerte con una solución completa.
+
+Trampa frecuente
+Confundir esfuerzo con avance. Algunos pelean solos con problemas
+complejos sin pedir ayuda ni replantear el enfoque. La resolución real
+combina rigor con humildad para sumar miradas.
+
+Ejercicios para desarrollarla
+
+Ejercicio 1 — La pregunta replanteada
+Toma un problema actual. Reescribe la pregunta original en cinco
+formas distintas. Mira si alguna abre nuevas opciones.
+
+Ejercicio 2 — Las tres hipótesis
+Antes de actuar sobre un problema, anota tres hipótesis distintas
+sobre su causa. Diseña un experimento mínimo para descartar al menos
+una.
+
+Ejercicio 3 — La mirada externa
+Invita a alguien fuera del equipo a opinar sobre tu problema. No para
+resolverlo, sino para mirarlo desde otro ángulo.
+
+Preguntas de reflexión
+1. ¿Qué problema actual estás tratando de resolver con soluciones
+   repetidas, sin haber detenido a replantear si la pregunta original
+   está bien formulada?
+2. ¿Qué hipótesis estás dando por correcta sin haberla puesto a
+   prueba con un experimento pequeño?
+3. ¿A quién podrías sumar a este problema —no para que lo resuelva,
+   sino para que lo mire desde otro ángulo— y aún no lo has invitado?
+
+Resumen en una frase
+Resolver problemas complejos no es saber más, es preguntar mejor
+antes de proponer.

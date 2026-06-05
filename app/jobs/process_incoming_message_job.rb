@@ -102,9 +102,20 @@ class ProcessIncomingMessageJob < ApplicationJob
     when :checkin_response
       inbound.update!(moment: :checkin_response)
       handle_checkin(participant, text, voice_analysis: voice_analysis)
+      enqueue_skill_tagging(inbound)
     else
       handle_free(participant, text, voice_analysis: voice_analysis)
+      enqueue_skill_tagging(inbound)
     end
+  end
+
+  # Async detection of the participant's human skills in this inbound. Gated +
+  # idempotent inside the job; the reply is already on its way, so this adds no
+  # latency. Initial-pattern answers are skipped (not coachable conversation yet).
+  def enqueue_skill_tagging(conversation)
+    return unless Setting.fetch("skill_tagging_enabled")
+
+    TagConversationSkillsJob.perform_later(conversation.id)
   end
 
   def handle_checkin(participant, text, voice_analysis: nil)

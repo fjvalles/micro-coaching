@@ -208,6 +208,13 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 - **Regla.** `Whatsapp::Client` reintenta 3× con backoff exponencial en 429 y 5xx. Callers no envuelven en retry.
 - **Enforce.** `app/services/whatsapp/client.rb`.
 
+### 8.6 Envío manual desde el panel (admin)
+- **Regla.** El admin puede enviar un mensaje a un participante (individual, en `/admin/participants/:id`) o a varios seleccionados (masivo, desde el índice) — texto libre o una plantilla curada. Todo pasa por `Outbound::AdminMessage`, que despacha vía `Outbound::Dispatcher` con `mode: "auto"` (el admin **es** el revisor humano, nunca encola un `PendingResponse`) y `moment: :admin_manual`.
+- **24h.** El texto libre solo se envía si `participant.in_24h_window?`; fuera de ventana se omite (`skipped_reason: :outside_24h_window`) y la UI deshabilita la opción. Las plantillas se envían siempre. Mismo invariante que §8.1 — no se elude la política Meta.
+- **Masivo.** `broadcast` encola `BroadcastMessageJob`, que hace fan-out a un `SendAdminMessageJob` por participante (patrón fan-out, no loop en el request). Cada job reaplica la guarda de 24h: el texto fuera de ventana se omite por participante, las plantillas llegan a todos. No es idempotente a propósito (el admin puede reenviar).
+- **Plantillas curadas.** El selector se llena desde el Setting `admin_message_templates` (JSON: `[{name, label, variables}]`, donde `variables` son los nombres ordenados de los placeholders `{{n}}` del cuerpo). Vacío = solo texto libre. No hay registro central de plantillas Meta; esta lista es la fuente para el panel.
+- **Enforce.** `app/services/outbound/admin_message.rb`, `app/jobs/broadcast_message_job.rb`, `app/jobs/send_admin_message_job.rb`, `Admin::ParticipantsController#send_message`/`#broadcast`.
+
 ---
 
 ## 9. Idempotencia de jobs
@@ -481,6 +488,29 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 ### 23.2 Fuente única de costos
 - **Regla.** El cálculo de costos USD (precios OpenAI por modelo + prorrateo de costos fijos) vive solo en `Finances::CostCalculator`; tanto Finanzas como Resultado lo consumen.
 - **Por qué.** Evita que las dos vistas diverjan en precios o en la matemática de prorrateo.
+
+---
+
+## 24. Detección de habilidades y coaching personalizado
+
+Catálogo de **habilidades humanas del participante** (no de la IA): 82 competencias de liderazgo/gestión/personales (escucha activa, manejo de conflictos, acción imperfecta, etc.), cada una con definición, señales, prácticas, gestos, ejercicios y preguntas de reflexión.
+
+### 24.1 Catálogo (`Skill`)
+- **Regla.** El catálogo se importa desde `db/seeds/skills_source/*.txt` vía `Skills::Importer` (parser `Skills::TextParser`). Slug derivado del nombre de archivo (sin prefijo numérico); upsert idempotente; en colisión de slug gana el archivo de menor número (ej.: dos variantes de `paciencia_intelectual` → 82 únicas de 83 archivos).
+- **Enforce.** `app/services/skills/importer.rb`, `app/services/skills/text_parser.rb`, `db/seeds/skills.rb`. Vista admin `/admin/skills`.
+
+### 24.2 Detección (`SkillTagger` + `TagConversationSkillsJob`)
+- **Regla.** Tras cada mensaje entrante de **check-in** o **chat libre**, `TagConversationSkillsJob` (async) corre `Openai::SkillTagger`: el modelo clasifica el texto contra el catálogo (slug + señales, modo JSON) y devuelve 0–3 habilidades con confianza. Cada una sobre `skill_tagging_min_confidence` se persiste como `SkillDetection` (participante + conversación + skill + origen).
+- **Por qué.** Las "señales de que te falta X" de cada habilidad son cues etiquetados; el catálogo va como prefijo estable del system prompt para aprovechar prompt caching (patrón `ProgramManifesto`). Async para no añadir latencia a la respuesta.
+- **Idempotencia.** Si la conversación ya tiene detecciones, se omite; índice único `[conversation_id, skill_id]` ante re-entrega de webhook.
+- **Kill-switch.** `skill_tagging_enabled` (default true). Sin catálogo sembrado, el tagger no llama a OpenAI.
+- **Enforce.** `app/jobs/tag_conversation_skills_job.rb`, `app/services/openai/skill_tagger.rb`, `app/services/openai/skill_catalog.rb`, hook en `app/jobs/process_incoming_message_job.rb` (`enqueue_skill_tagging`).
+
+### 24.3 Coaching personalizado (`Skills::CoachingHint`)
+- **Regla.** Los mensajes generativos (respuesta libre + matinal) inyectan una sugerencia de coaching sobre la **habilidad dominante** del participante: la más detectada en los últimos 30 días. La sugerencia incluye una práctica, un gesto y un micro-ejercicio del catálogo, con instrucción de integrarlo con naturalidad (no nombrarlo como "habilidad detectada").
+- **Por qué.** Cierra el loop: la conversación N detecta la habilidad → la conversación N+1 coachea sobre ella de forma concreta en vez de genérica.
+- **Kill-switch.** `skill_coaching_injection_enabled` (default true).
+- **Enforce.** `app/services/skills/coaching_hint.rb`, inyección en `Openai::FreeResponseGenerator#system_prompt` y `Openai::MorningMessageGenerator#system_prompt`. Perfil por participante en `/admin/participants/:id` y `/admin/skills`.
 
 ---
 

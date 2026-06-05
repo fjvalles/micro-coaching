@@ -412,6 +412,27 @@
       </div>
     </div>
 
+    <!-- Perfil de habilidades -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-header">
+        <h3 class="card-title">Habilidades dominantes (últimos 30 días)</h3>
+      </div>
+      <div class="card-body">
+        <% if @dominant_skills.present? %>
+          <p style="color:var(--text-muted); font-size:13px; margin-top:0;">
+            Competencias humanas más detectadas en sus conversaciones. La más frecuente se refuerza en sus mensajes generativos.
+          </p>
+          <% @dominant_skills.each_with_index do |skill, i| %>
+            <%= link_to skill.name, admin_skill_path(skill),
+                  class: "badge #{i.zero? ? 'badge-success' : 'badge-neutral'}",
+                  style: "margin:2px 4px 2px 0; display:inline-block;" %>
+          <% end %>
+        <% else %>
+          <p style="color:var(--text-muted); font-size:13px; margin:0;">Sin habilidades detectadas todavía.</p>
+        <% end %>
+      </div>
+    </div>
+
     <!-- Conversaciones (Messages) -->
     <div class="card" style="margin-bottom: 0;">
       <div class="card-header">
@@ -456,8 +477,31 @@
     </div>
   </div>
 
-  <!-- Sidebar: Daily Reports -->
-  <div>
+  <!-- Sidebar: Send message + Daily Reports -->
+  <div style="display:flex; flex-direction:column; gap:32px;">
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-header">
+        <h3 class="card-title">Enviar mensaje</h3>
+      </div>
+      <div class="card-body">
+        <% if @participant.active? %>
+          <%= form_with url: send_message_admin_participant_path(@participant), method: :post, local: true do %>
+            <%= render "message_composer",
+                       templates: @message_templates,
+                       in_window: @participant.in_24h_window?,
+                       scope: "single" %>
+            <button type="submit" class="btn btn-primary" style="margin-top:14px; width:100%;">
+              Enviar ahora
+            </button>
+          <% end %>
+        <% else %>
+          <p style="font-size:13px; color:var(--text-muted); margin:0;">
+            Solo se puede enviar mensajes a participantes activos.
+          </p>
+        <% end %>
+      </div>
+    </div>
+
     <div class="card" style="margin-bottom: 0; position: sticky; top: 100px;">
       <div class="card-header">
         <h3 class="card-title">Reportes Diarios (Últimos 10)</h3>

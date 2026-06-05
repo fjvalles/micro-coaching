@@ -1,0 +1,75 @@
+GESTIÓN DE PROYECTOS
+
+Definición
+La gestión de proyectos es la capacidad de llevar una idea o un
+objetivo desde su inicio hasta su entrega, coordinando personas,
+recursos, plazos y riesgos para que el resultado se cumpla con la
+calidad esperada y dentro de las restricciones reales. No es solo
+armar un cronograma: es mantener viva la mirada del conjunto mientras
+se ejecuta el detalle.
+
+Por qué importa en el trabajo
+Sin esta habilidad, los proyectos avanzan en piloto automático, los
+plazos se rompen, los costos se desbordan y los equipos terminan
+trabajando con mucho esfuerzo en algo que nadie está seguro de que
+vaya a llegar bien.
+
+Señales de que te falta gestión de proyectos
+- "Estamos avanzando, pero no sé si lo lograremos a tiempo".
+- No tienes una sola fuente de verdad del estado.
+- Los riesgos viven en tu cabeza, no documentados.
+- Te enteras tarde de los problemas.
+- Cierras proyectos sin retrospectiva.
+
+Prácticas que ayudan a desarrollarla
+1. Acordar criterios de éxito al inicio: ¿qué tiene que pasar para
+   que esto se considere bien hecho?
+2. Tener una sola fuente de verdad del estado del proyecto, accesible
+   para el equipo.
+3. Hacer ritmos cortos de revisión —semanales o quincenales— en lugar
+   de uno largo al final.
+4. Anticipar riesgos por escrito, no solo en la cabeza.
+5. Documentar decisiones clave, porque la memoria humana es flexible.
+6. Cerrar formalmente con una retrospectiva.
+
+Gestos cotidianos
+- Definir bien el alcance antes de empezar.
+- Identificar a los actores clave y qué espera cada uno.
+- Descomponer el proyecto en hitos verificables.
+- Anticipar riesgos sin dramatizar.
+- Hacer seguimiento sin asfixiar al equipo.
+- Comunicar el estado real con honestidad.
+- Renegociar a tiempo cuando algo se desvía.
+
+Trampa frecuente
+Empujar más fuerte cuando lo que se necesita es replantear. A veces el
+problema no está en la ejecución, sino en un alcance mal acordado
+desde el inicio.
+
+Ejercicios para desarrollarla
+
+Ejercicio 1 — El acta de inicio
+Para tu próximo proyecto, redacta una nota corta con: alcance, criterios
+de éxito, plazos, riesgos. Compártela y haz que se confirme.
+
+Ejercicio 2 — El ritmo corto
+Implementa una revisión semanal de 30 minutos donde se revise estado
+real, riesgos y próximos pasos. No la canceles bajo ningún motivo.
+
+Ejercicio 3 — La retrospectiva
+Al cierre del próximo hito importante, dedica una hora con el equipo a
+analizar: qué funcionó, qué no, qué cambia desde hoy.
+
+Preguntas de reflexión
+1. En tu proyecto actual, ¿están claros los criterios de éxito, o cada
+   parte involucrada tiene una versión distinta de qué significa que
+   esto salga bien?
+2. ¿Qué riesgo del proyecto estás manteniendo solo en tu cabeza y no
+   has hecho explícito al equipo o al cliente?
+3. ¿Cuándo fue la última vez que revisaste el estado real del proyecto
+   sin maquillarlo, comparándolo con lo que efectivamente se necesita
+   entregar?
+
+Resumen en una frase
+Gestionar proyectos no es controlar más, es mantener la mirada del
+conjunto mientras se ejecuta el detalle.

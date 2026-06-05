@@ -23,6 +23,10 @@ Rails.application.routes.draw do
           post :enroll
           post :discard
           post :undiscard
+          post :send_message
+        end
+        collection do
+          post :broadcast
         end
       end
       resources :prompt_templates, only: [ :index, :show, :edit, :update ] do
@@ -54,6 +58,7 @@ Rails.application.routes.draw do
       get "resultado", to: "profit_loss#index", as: :profit_loss
       resources :payments, only: [ :index, :show ]
       resources :subscriptions, only: [ :index ]
+      resources :skills, only: [ :index, :show ]
       resources :coach_sessions
 
       get "docs",           to: "docs#index",     as: :docs

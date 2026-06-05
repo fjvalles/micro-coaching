@@ -1,0 +1,74 @@
+PENSAMIENTO ANALÍTICO (SEPARAR SEÑAL DE RUIDO)
+
+Definición
+El pensamiento analítico es la capacidad de mirar mucha información,
+identificar lo que realmente importa y descartar lo que solo distrae.
+No es procesar más datos ni hacer hojas de cálculo más complejas: es
+la disciplina de distinguir la señal —lo que cambia el diagnóstico, lo
+que mueve la decisión— del ruido —lo llamativo, lo abundante, lo que
+parece importante pero no lo es.
+
+Por qué importa en el trabajo
+Sin esta habilidad, los equipos quedan abrumados por información, las
+reuniones se llenan de datos sin conclusión y las decisiones se toman
+sobre lo más visible, no sobre lo más relevante. El analítico fuerte
+no se impresiona con la abundancia, se entrena para encontrar lo
+esencial.
+
+Señales de que te falta pensamiento analítico
+- "Tenemos muchos datos pero no sabemos qué hacer con ellos".
+- Te impresionas con cifras que no afectan la decisión.
+- Confundes lo dramático con lo significativo.
+- Confundes correlación con causalidad.
+- Te pierdes en el detalle antes de definir la pregunta.
+
+Prácticas que ayudan a desarrollarlo
+1. Definir la pregunta antes que mirar el dato: sin pregunta, todo
+   dato parece relevante.
+2. Buscar lo que cambiaría tu decisión: si un dato no la cambia, es
+   ruido.
+3. Comparar con magnitudes relativas: un número solo no dice nada,
+   dice algo cuando se compara.
+4. Sospechar de los datos extremos y de los que confirman demasiado
+   bien lo que ya creías.
+5. Resumir en una frase la conclusión: si no puedes, aún no la tienes.
+
+Gestos cotidianos
+- Definir antes de revisar un informe qué pregunta quieres responder.
+- Distinguir tendencias reales de variaciones puntuales.
+- No confundir lo dramático con lo significativo.
+- Separar correlación de causalidad.
+- Identificar la variable crítica antes de discutir todas.
+- Descartar datos que no influyen en la decisión.
+
+Trampa frecuente
+Confundir profundidad con dispersión. Algunos analistas creen que más
+datos es mejor análisis. La realidad es lo contrario: el buen análisis
+descarta más de lo que retiene.
+
+Ejercicios para desarrollar pensamiento analítico
+
+Ejercicio 1 — La pregunta antes del dato
+Antes de tu próximo análisis, escribe en una hoja: ¿qué pregunta
+quiero responder? Si no puedes, no empieces aún.
+
+Ejercicio 2 — La señal o ruido
+Toma tu próximo informe y clasifica cada dato en señal (cambia la
+decisión) o ruido (no la cambia). Elimina los segundos.
+
+Ejercicio 3 — La conclusión en una frase
+Tras tu próximo análisis, escribe la conclusión en una sola frase.
+Si te toma más de dos intentos, todavía no está clara.
+
+Preguntas de reflexión
+1. En tu última decisión, ¿qué dato fue realmente la señal, y cuántos
+   otros eran ruido que solo te tomaron tiempo?
+2. ¿Qué pregunta clara estás tratando de responder con el próximo
+   análisis? Si no la tienes, ¿qué pasa si la formulas antes de
+   empezar?
+3. ¿Qué información estás revisando recurrentemente que en realidad
+   nunca cambia tu decisión final?
+
+Resumen en una frase
+Analizar bien no es revisar todos los datos, es saber cuál descartar
+para encontrar el que importa.

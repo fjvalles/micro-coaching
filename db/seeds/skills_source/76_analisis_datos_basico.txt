@@ -1,0 +1,76 @@
+ANÁLISIS DE DATOS BÁSICO
+
+Definición
+El análisis de datos básico es la capacidad de tomar información
+cuantitativa, ordenarla, leerla con sentido y extraer conclusiones
+útiles para tomar mejores decisiones. No es ser experto en estadística:
+es la disciplina mínima de no decidir solo por intuición cuando los
+datos están a la mano, y de saber leer una planilla, un dashboard o
+un reporte sin perderte ni dejarte engañar.
+
+Por qué importa en el trabajo
+Sin esta habilidad, los profesionales toman decisiones a ciegas en un
+mundo cada vez más medido, pierden la oportunidad de detectar problemas
+a tiempo y dependen de otros para entender qué dicen los números de
+su propio trabajo.
+
+Señales de que te falta análisis de datos básico
+- "Los datos no son lo mío".
+- No sabes leer un dashboard de tu propia área.
+- Confundes total con promedio.
+- Aceptas un dato sin revisar fuente o contexto.
+- Decides por intuición cuando hay información disponible.
+
+Prácticas que ayudan a desarrollarlo
+1. Definir la pregunta antes que mirar el dato: sin pregunta, todo
+   dato parece relevante.
+2. Comparar con un referente: un número solo no dice nada, dice algo
+   cuando se compara.
+3. Distinguir absoluto de relativo: "subió 100 unidades" pesa distinto
+   si la base son mil o un millón.
+4. Sospechar de datos extremos y revisar la fuente.
+5. Dominar bien una herramienta básica —Excel, Google Sheets— antes
+   de saltar a las avanzadas.
+
+Gestos cotidianos
+- Ordenar la información antes de interpretarla.
+- Comparar con un período anterior antes de juzgar un número actual.
+- Calcular un porcentaje de variación.
+- Distinguir total de promedio.
+- Separar señal de ruido.
+- Leer un gráfico antes de citarlo.
+- Hacer preguntas a los datos en lugar de aceptarlos como dados.
+- Validar el origen del dato antes de usarlo.
+
+Trampa frecuente
+Confundir "no es lo mío" con "no he querido aprender". La falta de
+análisis muchas veces no es falta de talento, es haber evitado la
+zona de incomodidad.
+
+Ejercicios para desarrollarlo
+
+Ejercicio 1 — La pregunta antes del dato
+Antes de tu próximo análisis, escribe en una hoja: ¿qué pregunta
+quiero responder? Si no puedes, no empieces aún.
+
+Ejercicio 2 — El indicador propio
+Identifica un indicador clave de tu trabajo que no entiendas del
+todo. Pídele a alguien que te lo explique hasta que puedas explicarlo
+tú.
+
+Ejercicio 3 — La comparación útil
+Toma un número actual de tu trabajo. Compáralo con el del mes anterior
+y con el del año anterior. Anota qué cambió y qué hipótesis tienes.
+
+Preguntas de reflexión
+1. ¿Qué decisión reciente tomaste por intuición cuando había datos
+   disponibles que podrías haber revisado en menos de una hora?
+2. ¿Qué dato clave de tu trabajo —indicador, número, métrica— sigues
+   sin entender bien y dependes de que otro te lo explique?
+3. ¿Qué pregunta concreta podrías hacerle esta semana a una planilla
+   o reporte que ya tienes a la mano, y que cambiaría tu forma de
+   mirar tu trabajo?
+
+Resumen en una frase
+Saber leer datos básicos no es ser analista, es no decidir a ciegas
+cuando los números están a tu alcance.

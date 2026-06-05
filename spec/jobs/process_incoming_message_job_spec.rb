@@ -54,6 +54,27 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
     expect(participant.conversations.where(role: :assistant).count).to eq(1)
   end
 
+  it "enqueues skill tagging for the inbound free message" do
+    allow_any_instance_of(Openai::FreeResponseGenerator).to receive(:call).and_return(
+      Openai::FreeResponseGenerator::Result.new(body: "r", prompt_used: "p", tokens_input: 1, tokens_output: 1, model: "m")
+    )
+    participant
+    expect {
+      described_class.new.perform(text_payload(text: "hola"))
+    }.to have_enqueued_job(TagConversationSkillsJob)
+  end
+
+  it "does not enqueue skill tagging when the kill-switch is off" do
+    Setting.set("skill_tagging_enabled", false)
+    allow_any_instance_of(Openai::FreeResponseGenerator).to receive(:call).and_return(
+      Openai::FreeResponseGenerator::Result.new(body: "r", prompt_used: "p", tokens_input: 1, tokens_output: 1, model: "m")
+    )
+    participant
+    expect {
+      described_class.new.perform(text_payload(text: "hola"))
+    }.not_to have_enqueued_job(TagConversationSkillsJob)
+  end
+
   def audio_payload(from: "5215551234567", media_id: "MID-1")
     {
       "entry" => [ { "changes" => [ { "value" => { "messages" => [

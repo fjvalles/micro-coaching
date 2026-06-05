@@ -1,0 +1,73 @@
+RESILIENCIA OPERATIVA
+
+Definición
+La resiliencia operativa es la capacidad de un equipo o de un líder para
+mantener la operación funcionando frente a imprevistos —fallas, cambios
+de alcance, ausencias, crisis externas—, recuperarse rápido y aprender
+del incidente para que la próxima vez duela menos. No es resistir
+estoicamente cualquier golpe: es diseñar antes, responder bien durante
+y aprender después.
+
+Por qué importa en el trabajo
+Sin esta habilidad, cada imprevisto se vive como una crisis aislada y el
+equipo se desgasta apagando los mismos incendios una y otra vez. Esa
+robustez no se ve cuando todo va bien: se ve cuando algo falla y el
+equipo sigue funcionando.
+
+Señales de que falta resiliencia operativa
+- "Siempre estamos al límite" se vuelve frase común.
+- Cualquier desviación menor se convierte en problema mayor.
+- Los procesos dependen de una sola persona.
+- No hay planes de contingencia escritos.
+- Los incidentes se apagan, pero no se aprende de ellos.
+
+Prácticas que ayudan a desarrollarla
+1. Diseñar para fallar bien: preguntarte qué pasa si esto se cae, y
+   tener una respuesta básica preparada.
+2. Tener planes B explícitos en los puntos críticos, no solo en la
+   cabeza del líder.
+3. Hacer revisiones post-incidente: qué falló, por qué, qué cambia desde
+   hoy.
+4. Cuidar los márgenes humanos: un equipo agotado no resiste imprevistos,
+   los amplifica.
+5. Documentar procesos para que no dependan de una sola persona.
+
+Gestos cotidianos
+- Dejar márgenes en los plazos.
+- No comprometer al 100% de la capacidad del equipo.
+- Anticipar los riesgos típicos antes de que ocurran.
+- Definir qué hacer cuando alguien falte.
+- Mantener una visión clara del estado real —no del idealizado— de la
+  operación.
+
+Trampa frecuente
+Confundir heroísmo individual con sistema robusto. Algunos equipos
+parecen resilientes porque hay personas que se sacrifican en silencio.
+La resiliencia genuina viene del diseño, no del sobreesfuerzo.
+
+Ejercicios para desarrollar resiliencia operativa
+
+Ejercicio 1 — El simulacro mental
+Una vez al mes, reúne al equipo y pregunten: "¿qué pasa si X se cae
+mañana?". Diseñen la respuesta ahora, no cuando ocurra.
+
+Ejercicio 2 — La revisión post-incidente
+Tras el próximo problema operativo, dedica 30 minutos con el equipo a
+analizar: qué falló, por qué, qué cambia desde hoy. Documenten el
+aprendizaje.
+
+Ejercicio 3 — El proceso documentado
+Identifica un proceso que solo una persona sabe hacer. Pídele que lo
+documente o haga un instructivo. Pruébenlo con otro miembro del equipo.
+
+Preguntas de reflexión
+1. ¿Qué proceso crítico de tu operación caería si la persona clave se
+   ausentara dos semanas? ¿Qué falta para que no fuera así?
+2. ¿Qué incidente reciente no aprovechaste para aprender, y se quedó
+   solo en haberlo apagado?
+3. ¿Cuánta de la resiliencia actual de tu equipo viene del diseño, y
+   cuánta del sobreesfuerzo silencioso de las personas?
+
+Resumen en una frase
+Resiliencia no es aguantar el golpe, es diseñar la operación para que
+el golpe no la rompa.

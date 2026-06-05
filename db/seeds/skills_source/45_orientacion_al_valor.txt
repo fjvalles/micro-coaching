@@ -1,0 +1,77 @@
+ORIENTACIÓN AL VALOR
+
+Definición
+La orientación al valor es la capacidad de mantener siempre presente,
+en cada decisión y en cada esfuerzo, la pregunta de fondo: ¿esto que
+estoy haciendo realmente aporta valor a quien lo recibe? No es
+eficiencia operativa ni cumplimiento de metas: es la disciplina de
+distinguir entre actividad y aporte real, entre estar ocupado y estar
+generando algo que la otra parte necesita y reconoce.
+
+Por qué importa en el trabajo
+Sin esta habilidad, los proyectos se llenan de tareas que no mueven la
+aguja, los entregables crecen en volumen pero no en utilidad y los
+equipos terminan ejecutando bien cosas que no debieron hacerse. Esa
+mirada filtra lo accesorio y concentra la energía en lo que de verdad
+importa.
+
+Señales de que te falta orientación al valor
+- "Estamos haciendo mucho pero no sé si está sirviendo".
+- Produces entregables por costumbre, no por demanda real.
+- Tu equipo está ocupado, pero el cliente no nota la diferencia.
+- Métricas internas que no se conectan con impacto real.
+- Reuniones sin decisión que se siguen haciendo porque "siempre se
+  han hecho".
+
+Prácticas que ayudan a desarrollarla
+1. Definir al receptor del valor: ¿para quién hago esto?
+2. Distinguir actividad de impacto: lo primero se mide en horas, lo
+   segundo en consecuencias.
+3. Eliminar lo que no agrega: un buen filtro es preguntarse "¿qué
+   pasa si esto no se hace?".
+4. Revisar entregables tradicionales: muchos siguen produciéndose por
+   inercia.
+5. Conectar la métrica con la decisión real que habilita.
+
+Gestos cotidianos
+- Empezar un análisis preguntando para qué se va a usar.
+- Cuestionar un entregable que solo cumple un trámite.
+- Reducir un informe largo a su versión útil.
+- Eliminar reuniones que no producen decisión.
+- Defender el foco del equipo cuando aparece una solicitud que no
+  aporta.
+- Traducir una métrica interna en impacto real para quien la recibe.
+
+Trampa frecuente
+Confundir esfuerzo con utilidad. Algunos creen que trabajar duro es
+sinónimo de aportar valor. La realidad es que se puede trabajar mucho
+produciendo poco impacto.
+
+Ejercicios para desarrollar orientación al valor
+
+Ejercicio 1 — El filtro del valor
+En tu próxima reunión de planificación, para cada tarea pregunta:
+"¿qué pasa si esto no se hace?". Si la respuesta es "nada importante",
+descártala.
+
+Ejercicio 2 — El receptor explícito
+Antes de empezar tu próximo entregable, escribe: ¿para quién es esto y
+qué decisión va a habilitar? Si no puedes responder, replantea el
+trabajo.
+
+Ejercicio 3 — La auditoría del entregable
+Toma un entregable recurrente. Pregúntate: ¿alguien lo usa todavía?
+¿Cómo cambia si dejara de producirse? Toma la decisión.
+
+Preguntas de reflexión
+1. De todo lo que tu equipo está haciendo este mes, ¿qué es lo que de
+   verdad mueve la aguja para quien lo recibe?
+2. ¿Qué tarea o entregable llevas tiempo produciendo por costumbre,
+   sin estar seguro de que aún aporta valor?
+3. Si tuvieras que justificar el valor de tu trabajo de la última
+   semana ante quien lo recibe, ¿qué le mostrarías y qué quedaría
+   afuera?
+
+Resumen en una frase
+Orientarse al valor no es trabajar más, es asegurarte de que lo que
+haces sea lo que de verdad necesita quien lo recibe.

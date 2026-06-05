@@ -1,0 +1,70 @@
+RIGUROSIDAD
+
+Definición
+La rigurosidad es la disciplina de hacer las cosas bien hasta el último
+detalle. No es perfeccionismo paralizante: es la capacidad de no soltar el
+problema antes de que esté realmente resuelto, revisando el cálculo,
+contrastando el dato, verificando la fuente.
+
+Por qué importa en el trabajo
+Sin rigurosidad, los proyectos avanzan sobre supuestos no verificados, y
+los supuestos terminan en errores costosos, retrabajos o decisiones mal
+informadas. Un líder riguroso no es el más perfeccionista, sino el que
+distingue dónde el detalle es crítico y no transa allí.
+
+Señales de que te falta rigurosidad
+- Firmas entregables sin haberlos leído completos.
+- Aceptas datos sin pedir la fuente.
+- Aceptas el "más o menos está" cuando se necesita exactitud.
+- No dejas registro de los supuestos usados en una decisión.
+- Te enteras tarde de errores que pudieron evitarse con una revisión.
+
+Prácticas que ayudan a desarrollarla
+1. Definir qué es "estar listo": criterios claros de cierre antes de
+   declarar terminada una etapa.
+2. Trazar lo importante: lo que no queda registrado, no existe.
+3. Revisar con ojos frescos: dejar reposar un entregable antes de
+   validarlo.
+4. Predicar con el ejemplo: el equipo copia tu nivel de exigencia, no
+   tu discurso.
+5. Reconocer un error tuyo y corregirlo a tiempo.
+
+Gestos cotidianos
+- Revisar un plano antes de firmarlo.
+- Pedir la memoria de cálculo y leerla.
+- Comprobar que el procedimiento se cumplió.
+- No aprobar un avance "de palabra".
+- Documentar lo que se acordó.
+- Contrastar la norma vigente en lugar de citar la que recuerdas.
+
+Trampa frecuente
+Confundir rigurosidad con perfeccionismo. La rigurosidad sabe dónde el
+detalle es crítico y dónde no. El perfeccionismo trata todo como crítico
+y termina paralizando.
+
+Ejercicios para desarrollar rigurosidad
+
+Ejercicio 1 — La definición de "listo"
+Antes de empezar tu próxima tarea importante, define en una hoja: ¿cuándo
+voy a poder decir que esto está listo? Escribe los criterios. Cierra solo
+cuando se cumplan todos.
+
+Ejercicio 2 — La revisión con ojos frescos
+Cuando termines un entregable importante, déjalo reposar 24 horas antes
+de enviarlo. Vuélvelo a leer. Anota qué encuentras.
+
+Ejercicio 3 — El registro de supuestos
+En tu próximo análisis o decisión, deja por escrito los tres supuestos
+clave en los que se basa. Si alguno falla, sabrás dónde está la
+vulnerabilidad.
+
+Preguntas de reflexión
+1. ¿Qué entregable firmaste recientemente sin haberlo revisado con la
+   profundidad que merecía? ¿Qué te jugabas ahí?
+2. ¿Dónde estás aceptando "más o menos" cuando el trabajo exige "exacto"?
+   ¿Qué consecuencia silenciosa tiene esa tolerancia?
+3. ¿Qué proceso de tu equipo no tiene un criterio claro de cierre, y cómo
+   podrías definirlo esta semana?
+
+Resumen en una frase
+Ser riguroso no es revisar todo, es saber dónde no transar en el detalle.

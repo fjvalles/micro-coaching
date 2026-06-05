@@ -16,6 +16,7 @@ class Participant < ApplicationRecord
   has_many :conversations, dependent: :destroy
   has_many :daily_reports, dependent: :destroy
   has_many :pending_responses, dependent: :destroy
+  has_many :skill_detections, dependent: :destroy
 
   validates :name, presence: true
   validates :phone_e164, presence: true, uniqueness: true,
@@ -53,6 +54,17 @@ class Participant < ApplicationRecord
 
   def latest_report
     @latest_report ||= daily_reports.order(reported_at: :desc).first
+  end
+
+  # Human skills most frequently detected for this participant in a recent window,
+  # ordered by detection frequency. Drives the admin skill profile.
+  def dominant_skills(limit: 5, since: 30.days.ago)
+    ordered_ids = skill_detections.since(since)
+                                  .group(:skill_id)
+                                  .order(Arel.sql("COUNT(*) DESC"))
+                                  .limit(limit).pluck(:skill_id)
+    by_id = Skill.where(id: ordered_ids).index_by(&:id)
+    ordered_ids.filter_map { |id| by_id[id] }
   end
 
   def local_time(now = Time.current)

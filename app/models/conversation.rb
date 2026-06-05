@@ -3,6 +3,7 @@ class Conversation < ApplicationRecord
 
   belongs_to :participant
   has_many :pending_responses, dependent: :destroy
+  has_many :skill_detections, dependent: :destroy
 
   enum :moment, {
     welcome: 0,
@@ -12,7 +13,8 @@ class Conversation < ApplicationRecord
     checkin_response: 4,
     free_user: 5,
     free_assistant: 6,
-    manifesto: 7
+    manifesto: 7,
+    admin_manual: 8
   }
 
   enum :role, { user: 0, assistant: 1, system: 2 }

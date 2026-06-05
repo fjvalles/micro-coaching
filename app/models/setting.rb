@@ -70,6 +70,23 @@ class Setting < ApplicationRecord
       type: :integer, category: "openai", default: 600,
       description: "max_tokens del manifiesto de cierre del día 15."
     },
+    "openai_max_tokens_skill_tagging" => {
+      type: :integer, category: "openai", default: 200,
+      description: "max_tokens del etiquetado de habilidades (SkillTagger, modo JSON)."
+    },
+    "skill_tagging_enabled" => {
+      type: :boolean, category: "openai", default: true,
+      description: "Kill-switch: si es true, TagConversationSkillsJob detecta habilidades del participante en cada mensaje de check-in/libre. Sin catálogo de habilidades sembrado no llama a OpenAI."
+    },
+    "skill_tagging_min_confidence" => {
+      type: :float, category: "openai", default: 0.55,
+      description: "Confianza mínima (0.0–1.0) para persistir una habilidad detectada.",
+      validate: ->(v) { (0.0..1.0).cover?(v) || "debe estar entre 0.0 y 1.0" }
+    },
+    "skill_coaching_injection_enabled" => {
+      type: :boolean, category: "program", default: true,
+      description: "Si es true, inyecta una sugerencia de coaching sobre la habilidad dominante del participante en los mensajes generativos (respuesta libre y matinal)."
+    },
     "openai_retry_max" => {
       type: :integer, category: "openai", default: 3,
       description: "Intentos máximos ante errores 429/5xx/timeouts de OpenAI.",
@@ -133,6 +150,14 @@ class Setting < ApplicationRecord
     "openai_voice_analysis_enabled" => {
       type: :boolean, category: "openai", default: true,
       description: "Kill-switch del análisis paralingüístico (tono/emoción). Si es false, solo se transcribe."
+    },
+    "admin_message_templates" => {
+      type: :json, category: "whatsapp", default: [],
+      description: "Lista curada de plantillas WhatsApp aprobadas que el admin puede enviar manualmente desde el panel. Array de objetos {name, label, variables}: name = nombre exacto de la plantilla en Meta; label = etiqueta legible en el panel; variables = array de nombres de los placeholders del cuerpo ({{1}}, {{2}}…) en orden, vacío si la plantilla no tiene variables.",
+      validate: ->(v) {
+        next "debe ser una lista" unless v.is_a?(Array)
+        v.all? { |t| t.is_a?(Hash) && t["name"].present? } || "cada plantilla necesita un 'name'"
+      }
     },
 
     # ── program ────────────────────────────────────────────────────────────

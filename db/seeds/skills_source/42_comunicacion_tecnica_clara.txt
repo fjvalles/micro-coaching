@@ -1,0 +1,74 @@
+COMUNICACIÓN TÉCNICA CLARA
+
+Definición
+La comunicación técnica clara es la capacidad de transmitir información
+especializada —datos, análisis, hallazgos, recomendaciones— de manera
+que la audiencia entienda lo esencial y pueda tomar decisiones, sin
+perder rigor ni inflar de tecnicismos. No es simplificar al punto de
+distorsionar, ni traducir todo a "lenguaje común" hasta vaciarlo de
+contenido: es elegir bien qué decir, en qué orden y con qué nivel de
+detalle según quién está escuchando.
+
+Por qué importa en el trabajo
+Sin esta habilidad, los buenos análisis se quedan en el escritorio del
+analista, las recomendaciones no llegan al comité y los proyectos se
+atascan porque nadie entiende qué decidir. La claridad técnica no
+resta rigor: lo concentra.
+
+Señales de que te falta comunicación técnica clara
+- "Lo expliqué todo y no lo entendieron".
+- Tus presentaciones tienen muchas láminas y pocas conclusiones.
+- Empiezas por el método, no por el resultado.
+- Usas siglas que la audiencia no domina.
+- Tu cliente o jefatura te pide que "le digas lo importante".
+
+Prácticas que ayudan a desarrollarla
+1. Definir la audiencia antes de redactar: técnico, ejecutivo y
+   operativo no son lo mismo.
+2. Una idea por lámina, una conclusión por informe.
+3. Empezar por el "qué hay que decidir": después viene el sustento.
+4. Usar ejemplos y analogías sin sacrificar precisión.
+5. Leer en voz alta lo que escribiste: si tropiezas, también
+   tropezará el lector.
+
+Gestos cotidianos
+- Empezar por la conclusión y no por el método.
+- Distinguir lo que es dato, lo que es interpretación y lo que es
+  recomendación.
+- Usar una sola idea por gráfico.
+- Traducir una unidad técnica a un equivalente intuitivo cuando
+  ayuda.
+- Anticipar las preguntas críticas y resolverlas antes.
+- Evitar siglas que la audiencia no domine.
+
+Trampa frecuente
+Confundir complejidad con profundidad. Algunos se escudan en
+tecnicismos para evitar la incomodidad de decir las cosas con claridad.
+La verdadera profundidad cabe en una frase clara.
+
+Ejercicios para desarrollar comunicación técnica clara
+
+Ejercicio 1 — La conclusión primero
+En tu próxima presentación, parte por la conclusión. Después da los
+argumentos. Observa cómo cambia la atención.
+
+Ejercicio 2 — La lámina única
+Si tuvieras que reducir tu próximo informe a una sola lámina, ¿cuál
+sería el mensaje? Escríbelo. Si no puedes, todavía no está claro.
+
+Ejercicio 3 — La traducción para un no técnico
+Toma un párrafo técnico tuyo. Reescríbelo para alguien sin formación
+en tu campo, sin perder precisión. Compara las dos versiones.
+
+Preguntas de reflexión
+1. En tu última presentación técnica, ¿la audiencia salió sabiendo qué
+   decidir, o solo qué hiciste?
+2. ¿Qué término técnico estás usando con personas que no
+   necesariamente lo manejan, y qué pasaría si lo reemplazaras por un
+   equivalente más claro sin perder precisión?
+3. Si tuvieras que reducir tu próximo informe a una sola lámina,
+   ¿cuál sería el mensaje único? ¿Lo tienes?
+
+Resumen en una frase
+Comunicar lo técnico con claridad no es simplificar: es elegir lo
+esencial para que el otro pueda decidir.

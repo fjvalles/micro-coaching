@@ -1,0 +1,71 @@
+CAPACIDAD DE ABSTRACCIÓN
+
+Definición
+La capacidad de abstracción es la habilidad de elevar la mirada, distinguir
+lo esencial de lo accesorio y ver el patrón detrás de los hechos sueltos.
+No es desconectarse del detalle: es saber moverse entre niveles, del caso
+puntual al fenómeno general y de vuelta.
+
+Por qué importa en el trabajo
+Sin abstracción, el líder se pierde en la urgencia, atiende síntomas en
+vez de causas, y el equipo termina resolviendo el mismo problema una y
+otra vez con distintos nombres. Un líder con buena capacidad de abstracción
+no se desconecta de la operación, sino que sube y baja entre niveles: del
+cálculo al diseño, de la falla específica al proceso que la generó, de la
+queja del colaborador al patrón que se repite.
+
+Señales de que te falta abstracción
+- Sientes que estás siempre apagando incendios.
+- Resuelves los mismos problemas con soluciones distintas.
+- No tienes tiempo para pensar el trabajo, solo para ejecutarlo.
+- Las mejoras que haces son puntuales, no estructurales.
+- Te cuesta explicar al cliente la lógica completa, solo el dato.
+
+Prácticas que ayudan a desarrollarla
+1. Subir un nivel: cuando algo te frustre, pregúntate qué problema mayor
+   lo está causando.
+2. Buscar patrones: lo que pasa una vez es anécdota; tres veces, sistema.
+3. Modelar antes de actuar: un dibujo, un esquema, un mapa mental ordena
+   lo que la conversación dispersa.
+4. Separar urgente de estructural: ambos son reales, pero requieren
+   cabezas distintas.
+5. Reservar tiempo para pensar: si no está en la agenda, no pasa.
+
+Gestos cotidianos
+- Detenerte a preguntar "¿qué tienen en común estos tres errores?".
+- Separar lo que pasó de por qué pasó.
+- Distinguir un problema técnico de un problema de proceso.
+- Traducir un detalle de obra en una mejora de procedimiento.
+- Ver cómo una decisión de hoy afecta el proyecto en seis meses.
+- Explicar al cliente la lógica completa, no solo el dato puntual.
+
+Trampa frecuente
+Sentirte útil solo cuando ejecutas. Algunos líderes confunden estar
+pensando con estar perdiendo el tiempo. Pensar bien una vez ahorra
+ejecutar mal diez veces.
+
+Ejercicios para desarrollar capacidad de abstracción
+
+Ejercicio 1 — La pregunta del patrón
+Una vez por semana, mira los problemas resueltos. Pregúntate: ¿hay tres
+que tienen la misma causa raíz? Si sí, atácala estructuralmente.
+
+Ejercicio 2 — El esquema antes que la conversación
+Antes de tu próxima reunión importante, dibuja un esquema simple del
+problema. Llévalo a la reunión. Observa cómo cambia la conversación.
+
+Ejercicio 3 — La hora de pensar
+Reserva una hora a la semana, sin reuniones ni correo, solo para pensar
+el trabajo del próximo trimestre. Anota qué patrones ves.
+
+Preguntas de reflexión
+1. ¿Qué problema has resuelto varias veces este año con soluciones
+   distintas? ¿Cuál es la causa común que aún no has nombrado?
+2. ¿Qué decisión que tomaste en el detalle podrías rediseñar como un
+   criterio o procedimiento, para no tener que tomarla otras diez veces?
+3. ¿Qué tiempo en tu semana estás dedicando a pensar el proyecto, y no
+   solo a ejecutarlo? Si es cero, ¿qué te dice eso?
+
+Resumen en una frase
+Abstraer no es alejarse del trabajo: es mirarlo desde la altura justa
+para entenderlo de verdad.

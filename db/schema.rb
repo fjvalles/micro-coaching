@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_30_130002) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_05_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -30,6 +30,25 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_130002) do
     t.index ["email"], name: "index_admin_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
     t.index ["unlock_token"], name: "index_admin_users_on_unlock_token", unique: true
+  end
+
+  create_table "coach_sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "participant_id", null: false
+    t.uuid "admin_user_id"
+    t.integer "status", default: 0, null: false
+    t.datetime "scheduled_at"
+    t.integer "duration_minutes", default: 30, null: false
+    t.string "meeting_url"
+    t.text "notes"
+    t.datetime "reminder_sent_at"
+    t.datetime "discarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_user_id"], name: "index_coach_sessions_on_admin_user_id"
+    t.index ["discarded_at"], name: "index_coach_sessions_on_discarded_at"
+    t.index ["participant_id"], name: "index_coach_sessions_on_participant_id"
+    t.index ["scheduled_at"], name: "index_coach_sessions_on_scheduled_at"
+    t.index ["status"], name: "index_coach_sessions_on_status"
   end
 
   create_table "companies", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -313,6 +332,42 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_130002) do
     t.index ["key"], name: "index_settings_on_key", unique: true
   end
 
+  create_table "skill_detections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "participant_id", null: false
+    t.uuid "conversation_id", null: false
+    t.uuid "skill_id", null: false
+    t.float "confidence"
+    t.string "source"
+    t.datetime "detected_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["conversation_id", "skill_id"], name: "index_skill_detections_on_conversation_id_and_skill_id", unique: true
+    t.index ["conversation_id"], name: "index_skill_detections_on_conversation_id"
+    t.index ["participant_id", "detected_at"], name: "index_skill_detections_on_participant_id_and_detected_at", order: { detected_at: :desc }
+    t.index ["participant_id"], name: "index_skill_detections_on_participant_id"
+    t.index ["skill_id"], name: "index_skill_detections_on_skill_id"
+  end
+
+  create_table "skills", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "slug", null: false
+    t.string "name", null: false
+    t.integer "position"
+    t.text "definition"
+    t.text "importance"
+    t.text "trap"
+    t.text "one_liner"
+    t.jsonb "signals", default: [], null: false
+    t.jsonb "practices", default: [], null: false
+    t.jsonb "gestures", default: [], null: false
+    t.jsonb "exercises", default: [], null: false
+    t.jsonb "reflection_questions", default: [], null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["position"], name: "index_skills_on_position"
+    t.index ["slug"], name: "index_skills_on_slug", unique: true
+  end
+
   create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "participant_id"
     t.uuid "company_id"
@@ -366,6 +421,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_130002) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
+  add_foreign_key "coach_sessions", "admin_users"
+  add_foreign_key "coach_sessions", "participants"
   add_foreign_key "conversations", "participants"
   add_foreign_key "daily_reports", "participants"
   add_foreign_key "day_contents", "programs"
@@ -389,6 +446,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_30_130002) do
   add_foreign_key "prompt_templates", "programs"
   add_foreign_key "prompt_versions", "admin_users", column: "author_id"
   add_foreign_key "prompt_versions", "prompt_templates"
+  add_foreign_key "skill_detections", "conversations"
+  add_foreign_key "skill_detections", "participants"
+  add_foreign_key "skill_detections", "skills"
   add_foreign_key "subscriptions", "companies"
   add_foreign_key "subscriptions", "participants"
   add_foreign_key "subscriptions", "programs"

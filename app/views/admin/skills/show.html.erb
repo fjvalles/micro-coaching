@@ -1,0 +1,68 @@
+<% content_for :title, @skill.name %>
+
+<% content_for :breadcrumbs do %>
+  <span class="breadcrumb-sep">›</span>
+  <%= link_to "Habilidades", admin_skills_path %>
+  <span class="breadcrumb-sep">›</span>
+  <span><%= @skill.name %></span>
+<% end %>
+
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <h2 class="card-title"><%= @skill.name %></h2>
+    <code style="font-size:12px;"><%= @skill.slug %></code>
+  </div>
+  <div class="card-body">
+    <p><strong>Definición.</strong> <%= @skill.definition %></p>
+    <% if @skill.importance.present? %><p><strong>Por qué importa.</strong> <%= @skill.importance %></p><% end %>
+    <% if @skill.trap.present? %><p><strong>Trampa frecuente.</strong> <%= @skill.trap %></p><% end %>
+    <% if @skill.one_liner.present? %><p style="font-style:italic; color:var(--text-muted);">“<%= @skill.one_liner %>”</p><% end %>
+
+    <% {
+         "Señales" => @skill.signals,
+         "Prácticas" => @skill.practices,
+         "Gestos cotidianos" => @skill.gestures,
+         "Ejercicios" => @skill.exercises,
+         "Preguntas de reflexión" => @skill.reflection_questions
+       }.each do |label, items| %>
+      <% next if items.blank? %>
+      <h3 style="font-size:14px; margin:16px 0 6px;"><%= label %></h3>
+      <ul style="margin:0; padding-left:18px;">
+        <% items.each do |item| %><li style="margin-bottom:4px;"><%= item %></li><% end %>
+      </ul>
+    <% end %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Detecciones recientes</h2>
+    <span class="badge badge-neutral"><%= @recent_detections.size %></span>
+  </div>
+  <div class="card-body" style="padding:0;">
+    <% if @recent_detections.empty? %>
+      <p style="padding:16px; color:var(--text-muted); font-size:13px;">Sin detecciones todavía.</p>
+    <% else %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Participante</th>
+            <th>Origen</th>
+            <th style="text-align:right;">Confianza</th>
+            <th>Cuándo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @recent_detections.each do |d| %>
+            <tr>
+              <td><%= link_to d.participant.name, admin_participant_path(d.participant) %></td>
+              <td><%= d.source %></td>
+              <td style="text-align:right;"><%= d.confidence ? "#{(d.confidence * 100).round}%" : "—" %></td>
+              <td><%= l(d.detected_at, format: :short) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>

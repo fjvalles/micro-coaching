@@ -77,6 +77,8 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 | `UnknownInbound` | `phone`, `wamid`, `message_type`, `body_preview`, `received_at` |
 | `MethodologyInsight` | `scope`, `payload` (jsonb), `generated_at`, `program_id` |
 | `CoachSession` | `participant_id`, `scheduled_at`, `duration_minutes`, `status` (scheduled/confirmed/completed/cancelled), `notes`, `reminder_sent_at` |
+| `Skill` | Catálogo de 82 habilidades **humanas del participante** (no de la IA), importadas de `db/seeds/skills_source/*.txt`: `slug`, `name`, `position`, `definition`, `importance`, `trap`, `one_liner`, arrays jsonb `signals`/`practices`/`gestures`/`exercises`/`reflection_questions`. `has_many :skill_detections` |
+| `SkillDetection` | `participant_id`, `conversation_id`, `skill_id`, `confidence`, `source` (moment), `detected_at`. Único `[conversation_id, skill_id]` |
 
 All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `discard` gem for soft deletes — always scope with `.kept`.
 

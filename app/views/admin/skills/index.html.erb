@@ -1,0 +1,39 @@
+<% content_for :title, "Habilidades" %>
+
+<% content_for :breadcrumbs do %>
+  <span class="breadcrumb-sep">›</span>
+  <span>Habilidades</span>
+<% end %>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Catálogo de habilidades del participante</h2>
+    <span class="badge badge-neutral"><%= @skills.size %></span>
+  </div>
+  <div class="card-body" style="padding:0;">
+    <p style="padding:12px 16px; color:var(--text-muted); font-size:13px; margin:0;">
+      Competencias humanas que el coaching detecta en las conversaciones (check-in y chat libre) y
+      refuerza en los mensajes generativos. No son habilidades de la IA.
+    </p>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Habilidad</th>
+          <th>Slug</th>
+          <th style="text-align:right;">Detecciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @skills.each do |skill| %>
+          <tr>
+            <td><%= skill.position %></td>
+            <td><%= link_to skill.name, admin_skill_path(skill) %></td>
+            <td><code style="font-size:12px;"><%= skill.slug %></code></td>
+            <td style="text-align:right;"><%= skill.detections_count %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

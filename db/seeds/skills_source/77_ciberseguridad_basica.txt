@@ -1,0 +1,78 @@
+CIBERSEGURIDAD BÁSICA
+
+Definición
+La ciberseguridad básica es la capacidad de cuidar tu información,
+tus accesos y los datos de tu trabajo y los de otros en un entorno
+digital donde las amenazas son cotidianas. No es ser experto en
+seguridad informática: es la disciplina mínima de aplicar prácticas
+sensatas para no convertirte en la puerta por la que entran problemas
+serios.
+
+Por qué importa en el trabajo
+Sin esta habilidad, los profesionales pierden información valiosa por
+descuidos evitables, exponen datos sensibles de clientes, son víctimas
+de fraudes que se pudieron prevenir y se convierten, sin saberlo, en
+el eslabón débil de toda la cadena.
+
+Señales de que te falta ciberseguridad básica
+- "Esto a mí no me va a pasar".
+- Repites la misma contraseña en muchos servicios.
+- No tienes doble factor activado en tu correo.
+- Compartes información sensible por chat.
+- No haces respaldo de archivos importantes.
+
+Prácticas que ayudan a desarrollarla
+1. Contraseña única y robusta para cada servicio, almacenada en un
+   gestor confiable.
+2. Doble factor (2FA) activado al menos en correo, banco y redes
+   profesionales.
+3. Sospecha sana de los correos que piden urgencia, datos o clics.
+4. Respaldo regular de archivos importantes en la nube o en disco
+   externo.
+5. Separar lo personal de lo laboral: distintas cuentas, distintos
+   dispositivos cuando sea posible.
+
+Gestos cotidianos
+- Usar un gestor de contraseñas en lugar de repetir la misma.
+- Activar la verificación en dos pasos en correo y servicios críticos.
+- No abrir adjuntos sospechosos aunque vengan de un remitente conocido.
+- Dudar de cualquier pedido de transferencia o información sensible
+  por canales informales.
+- Mantener actualizado el sistema operativo y las aplicaciones.
+- No compartir contraseñas por chat ni correo.
+- Hacer copia de respaldo de lo que no puedes perder.
+
+Trampa frecuente
+Confundir "siempre lo he hecho así" con "lo he hecho bien". El hecho
+de que no te haya pasado nada hasta hoy no significa que no esté por
+pasar mañana.
+
+Ejercicios para desarrollarla
+
+Ejercicio 1 — Auditoría de contraseñas
+Esta semana, instala un gestor de contraseñas y migra al menos cinco
+de tus servicios más importantes a contraseñas únicas y robustas.
+
+Ejercicio 2 — Doble factor activado
+Activa la verificación en dos pasos en tu correo principal, en tu
+banco y en tu red profesional. Hazlo hoy.
+
+Ejercicio 3 — Respaldo crítico
+Identifica los archivos que no puedes perder. Configura un respaldo
+automático en la nube o haz una copia en disco externo este fin de
+semana.
+
+Preguntas de reflexión
+1. ¿Cuántas de tus cuentas importantes —correo, banco, plataformas
+   de trabajo— tienen hoy doble factor activado? ¿Y cuántas siguen
+   con la misma contraseña que usas hace años?
+2. Si mañana perdieras tu computador, ¿qué información crítica
+   perderías para siempre? ¿Tienes copia de respaldo o solo lo
+   confías a la suerte?
+3. ¿Cuándo fue la última vez que recibiste un correo o mensaje
+   sospechoso y le hiciste clic sin verificar? ¿Qué hábito podrías
+   incorporar para que esa duda sea automática?
+
+Resumen en una frase
+La ciberseguridad básica no exige ser experto, exige no ser el
+descuido por el que entran los problemas.

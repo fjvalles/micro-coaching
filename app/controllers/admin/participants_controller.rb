@@ -1,6 +1,6 @@
 module Admin
   class ParticipantsController < BaseController
-    before_action :set_participant, only: [ :show, :edit, :update, :destroy, :enroll, :discard, :undiscard ]
+    before_action :set_participant, only: [ :show, :edit, :update, :destroy, :enroll, :discard, :undiscard, :send_message ]
 
     def index
       # Support search
@@ -65,11 +65,14 @@ module Admin
       @companies = Company.kept.ordered
       @day_contents_lookup = DayContent.all.each_with_object({}) { |dc, h| h[[ dc.program_id, dc.day_number ]] = dc.phase }
       @participants = scope.includes(:program, :company).order(created_at: :desc)
+      @message_templates = message_templates
     end
 
     def show
       @conversations = @participant.conversations.kept.order(created_at: :desc).limit(50)
       @daily_reports = @participant.daily_reports.order(reported_at: :desc).limit(10)
+      @message_templates = message_templates
+      @dominant_skills = @participant.dominant_skills
     end
 
     def new
@@ -123,6 +126,42 @@ module Admin
       redirect_to admin_participant_path(@participant), notice: "#{@participant.name} inscrito. Bienvenida enviada por WhatsApp."
     end
 
+    # Custom action: send a manual message (free text or curated template) now.
+    def send_message
+      result = Outbound::AdminMessage.new(
+        participant: @participant,
+        kind: params[:kind],
+        body: params[:body],
+        template_name: params[:template_name],
+        variables: params[:variables]
+      ).call
+
+      if result.sent?
+        redirect_to admin_participant_path(@participant), notice: "Mensaje enviado a #{@participant.name}."
+      else
+        redirect_to admin_participant_path(@participant), alert: "No se envió: #{skip_reason_text(result)}"
+      end
+    end
+
+    # Custom action: broadcast a manual message to selected participants (async fan-out).
+    def broadcast
+      ids = Array(params[:participant_ids]).reject(&:blank?)
+      if ids.empty?
+        redirect_to admin_participants_path(request.query_parameters), alert: "Selecciona al menos un participante."
+        return
+      end
+
+      BroadcastMessageJob.perform_later(
+        ids,
+        kind: params[:kind],
+        body: params[:body],
+        template_name: params[:template_name],
+        variables: Array(params[:variables]).reject(&:blank?)
+      )
+      redirect_to admin_participants_path(request.query_parameters),
+                  notice: "Envío encolado para #{ids.size} participante(s). Los mensajes de texto fuera de la ventana de 24h se omiten automáticamente."
+    end
+
     # Custom action: discard (soft-delete)
     def discard
       @participant.discard
@@ -139,6 +178,23 @@ module Admin
 
     def set_participant
       @participant = Participant.find(params[:id])
+    end
+
+    # Curated WhatsApp templates the admin may send manually (Setting JSON list).
+    # Defensive: tolerate a malformed/non-array value rather than 500.
+    def message_templates
+      list = Setting.fetch("admin_message_templates")
+      list.is_a?(Array) ? list.select { |t| t.is_a?(Hash) && t["name"].present? } : []
+    end
+
+    def skip_reason_text(result)
+      case result.skipped_reason
+      when :blank_body         then "el mensaje está vacío."
+      when :no_template        then "no se eligió una plantilla."
+      when :outside_24h_window then "fuera de la ventana de 24h — usa una plantilla aprobada."
+      when :send_failed        then "WhatsApp rechazó el envío (#{result.error})."
+      else                          "motivo desconocido."
+      end
     end
 
     def participant_params

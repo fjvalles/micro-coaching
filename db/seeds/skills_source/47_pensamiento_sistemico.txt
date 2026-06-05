@@ -1,0 +1,72 @@
+PENSAMIENTO SISTÉMICO
+
+Definición
+El pensamiento sistémico es la capacidad de mirar cualquier problema,
+decisión o resultado entendiéndolo como parte de un todo
+interconectado, donde una acción en un punto puede generar
+consecuencias en otro y donde los efectos no siempre aparecen donde se
+generaron. No es complicar las cosas para parecer profundo: es la
+disciplina de reconocer que los problemas rara vez son lineales.
+
+Por qué importa en el trabajo
+Sin esta habilidad, los equipos atacan partes aisladas, los procesos
+se "arreglan" creando nuevos problemas y los aprendizajes locales no
+logran convertirse en mejoras estructurales. Las soluciones simples a
+problemas sistémicos suelen mover el síntoma de lugar sin resolverlo.
+
+Señales de que te falta pensamiento sistémico
+- "Resolvimos esto y apareció otro problema parecido en otro lado".
+- Atacas síntomas en lugar de procesos.
+- No distingues lo puntual de lo estructural.
+- Una mejora en un área crea costos invisibles en otra.
+- Los mismos incidentes vuelven con distintos nombres.
+
+Prácticas que ayudan a desarrollarlo
+1. Mapear actores e interrelaciones antes de intervenir.
+2. Buscar bucles, no líneas: ¿qué refuerza este patrón?
+3. Anticipar consecuencias secundarias: ¿qué se mueve si esto cambia?
+4. Pensar en plazos largos: muchos efectos sistémicos solo aparecen
+   con el tiempo.
+5. Distinguir intervenciones puntuales de cambios estructurales: las
+   primeras son rápidas, los segundos sostienen.
+
+Gestos cotidianos
+- Identificar a los actores que influyen en un problema antes de
+  proponer una solución.
+- Anticipar consecuencias no buscadas de una decisión.
+- Distinguir el síntoma del proceso que lo produce.
+- Ver cómo una mejora en un área puede generar un costo en otra.
+- Conectar incidentes aparentemente aislados.
+- Separar problemas estructurales de problemas puntuales.
+
+Trampa frecuente
+Confundir profundidad con sobreanálisis. Algunos creen que pensar
+sistémico es ver complejidad en todo. La realidad es que el pensador
+sistémico distingue cuándo algo es realmente sistémico y cuándo es
+simple.
+
+Ejercicios para desarrollar pensamiento sistémico
+
+Ejercicio 1 — El mapa de actores
+Antes de tu próxima decisión importante, dibuja en una hoja: quiénes
+influyen, quiénes se ven afectados, qué relaciones hay entre ellos.
+
+Ejercicio 2 — La consecuencia secundaria
+Para una decisión que estés por tomar, anota tres consecuencias no
+buscadas que podrían aparecer en otras áreas o personas.
+
+Ejercicio 3 — El patrón repetido
+Identifica un problema que se ha repetido en tu equipo. Pregúntate:
+¿qué proceso o estructura lo está alimentando?
+
+Preguntas de reflexión
+1. ¿Qué problema que has resuelto recientemente reapareció con otro
+   nombre, sugiriendo que la causa real está más arriba en el sistema?
+2. ¿Qué consecuencia secundaria —en otra área, persona o proceso—
+   está generando una decisión tuya, y aún no la has nombrado?
+3. ¿Qué intervención que estás considerando es puntual cuando, en
+   realidad, lo que se necesita es un cambio estructural?
+
+Resumen en una frase
+Pensar sistémico no es complicar el problema, es entender el sistema
+que lo produce para no resolverlo solo en su síntoma.
