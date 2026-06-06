@@ -57,6 +57,10 @@ module Admin::OnboardingHelper
     audit_logs_history: {
       title_fallback: "Auditoría y Registro de Versiones",
       pattern: /Auditoría y Registro/
+    },
+    skills_catalog: {
+      title_fallback: "Catálogo de Habilidades",
+      pattern: /Catálogo de Habilidades/
     }
   }.freeze
 
@@ -96,6 +100,8 @@ module Admin::OnboardingHelper
       [ :admin_users_team ]
     when "audit_logs"
       [ :audit_logs_history ]
+    when "skills"
+      [ :skills_catalog ]
     else
       []
     end

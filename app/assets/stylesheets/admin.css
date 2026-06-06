@@ -267,6 +267,11 @@ body {
   background-color: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  /* Own compositing layer: forces Chromium to re-sample the backdrop-filter
+     each frame, fixing the stale "cut" region above the sticky header on
+     reverse scroll inside the clipped .admin-main scroller. */
+  transform: translateZ(0);
+  will-change: transform;
   border-bottom: 1px solid var(--border);
   padding: 16px 32px;
   display: flex;

@@ -128,3 +128,12 @@ Trazabilidad de seguridad para todas las acciones dentro del panel.
 * **PaperTrail:** El sistema registra de manera automática cualquier creación, actualización o borrado en los modelos clave.
 * **Transparencia:** Puedes auditar qué administrador modificó un participante, un programa, o una configuración del sistema, junto con los valores anteriores y posteriores de cada campo.
 
+---
+
+## 5. Catálogo de Habilidades
+
+El catálogo contiene las competencias humanas que la IA del sistema puede identificar en las conversaciones libres o de check-in del participante.
+
+* **Identificación Asíncrona:** La IA analiza las conversaciones y registra de 0 a 3 habilidades asociadas.
+* **Coaching Personalizado:** La habilidad más dominante del participante se inyecta dinámicamente como sugerencia al generador de mensajes. Esto permite adaptar el contenido cognitivo a las necesidades conductuales del usuario.
+* **Guía de Acompañamiento:** Al abrir una habilidad, se muestra su definición, por qué importa, trampas comunes y una guía metodológica completa (Señales, Prácticas, Gestos y Ejercicios) para facilitar el coaching humano.

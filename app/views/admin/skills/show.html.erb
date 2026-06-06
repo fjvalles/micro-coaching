@@ -7,62 +7,168 @@
   <span><%= @skill.name %></span>
 <% end %>
 
-<div class="card" style="margin-bottom:24px;">
-  <div class="card-header">
-    <h2 class="card-title"><%= @skill.name %></h2>
-    <code style="font-size:12px;"><%= @skill.slug %></code>
-  </div>
-  <div class="card-body">
-    <p><strong>Definición.</strong> <%= @skill.definition %></p>
-    <% if @skill.importance.present? %><p><strong>Por qué importa.</strong> <%= @skill.importance %></p><% end %>
-    <% if @skill.trap.present? %><p><strong>Trampa frecuente.</strong> <%= @skill.trap %></p><% end %>
-    <% if @skill.one_liner.present? %><p style="font-style:italic; color:var(--text-muted);">“<%= @skill.one_liner %>”</p><% end %>
+<% content_for :header_actions do %>
+  <%= link_to admin_skills_path, class: "btn btn-secondary" do %>
+    <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+    </svg>
+    Volver al catálogo
+  <% end %>
+<% end %>
 
-    <% {
-         "Señales" => @skill.signals,
-         "Prácticas" => @skill.practices,
-         "Gestos cotidianos" => @skill.gestures,
-         "Ejercicios" => @skill.exercises,
-         "Preguntas de reflexión" => @skill.reflection_questions
-       }.each do |label, items| %>
-      <% next if items.blank? %>
-      <h3 style="font-size:14px; margin:16px 0 6px;"><%= label %></h3>
-      <ul style="margin:0; padding-left:18px;">
-        <% items.each do |item| %><li style="margin-bottom:4px;"><%= item %></li><% end %>
-      </ul>
-    <% end %>
-  </div>
-</div>
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px;">
+  <!-- Left Column: Dossier Cognitivo -->
+  <div style="display: flex; flex-direction: column; gap: 32px;">
+    
+    <!-- Hero / Profile Card -->
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-header" style="border-bottom: none; padding-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span class="badge badge-neutral" style="font-size: 13px; font-weight: 700; padding: 4px 10px;">
+            Habilidad #<%= @skill.position %>
+          </span>
+          <code style="font-size: 12px; font-family: monospace; background-color: var(--bg-secondary); border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px;">
+            <%= @skill.slug %>
+          </code>
+        </div>
+      </div>
+      <div class="card-body" style="padding-top: 0;">
+        <h2 style="font-size: 28px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; margin-bottom: 16px; line-height: 1.2;">
+          <%= @skill.name %>
+        </h2>
+        
+        <% if @skill.one_liner.present? %>
+          <div style="font-size: 15px; font-style: italic; color: var(--brand-text); background: var(--brand-light); padding: 16px 20px; border-left: 4px solid var(--brand); border-radius: 0 var(--radius-md) var(--radius-md) 0; margin-bottom: 24px; line-height: 1.5;">
+            “<%= @skill.one_liner %>”
+          </div>
+        <% end %>
 
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title">Detecciones recientes</h2>
-    <span class="badge badge-neutral"><%= @recent_detections.size %></span>
-  </div>
-  <div class="card-body" style="padding:0;">
-    <% if @recent_detections.empty? %>
-      <p style="padding:16px; color:var(--text-muted); font-size:13px;">Sin detecciones todavía.</p>
-    <% else %>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Participante</th>
-            <th>Origen</th>
-            <th style="text-align:right;">Confianza</th>
-            <th>Cuándo</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @recent_detections.each do |d| %>
-            <tr>
-              <td><%= link_to d.participant.name, admin_participant_path(d.participant) %></td>
-              <td><%= d.source %></td>
-              <td style="text-align:right;"><%= d.confidence ? "#{(d.confidence * 100).round}%" : "—" %></td>
-              <td><%= l(d.detected_at, format: :short) %></td>
-            </tr>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <strong style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px; letter-spacing: 0.05em;">Definición</strong>
+            <p style="font-size: 15px; color: var(--text-main); line-height: 1.6; margin: 0;"><%= @skill.definition %></p>
+          </div>
+
+          <% if @skill.importance.present? %>
+            <div style="padding-top: 16px; border-top: 1px solid var(--border);">
+              <strong style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px; letter-spacing: 0.05em;">Por qué importa</strong>
+              <p style="font-size: 14px; color: var(--text-main); line-height: 1.6; margin: 0;"><%= @skill.importance %></p>
+            </div>
           <% end %>
-        </tbody>
-      </table>
-    <% end %>
+
+          <% if @skill.trap.present? %>
+            <div style="background-color: var(--warning-bg); border: 1px solid var(--warning-border); border-radius: var(--radius-md); padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; margin-top: 8px;">
+              <span style="font-size: 20px; line-height: 1; user-select: none;">⚠️</span>
+              <div>
+                <strong style="color: #b45309; display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Trampa frecuente</strong>
+                <p style="font-size: 13px; color: #78350f; line-height: 1.5; margin: 0;"><%= @skill.trap %></p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Guía Pedagógica y de Acompañamiento -->
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-header">
+        <h3 class="card-title">Guía pedagógica para coaching</h3>
+      </div>
+      <div class="card-body" style="padding: 24px;">
+        <% {
+             "Señales a detectar" => { items: @skill.signals, icon: '<svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.43 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>', bg: '#f0f9ff', border: '#bae6fd', text: '#0369a1' },
+             "Prácticas recomendadas" => { items: @skill.practices, icon: '<svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>', bg: '#ecfdf5', border: '#a7f3d0', text: '#047857' },
+             "Gestos cotidianos" => { items: @skill.gestures, icon: '<svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" /></svg>', bg: '#fff1f2', border: '#fecdd3', text: '#be123c' },
+             "Ejercicios prácticos" => { items: @skill.exercises, icon: '<svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75c.621 0 1.125.504 1.125 1.125v12.75c0 .621-.504 1.125-1.125 1.125H5.625a1.125 1.125 0 0 1-1.125-1.125V5.625c0-.621.504-1.125 1.125-1.125Z" /></svg>', bg: '#faf5ff', border: '#e9d5ff', text: '#6b21a8' },
+             "Preguntas de reflexión" => { items: @skill.reflection_questions, icon: '<svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" /></svg>', bg: '#fffbeb', border: '#fde68a', text: '#b45309' }
+           }.each do |label, cfg| %>
+          <% next if cfg[:items].blank? %>
+          <div style="margin-bottom: 24px; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; &:last-child { margin-bottom: 0; }">
+            <div style="background-color: <%= cfg[:bg] %>; border-bottom: 1px solid <%= cfg[:border] %>; padding: 12px 16px; display: flex; align-items: center; gap: 8px;">
+              <span style="color: <%= cfg[:text] %>; display: inline-flex; align-items: center; justify-content: center;">
+                <%= raw cfg[:icon] %>
+              </span>
+              <h4 style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: <%= cfg[:text] %>; margin: 0;">
+                <%= label %>
+              </h4>
+            </div>
+            <ul style="margin: 0; padding: 16px 20px 16px 36px; list-style-type: disc;">
+              <% cfg[:items].each do |item| %>
+                <li style="margin-bottom: 8px; font-size: 14px; color: var(--text-main); line-height: 1.5; &:last-child { margin-bottom: 0; }">
+                  <%= item %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Stats & Detections -->
+  <div style="display: flex; flex-direction: column; gap: 32px;">
+    
+    <!-- Ficha Técnica Card -->
+    <div class="card" style="margin-bottom: 0;">
+      <div class="card-header">
+        <h3 class="card-title">Ficha Técnica</h3>
+      </div>
+      <div class="card-body" style="padding: 20px;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <span style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 2px;">Identificador único</span>
+            <code style="font-size: 13px; font-family: monospace; background-color: var(--bg-secondary); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; display: inline-block;"><%= @skill.slug %></code>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--border);">
+            <span style="font-size: 13px; color: var(--text-main); font-weight: 500;">Posición de catálogo</span>
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">#<%= @skill.position %></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--border);">
+            <span style="font-size: 13px; color: var(--text-main); font-weight: 500;">Detecciones registradas</span>
+            <% total_detections = @skill.skill_detections.count %>
+            <% if total_detections.positive? %>
+              <span class="badge badge-success" style="font-size: 13px;"><%= total_detections %></span>
+            <% else %>
+              <span style="color: var(--text-muted); font-size: 13px; font-weight: 600;">0</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detecciones Recientes Card -->
+    <div class="card" style="margin-bottom: 0; position: sticky; top: 100px;">
+      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="card-title">Detecciones Recientes</h3>
+        <span class="badge badge-neutral"><%= @recent_detections.size %></span>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <% if @recent_detections.empty? %>
+          <div style="padding: 32px 16px; text-align: center; color: var(--text-muted);">
+            <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
+            <p style="font-size: 13px; margin: 0;">No se registran detecciones de esta habilidad en participantes.</p>
+          </div>
+        <% else %>
+          <div style="display: flex; flex-direction: column;">
+            <% @recent_detections.each_with_index do |d, idx| %>
+              <div style="padding: 16px 20px; border-bottom: 1px solid var(--border); <%= 'border-bottom: none;' if idx == @recent_detections.size - 1 %>">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                  <%= link_to d.participant.name, admin_participant_path(d.participant), style: "font-weight: 600; color: var(--brand); text-decoration: none; font-size: 14px;" %>
+                  <% if d.confidence %>
+                    <span class="badge badge-success" style="font-size: 10px; padding: 2px 6px;">
+                      <%= (d.confidence * 100).round %>%
+                    </span>
+                  <% end %>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted);">
+                  <span>Momento: <strong style="color: var(--text-main);"><%= translate_moment(d.source) rescue d.source %></strong></span>
+                  <span title="<%= d.detected_at.strftime('%Y-%m-%d %H:%M:%S') %>"><%= l(d.detected_at, format: :short) %></span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
   </div>
 </div>

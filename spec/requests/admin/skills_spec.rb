@@ -24,6 +24,17 @@ RSpec.describe "Admin::Skills", type: :request do
       expect(response.body).not_to match(/=&gt;\s*\d+/)
       expect(response.body).not_to match(/=>\s*\d+/)
     end
+
+    it "filters skills by search query" do
+      skill_match = create(:skill, name: "Empatia Activa", slug: "empatia-activa")
+      skill_other = create(:skill, name: "Comunicacion Asertiva", slug: "comunicacion-asertiva")
+
+      get "/admin/skills", params: { q: "empatia" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(skill_match.name)
+      expect(response.body).not_to include(skill_other.name)
+    end
   end
 
   describe "GET /admin/skills/:id" do
