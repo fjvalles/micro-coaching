@@ -5,30 +5,148 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#111827">
+  <meta name="theme-color" content="#030408">
   <title><%= content_for?(:title) ? yield(:title) : "Mi cuenta — Impulso" %></title>
   <link rel="manifest" href="<%= pwa_manifest_path %>">
   <%= csrf_meta_tags %>
+  <%= stylesheet_link_tag "landing", "data-turbo-track": "reload" %>
   <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: #f3f4f6; color: #111827; }
-    .portal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: #111827; color: #fff; }
-    .portal-header a { color: #fff; text-decoration: none; font-size: 14px; opacity: .85; }
-    .portal-main { max-width: 560px; margin: 0 auto; padding: 20px 16px 56px; }
-    .flash { max-width: 560px; margin: 12px auto 0; padding: 12px 16px; border-radius: 10px; font-size: 14px; }
-    .flash.notice { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-    .flash.alert  { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
-    .btn { display: inline-block; width: 100%; text-align: center; padding: 13px; border-radius: 10px; border: 0; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; }
-    .btn-primary { background: #111827; color: #fff; }
-    .input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 16px; }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    .portal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 8%;
+      border-bottom: 1px solid var(--border);
+      background-color: rgba(3, 4, 8, 0.8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .portal-main {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 40px 16px 56px;
+    }
+    .flash {
+      max-width: 560px;
+      margin: 20px auto 0;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-family: var(--font-body);
+      box-shadow: var(--shadow-md);
+      animation: fadeIn 0.3s ease-out;
+    }
+    .flash.notice {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .flash.alert {
+      background: var(--error-bg);
+      color: var(--error);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+    }
+    .card {
+      background-color: rgba(10, 14, 26, 0.45);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md), var(--shadow-glow);
+      color: var(--text-main);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      text-align: center;
+      padding: 14px 28px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      font-family: var(--font-title);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: white;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(16, 185, 129, 0.45), 0 0 15px var(--primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .input {
+      width: 100%;
+      padding: 12px 16px;
+      background-color: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-size: 16px;
+      font-family: var(--font-body);
+      transition: all 0.2s ease;
+    }
+    .input:focus {
+      outline: none;
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.15);
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+    .input::placeholder {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+    .label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
   <header class="portal-header">
-    <strong>Impulso</strong>
+    <%= link_to root_path, class: "logo-container" do %>
+      <img src="/icon.svg" alt="Impulso Logo" class="logo-image">
+      <span class="logo-text">Impulso <span style="font-weight: 400; font-size: 14px; opacity: 0.7;">by Comtraining</span></span>
+    <% end %>
     <% if current_participant %>
-      <%= button_to "Salir", portal_logout_path, method: :delete, class: "", style: "background:none;border:0;color:#fff;opacity:.85;cursor:pointer;font-size:14px;" %>
+      <%= button_to "Salir", portal_logout_path, method: :delete, class: "nav-login", style: "background:none;border:0;cursor:pointer;" %>
+    <% else %>
+      <%= link_to "Volver", root_path, class: "nav-login" %>
     <% end %>
   </header>
 

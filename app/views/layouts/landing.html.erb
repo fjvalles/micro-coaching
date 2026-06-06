@@ -39,7 +39,10 @@
         <img src="/icon.svg" alt="Impulso Logo" class="logo-image">
         <span class="logo-text">Impulso <span style="font-weight: 400; font-size: 14px; opacity: 0.7;">by Comtraining</span></span>
       <% end %>
-      <a href="#trial" class="nav-cta">Solicitar piloto</a>
+      <div class="nav-actions">
+        <%= link_to "Iniciar sesión", portal_login_path, class: "nav-login" %>
+        <a href="#trial" class="nav-cta">Solicitar piloto</a>
+      </div>
     </nav>
 
     <!-- Main Content -->
