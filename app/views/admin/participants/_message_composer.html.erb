@@ -47,7 +47,8 @@
       <div data-vars-area="<%= scope %>" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;"></div>
     <% else %>
       <p style="font-size:13px; color:var(--text-muted); margin:0;">
-        No hay plantillas configuradas. Agrégalas en
+        No hay plantillas disponibles. El participante necesita un programa con
+        días configurados, o agrega plantillas extra en
         <a href="<%= admin_settings_path %>">Ajustes → admin_message_templates</a>.
       </p>
     <% end %>
@@ -79,15 +80,21 @@
         var opt = this.options[this.selectedIndex];
         var vars = [];
         try { vars = JSON.parse(opt.getAttribute('data-vars') || '[]'); } catch (e) {}
-        vars.forEach(function (label, i) {
+        vars.forEach(function (v, i) {
+          // v is either a plain label string or { label, default } (prefilled).
+          var label = (v && typeof v === 'object') ? (v.label || '') : v;
+          var def   = (v && typeof v === 'object') ? (v.default || '') : '';
           var wrap = document.createElement('label');
           wrap.style.cssText = 'display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--text-muted);';
           wrap.textContent = '{{' + (i + 1) + '}} ' + label;
-          var input = document.createElement('input');
-          input.type = 'text';
+          // Multi-line content (iareto/checkin) reads better in a textarea.
+          var multiline = def.indexOf('\n') !== -1 || def.length > 60;
+          var input = document.createElement(multiline ? 'textarea' : 'input');
+          if (multiline) { input.rows = 3; } else { input.type = 'text'; }
           input.name = 'variables[]';
           input.placeholder = label;
-          input.style.cssText = 'padding:8px; border:1px solid var(--border); border-radius:6px; font-size:14px; color:var(--text-main);';
+          input.value = def;
+          input.style.cssText = 'padding:8px; border:1px solid var(--border); border-radius:6px; font-size:14px; color:var(--text-main); resize:vertical;';
           wrap.appendChild(input);
           varsArea.appendChild(wrap);
         });

@@ -180,11 +180,11 @@ module Admin
       @participant = Participant.find(params[:id])
     end
 
-    # Curated WhatsApp templates the admin may send manually (Setting JSON list).
-    # Defensive: tolerate a malformed/non-array value rather than 500.
+    # WhatsApp templates the admin may send manually: the participant's own
+    # program templates (welcome + per-day) plus any extras from the Setting.
+    # See Whatsapp::AdminTemplateCatalog.
     def message_templates
-      list = Setting.fetch("admin_message_templates")
-      list.is_a?(Array) ? list.select { |t| t.is_a?(Hash) && t["name"].present? } : []
+      Whatsapp::AdminTemplateCatalog.new(participant: @participant).call
     end
 
     def skip_reason_text(result)
