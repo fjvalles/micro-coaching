@@ -272,9 +272,9 @@
         <!-- Goal Input Form -->
         <div class="input-group" id="goal-input-section">
           <label class="input-label" for="user-goal">¿Qué conducta o desafío de liderazgo quieres trabajar?</label>
-          <div style="display: flex; gap: 12px; width: 100%;">
-            <input type="text" id="user-goal" class="input-text" style="flex: 1;" placeholder="Ej: dar feedback constructivo a tiempo, agendar 1:1, priorizar antes del email..." required>
-            <button type="button" id="btn-generate" class="btn-landing btn-landing-primary" style="padding: 0 24px; min-width: 190px;">
+          <div class="trial-input-row">
+            <input type="text" id="user-goal" class="input-text" placeholder="Ej: dar feedback constructivo a tiempo, agendar 1:1, priorizar antes del email..." required>
+            <button type="button" id="btn-generate" class="btn-landing btn-landing-primary">
               <span class="spinner" id="btn-spinner"></span>
               <span id="btn-text">Generar Mensaje</span>
             </button>
@@ -326,7 +326,7 @@
               <%= f.text_field :role, id: "enroll-role", class: "input-text", placeholder: "Ej. Gerente de RRHH / PMO", required: true %>
             </div>
 
-            <div class="input-group" style="grid-column: span 2;">
+            <div class="input-group input-group-full">
               <label class="input-label" for="enroll-email">Correo Electrónico Corporativo</label>
               <%= f.email_field :email, id: "enroll-email", class: "input-text", placeholder: "carlos.gomez@empresa.com", required: true %>
             </div>

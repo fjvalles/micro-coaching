@@ -1468,3 +1468,119 @@ h1, h2, h3, h4 {
     font-size: 15px;
   }
 }
+
+/* ==========================================
+   Responsive & Mobile Optimization Overrides
+   ========================================== */
+
+.logo-subtext {
+  font-weight: 400;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.trial-input-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.trial-input-row .input-text {
+  flex: 1;
+}
+
+.trial-input-row .btn-landing-primary {
+  padding: 0 24px;
+  min-width: 190px;
+}
+
+.input-group-full {
+  grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+  .landing-section {
+    padding: 60px 4%;
+  }
+  
+  .landing-nav {
+    padding: 12px 4%;
+  }
+}
+
+@media (max-width: 640px) {
+  .logo-subtext {
+    display: none;
+  }
+  
+  .landing-nav {
+    padding: 10px 16px;
+  }
+  
+  .nav-actions {
+    gap: 12px;
+  }
+  
+  .nav-cta {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  
+  .nav-login {
+    font-size: 13px;
+  }
+  
+  .landing-section {
+    padding: 40px 16px;
+  }
+  
+  .trial-card {
+    padding: 28px 16px;
+    margin-top: 30px;
+  }
+  
+  .trial-title {
+    font-size: 24px;
+  }
+  
+  .trial-desc {
+    font-size: 14px;
+  }
+  
+  .trial-input-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .trial-input-row .btn-landing-primary {
+    padding: 16px 24px;
+    min-width: unset;
+    width: 100%;
+  }
+  
+  .input-group-full {
+    grid-column: span 1;
+  }
+  
+  .section-title, .bento-section-title {
+    font-size: 28px;
+  }
+  
+  .hero-title {
+    font-size: 34px;
+  }
+  
+  .hero-description {
+    font-size: 16px;
+  }
+  
+  .success-card {
+    padding: 40px 20px;
+    margin: 40px auto;
+  }
+  
+  .success-title {
+    font-size: 26px;
+  }
+}
+
