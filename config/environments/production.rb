@@ -79,15 +79,10 @@ Rails.application.configure do
   config.action_mailer.perform_caching = false
 
   config.action_mailer.raise_delivery_errors = true
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    address: "smtp.resend.com",
-    port: 465,
-    ssl: true,
-    user_name: "resend",
-    password: ENV.fetch("RESEND_API_KEY", nil),
-    authentication: :login
-  }
+  # Resend HTTP API (port 443) — Hetzner blocks outbound SMTP ports (25/465/587),
+  # so SMTP times out. The resend gem registers the :resend delivery method;
+  # Resend.api_key is set in config/initializers/resend.rb.
+  config.action_mailer.delivery_method = :resend
   config.action_mailer.default_url_options = {
     host: ENV.fetch("APP_HOST", "impulso.comtraining.cl"),
     protocol: "https"

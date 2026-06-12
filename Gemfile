@@ -28,6 +28,9 @@ gem "google-apis-drive_v3", "~> 0.50"
 gem "paper_trail", "~> 16.0"
 gem "rack-attack"
 
+# Transactional email via Resend HTTP API (Hetzner blocks outbound SMTP ports)
+gem "resend"
+
 # Error tracking + alerting (only active when SENTRY_DSN is set)
 gem "sentry-ruby"
 gem "sentry-rails"
