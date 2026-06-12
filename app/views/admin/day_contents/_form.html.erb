@@ -75,7 +75,12 @@
         </div>
         <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
           <div class="form-group" style="margin-bottom: 0;">
-            <%= f.label :template_name_whatsapp, "Nombre de Plantilla de WhatsApp (Meta Approved)", class: "form-label" %>
+            <%= f.label :template_name_whatsapp, class: "form-label" do %>
+              Nombre de Plantilla de WhatsApp (Meta Approved)
+              <a href="https://business.facebook.com/latest/whatsapp_manager/message_templates/?business_id=419829158905512&tab=message-templates&filters=%7B%22date_range%22%3A7%2C%22language%22%3A[]%2C%22quality%22%3A[]%2C%22search_text%22%3A%22%22%2C%22status%22%3A[%22APPROVED%22%2C%22IN_APPEAL%22%2C%22PAUSED%22%2C%22PENDING%22%2C%22REJECTED%22]%2C%22tag%22%3A[]%7D&nav_ref=whatsapp_manager&asset_id=26675130985523263" target="_blank" rel="noopener noreferrer" style="color: var(--brand); font-size: 12px; margin-left: 8px; font-weight: normal; text-decoration: none;">
+                Administrar en Meta ↗
+              </a>
+            <% end %>
             <%= f.text_field :template_name_whatsapp, class: "form-input", placeholder: "Ej. despertar_dia_01" %>
             <p class="form-help">Identificador exacto aprobado en Meta Business Manager.</p>
           </div>

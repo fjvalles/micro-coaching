@@ -26,6 +26,9 @@
     </script>
 
     <div class="admin-layout">
+      <!-- Sidebar Overlay for mobile -->
+      <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
       <!-- Sidebar -->
       <aside class="admin-sidebar">
         <div class="sidebar-header">
@@ -36,6 +39,11 @@
               <span class="brand-sub">by comtraining</span>
             </div>
           </a>
+          <button type="button" id="sidebar-close" class="btn-sidebar-close" aria-label="Cerrar menú">
+            <svg style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         <nav class="sidebar-nav">
@@ -101,6 +109,19 @@
                   <% if pending_count.positive? %>
                     <span class="badge badge-warning" style="margin-left:auto;"><%= pending_count %></span>
                   <% end %>
+                </a>
+              </li>
+              <li>
+                <a href="https://business.facebook.com/latest/whatsapp_manager/message_templates/?business_id=419829158905512&tab=message-templates&filters=%7B%22date_range%22%3A7%2C%22language%22%3A[]%2C%22quality%22%3A[]%2C%22search_text%22%3A%22%22%2C%22status%22%3A[%22APPROVED%22%2C%22IN_APPEAL%22%2C%22PAUSED%22%2C%22PENDING%22%2C%22REJECTED%22]%2C%22tag%22%3A[]%7D&nav_ref=whatsapp_manager&asset_id=26675130985523263" target="_blank" rel="noopener noreferrer" class="nav-link">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  <span style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <span>Plantillas Meta</span>
+                    <svg style="width: 12px; height: 12px; opacity: 0.6;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                    </svg>
+                  </span>
                 </a>
               </li>
             </ul>
@@ -255,6 +276,11 @@
       <!-- Main Content Area -->
       <main class="admin-main">
         <header class="admin-header">
+          <button type="button" id="sidebar-toggle" class="btn-sidebar-toggle" aria-label="Abrir menú">
+            <svg style="width: 24px; height: 24px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
           <div class="header-title-area">
             <div class="header-breadcrumbs">
               <a href="<%= admin_root_path %>">Admin</a>
@@ -431,10 +457,46 @@
           }
         }
 
+        function initSidebar() {
+          const sidebar = document.querySelector(".admin-sidebar");
+          const toggleBtn = document.getElementById("sidebar-toggle");
+          const closeBtn = document.getElementById("sidebar-close");
+          const overlay = document.getElementById("sidebar-overlay");
+
+          if (!sidebar || !toggleBtn) return;
+
+          function openSidebar() {
+            sidebar.classList.add("is-open");
+            if (overlay) overlay.classList.add("is-visible");
+          }
+
+          function closeSidebar() {
+            sidebar.classList.remove("is-open");
+            if (overlay) overlay.classList.remove("is-visible");
+          }
+
+          // Reset listeners via cloning
+          [toggleBtn, closeBtn, overlay].forEach(function(el) {
+            if (!el) return;
+            const newEl = el.cloneNode(true);
+            el.parentNode.replaceChild(newEl, el);
+          });
+
+          // Re-bind click events
+          const newToggleBtn = document.getElementById("sidebar-toggle");
+          const newCloseBtn = document.getElementById("sidebar-close");
+          const newOverlay = document.getElementById("sidebar-overlay");
+
+          if (newToggleBtn) newToggleBtn.addEventListener("click", openSidebar);
+          if (newCloseBtn) newCloseBtn.addEventListener("click", closeSidebar);
+          if (newOverlay) newOverlay.addEventListener("click", closeSidebar);
+        }
+
         // Run formatters and initiations
         function runInitializers() {
           formatMarkdownAlerts();
           initHelpDrawer();
+          initSidebar();
         }
 
         document.addEventListener("turbo:load", runInitializers);
