@@ -1070,6 +1070,12 @@ body {
   border: 1px solid var(--border);
 }
 
+.chat-group-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .chat-bubble-wrapper {
   display: flex;
   flex-direction: column;
