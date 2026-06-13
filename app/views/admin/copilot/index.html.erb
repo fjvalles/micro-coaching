@@ -1,0 +1,34 @@
+<% content_for :title, "Copiloto" %>
+
+<% content_for :breadcrumbs do %>
+  <span class="breadcrumb-sep">›</span>
+  <span>Copiloto</span>
+<% end %>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Copiloto de operaciones</h2>
+    <%= button_to "Nueva sesión", admin_copilot_sessions_path, method: :post, class: "btn btn-primary" %>
+  </div>
+  <div class="card-body" style="padding:0;">
+    <% if @sessions.empty? %>
+      <p style="padding:16px; color:var(--text-muted); font-size:13px;">Sin sesiones todavía. Crea una para empezar.</p>
+    <% else %>
+      <table class="data-table">
+        <thead>
+          <tr><th>Sesión</th><th>Estado</th><th>Mensajes</th><th>Creada</th></tr>
+        </thead>
+        <tbody>
+          <% @sessions.each do |s| %>
+            <tr>
+              <td><%= link_to (s.title.presence || "Sesión #{s.id.first(8)}"), admin_copilot_session_path(s) %></td>
+              <td><span class="badge badge-neutral"><%= s.status %></span></td>
+              <td><%= s.copilot_messages.size %></td>
+              <td><%= l(s.created_at, format: :short) rescue s.created_at.strftime("%d/%m %H:%M") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>

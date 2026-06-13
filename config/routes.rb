@@ -59,6 +59,14 @@ Rails.application.routes.draw do
       end
       post "response_mode", to: "response_modes#update", as: :update_response_mode
 
+      # Ops copilot (superadmin-only; gated by copilot_enabled)
+      get  "copilot",                       to: "copilot#index",          as: :copilot
+      post "copilot/sessions",              to: "copilot#create",         as: :copilot_sessions
+      get  "copilot/sessions/:id",          to: "copilot#show",           as: :copilot_session
+      post "copilot/sessions/:id/message",  to: "copilot#message",        as: :copilot_session_message
+      post "copilot/actions/:id/approve",   to: "copilot#approve_action", as: :copilot_approve_action
+      post "copilot/actions/:id/reject",    to: "copilot#reject_action",  as: :copilot_reject_action
+
       get "health",    to: "health#show",        as: :health
       get "audit_log", to: "audit_logs#index", as: :audit_log
       get "finances",  to: "finances#index",   as: :finances

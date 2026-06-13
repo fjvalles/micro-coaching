@@ -1,0 +1,22 @@
+<div id="copilot_pending">
+  <% actions = session.copilot_pending_actions.awaiting %>
+  <% if actions.any? %>
+    <div class="card" style="margin-bottom:24px; border-left:3px solid #f59e0b;">
+      <div class="card-header"><h2 class="card-title">Acciones por aprobar</h2></div>
+      <div class="card-body">
+        <% actions.each do |a| %>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
+            <div>
+              <strong><%= a.tool_name %></strong>
+              <code style="font-size:12px; color:var(--text-muted);"><%= a.args.to_json %></code>
+            </div>
+            <div>
+              <%= button_to "Aprobar", admin_copilot_approve_action_path(a), method: :post, class: "btn btn-primary btn-sm" %>
+              <%= button_to "Rechazar", admin_copilot_reject_action_path(a), method: :post, class: "btn btn-sm" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

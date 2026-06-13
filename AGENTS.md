@@ -85,6 +85,9 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 | `Skill` | Catálogo de 82 habilidades **humanas del participante** (no de la IA), importadas de `db/seeds/skills_source/*.txt`: `slug`, `name`, `position`, `definition`, `importance`, `trap`, `one_liner`, arrays jsonb `signals`/`practices`/`gestures`/`exercises`/`reflection_questions`. `has_many :skill_detections` |
 | `SkillDetection` | `participant_id`, `conversation_id`, `skill_id`, `confidence`, `source` (moment), `detected_at`. Único `[conversation_id, skill_id]` |
 | `Enrollment` | Ledger histórico de ciclos (modelo **secuencial**; estado vivo en `Participant`): `belongs_to :participant/:program`, `cycle_number` (global por participante), `status` (active/completed/canceled), `started_at`, `completed_at`. Único `[participant_id, program_id, cycle_number]`. Escrito por `Activator`/`DayAdvancer`/`ReEnroller` |
+| `CopilotSession` | Hilo de chat del copiloto de operaciones (superadmin): `belongs_to :admin_user`, `status` (active/archived), `tokens_input`/`tokens_output` (presupuesto por sesión), `metadata`. `has_many :copilot_messages, :copilot_pending_actions` |
+| `CopilotMessage` | Transcript append-only de una sesión (también es el log de auditoría): `role` (user/assistant/tool/system), `content`, `tool_name`, `tool_args` (jsonb), `tool_result` (jsonb), tokens. Broadcast en vivo vía Turbo |
+| `CopilotPendingAction` | Gate humano: act tool propuesta por el copiloto, en espera de aprobación: `tool_name`, `args` (jsonb), `status` (pending/approved/rejected/executed/failed), `result` (jsonb), `approved_by`, `executed_at`. Ejecutada solo por `Copilot::ActExecutor` al aprobar |
 
 All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `discard` gem for soft deletes — always scope with `.kept`.
 
@@ -132,6 +135,10 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/openai/SkillTagger` — classifies an inbound message against the skill catalog (JSON mode); returns 0–3 skills with confidence; run via `TagConversationSkillsJob`
 - `app/services/openai/SkillCatalog` — builds the stable catalog prefix for the SkillTagger prompt (promotes prompt caching)
 - `app/services/outbound/AdminMessage` — sends a manual admin message (free text or template) to one participant; used by `SendAdminMessageJob` / `BroadcastMessageJob`
+- `app/services/copilot/ToolRegistry` — fixed catalog of the ops copilot's read + act tools; hash dispatch (model string never reaches `send`/`eval`); exposes OpenAI function schemas
+- `app/services/copilot/ReadTools` — implementations of the copilot's read tools (participant lookup/detail, recent conversations, cohort metrics, failed messages); PII-safe explicit columns (no `coach_notes`/tokens, phone masked)
+- `app/services/copilot/AgentRunner` — OpenAI function-calling loop for one copilot turn; executes read tools inline, gates act tools (records a `CopilotPendingAction` and stops), enforces token budget + iteration cap; injection-hardened system prompt
+- `app/services/copilot/ActExecutor` — runs an APPROVED act tool through the wrapped service (`Outbound::AdminMessage`, `Participants::DayAdvancer`, status transitions); re-validates args (target → `Participant.kept` by id, bounded body)
 
 ## Panel de Administración (Nativo)
 

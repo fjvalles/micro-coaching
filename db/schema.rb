@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_13_150000) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_13_160003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -27,6 +27,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_150000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "name"
+    t.boolean "superadmin", default: false, null: false
     t.index ["email"], name: "index_admin_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
     t.index ["unlock_token"], name: "index_admin_users_on_unlock_token", unique: true
@@ -100,6 +101,51 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_150000) do
     t.index ["participant_id", "day_number"], name: "index_conversations_on_participant_id_and_day_number"
     t.index ["participant_id"], name: "index_conversations_on_participant_id"
     t.index ["whatsapp_message_id"], name: "index_conversations_on_whatsapp_message_id", unique: true, where: "(whatsapp_message_id IS NOT NULL)"
+  end
+
+  create_table "copilot_messages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "copilot_session_id", null: false
+    t.integer "role", default: 0, null: false
+    t.text "content"
+    t.string "tool_name"
+    t.jsonb "tool_args", default: {}, null: false
+    t.jsonb "tool_result"
+    t.string "model_used"
+    t.integer "tokens_input", default: 0, null: false
+    t.integer "tokens_output", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["copilot_session_id", "created_at"], name: "index_copilot_messages_on_copilot_session_id_and_created_at"
+    t.index ["copilot_session_id"], name: "index_copilot_messages_on_copilot_session_id"
+  end
+
+  create_table "copilot_pending_actions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "copilot_session_id", null: false
+    t.uuid "copilot_message_id"
+    t.string "tool_name", null: false
+    t.jsonb "args", default: {}, null: false
+    t.integer "status", default: 0, null: false
+    t.jsonb "result"
+    t.string "approved_by"
+    t.datetime "executed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["copilot_message_id"], name: "index_copilot_pending_actions_on_copilot_message_id"
+    t.index ["copilot_session_id", "status"], name: "index_copilot_pending_actions_on_copilot_session_id_and_status"
+    t.index ["copilot_session_id"], name: "index_copilot_pending_actions_on_copilot_session_id"
+  end
+
+  create_table "copilot_sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "admin_user_id", null: false
+    t.string "title"
+    t.integer "status", default: 0, null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.integer "tokens_input", default: 0, null: false
+    t.integer "tokens_output", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_user_id", "status"], name: "index_copilot_sessions_on_admin_user_id_and_status"
+    t.index ["admin_user_id"], name: "index_copilot_sessions_on_admin_user_id"
   end
 
   create_table "daily_reports", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -452,6 +498,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_150000) do
   add_foreign_key "coach_sessions", "admin_users"
   add_foreign_key "coach_sessions", "participants"
   add_foreign_key "conversations", "participants"
+  add_foreign_key "copilot_messages", "copilot_sessions"
+  add_foreign_key "copilot_pending_actions", "copilot_messages"
+  add_foreign_key "copilot_pending_actions", "copilot_sessions"
+  add_foreign_key "copilot_sessions", "admin_users"
   add_foreign_key "daily_reports", "participants"
   add_foreign_key "day_contents", "programs"
   add_foreign_key "enrollments", "participants"

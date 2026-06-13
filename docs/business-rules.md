@@ -592,6 +592,38 @@ Modelo **secuencial**: un participante corre un programa a la vez (`Participant#
 
 ---
 
+## 27. Copiloto de operaciones (superadmin)
+
+Chat interno en `/admin/copilot` que lee la base de datos y **propone** acciones de negocio. Es un agente OpenAI (function calling), corre **dentro de Rails** (no edita código, no hace deploy, no toca el filesystem). El riesgo central es prompt injection: el texto de participantes (que el copiloto puede leer) es dato no confiable que reentra al contexto del modelo.
+
+### 27.1 Acceso solo superadmin + kill-switch
+- **Regla.** Requiere `AdminUser#superadmin = true` **y** `Setting "copilot_enabled" = true` (default OFF). Sin ambos, la ruta responde 403 / redirige. Las sesiones se scopean al admin dueño.
+- **Por qué.** Capacidad sensible (lee PII, ejecuta acciones). Superficie mínima: una persona de máxima confianza, apagada por defecto.
+- **Enforce.** `app/controllers/admin/copilot_controller.rb` (`#require_superadmin`, `#require_copilot_enabled`), `app/jobs/copilot_agent_job.rb` (gate), checkbox en `app/views/admin/admin_users/_form.html.erb`.
+
+### 27.2 Dos clases de herramientas: read (inmediata) y act (gateada)
+- **Regla.** El catálogo es fijo (`Copilot::ToolRegistry`), dispatch por lookup de hash — un nombre del modelo nunca llega a `send`/`eval`. **Read tools** (`participant_lookup`, `participant_detail`, `recent_conversations`, `cohort_metrics`, `failed_messages`) ejecutan inline y devuelven datos. **Act tools** (`send_message`, `pause_participant`, `reactivate_participant`, `advance_day`) **nunca** ejecutan inline: el loop crea un `CopilotPendingAction` (pending) y se detiene.
+- **Enforce.** `app/services/copilot/tool_registry.rb`, `app/services/copilot/read_tools.rb`, `app/services/copilot/agent_runner.rb`.
+
+### 27.3 La aprobación humana es la defensa primaria contra injection
+- **Regla.** Ninguna act tool corre sin que un superadmin la apruebe en la UI. La inyección, en el peor caso, produce una **propuesta** que un humano veta. Al aprobar, `Copilot::ActExecutor` **re-valida** los args (target resuelto a `Participant.kept` por id, nunca un teléfono libre; body ≤ 1500) y corre el servicio real (`Outbound::AdminMessage`, `Participants::DayAdvancer`, transición de status). La acción queda `executed`/`failed` con resultado.
+- **Por qué.** El modelo no es de confianza para disparar acciones salientes; el gate convierte "RCE-via-chat" en "propuesta revisada".
+- **Enforce.** `app/services/copilot/act_executor.rb`, `app/controllers/admin/copilot_controller.rb` (`#approve_action`).
+
+### 27.4 Datos de herramientas son no confiables; PII y secretos acotados
+- **Regla.** Los resultados de tools reentran como `role:"tool"` (nunca dentro del system prompt). El system prompt instruye ignorar cualquier instrucción incrustada en ese contenido. Las read tools seleccionan columnas explícitas PII-safe: **nunca** `coach_notes`, **nunca** tokens de pago/suscripción; el teléfono se enmascara a los últimos 4. `ai_summary`/`focus_hint` sí (son AI-safe por diseño).
+- **Enforce.** `Copilot::AgentRunner#system_prompt`, `Copilot::ReadTools#participant_summary` / `#mask_phone`.
+
+### 27.5 Topes por sesión
+- **Regla.** `copilot_token_budget_per_session` (default 200k) detiene el loop al agotarse; `copilot_action_cap_per_session` (default 10) frena la creación de nuevas propuestas. Loop acotado a 6 iteraciones por turno.
+- **Enforce.** `CopilotSession#over_token_budget?` / `#action_cap_reached?`, `Copilot::AgentRunner::MAX_ITERATIONS`.
+
+### 27.6 Auditoría
+- **Regla.** Cada turno (user/assistant/tool) se persiste append-only en `copilot_messages`; cada acción propuesta en `copilot_pending_actions` con `approved_by` + `executed_at`. La UI actualiza en vivo vía Turbo Streams.
+- **Enforce.** `app/models/copilot_message.rb`, `app/models/copilot_pending_action.rb`.
+
+---
+
 ## 13. Edge cases conocidos
 
 - **Participante sin `DayContent`.** Si no existe `DayContent(program, current_day)`, `MorningWakeForParticipantJob` retorna sin enviar. Sin error.

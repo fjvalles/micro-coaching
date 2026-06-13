@@ -1,0 +1,35 @@
+<% content_for :title, "Copiloto" %>
+
+<% content_for :breadcrumbs do %>
+  <span class="breadcrumb-sep">›</span>
+  <%= link_to "Copiloto", admin_copilot_path %>
+  <span class="breadcrumb-sep">›</span>
+  <span>Sesión <%= @session.id.first(8) %></span>
+<% end %>
+
+<%= turbo_stream_from @session, :messages %>
+<%= turbo_stream_from @session, :pending %>
+
+<%= render "pending_actions", session: @session %>
+
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><h2 class="card-title">Conversación</h2></div>
+  <div class="card-body">
+    <div id="copilot_messages">
+      <% if @messages.empty? %>
+        <p style="color:var(--text-muted); font-size:13px;">Escribe un mensaje para empezar.</p>
+      <% else %>
+        <%= render partial: "message", collection: @messages, as: :message %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <%= form_with url: admin_copilot_session_message_path(@session), method: :post do |f| %>
+      <%= f.text_area :content, rows: 3, placeholder: "Pregunta o pide una acción…", style: "width:100%;" %>
+      <div style="margin-top:8px;"><%= f.submit "Enviar", class: "btn btn-primary" %></div>
+    <% end %>
+  </div>
+</div>

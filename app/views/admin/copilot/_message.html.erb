@@ -1,0 +1,21 @@
+<div id="<%= dom_id(message) %>">
+  <% if message.role == "tool" %>
+    <div style="margin:6px 0; font-size:12px; color:var(--text-muted);">
+      🔧 <strong><%= message.tool_name %></strong>(<%= message.tool_args.to_json %>)
+    </div>
+  <% elsif message.role == "assistant" && message.tool_args.present? %>
+    <% Array(message.tool_args["calls"]).each do |c| %>
+      <div style="margin:6px 0; font-size:12px; color:var(--text-muted);">
+        → llama <strong><%= c.dig("function", "name") %></strong>
+      </div>
+    <% end %>
+    <% if message.content.present? %>
+      <div style="margin-bottom:12px; white-space:pre-wrap;"><%= message.content %></div>
+    <% end %>
+  <% else %>
+    <div style="margin-bottom:12px;">
+      <span class="badge badge-neutral" style="text-transform:uppercase; font-size:10px;"><%= message.role %></span>
+      <div style="margin-top:4px; white-space:pre-wrap;"><%= message.content %></div>
+    </div>
+  <% end %>
+</div>

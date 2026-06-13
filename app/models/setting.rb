@@ -1,6 +1,6 @@
 class Setting < ApplicationRecord
   VALUE_TYPES  = %w[string text integer float boolean json].freeze
-  CATEGORIES   = %w[timing openai whatsapp program admin general finances].freeze
+  CATEGORIES   = %w[timing openai whatsapp program admin general finances copilot].freeze
   CACHE_PREFIX = "setting:".freeze
   CACHE_TTL    = 5.minutes
 
@@ -444,6 +444,22 @@ class Setting < ApplicationRecord
       type: :integer, category: "finances", default: 3,
       description: "Reintentos de cobro recurrente antes de marcar la suscripción como past_due.",
       validate: ->(v) { (0..10).cover?(v) || "debe estar entre 0 y 10" }
+    },
+
+    # ── copilot (ops copilot superadmin) ─────────────────────────────────────
+    "copilot_enabled" => {
+      type: :boolean, category: "copilot", default: false,
+      description: "Kill-switch del copiloto de operaciones (/admin/copilot). Off = el agente no corre. Solo superadmins. Default OFF."
+    },
+    "copilot_action_cap_per_session" => {
+      type: :integer, category: "copilot", default: 10,
+      description: "Máximo de acciones (act tools) que el copiloto puede proponer por sesión. Frena loops/abuso por inyección.",
+      validate: ->(v) { (1..100).cover?(v) || "debe estar entre 1 y 100" }
+    },
+    "copilot_token_budget_per_session" => {
+      type: :integer, category: "copilot", default: 200_000,
+      description: "Presupuesto de tokens (input+output) por sesión del copiloto. Al superarlo, el loop se detiene.",
+      validate: ->(v) { v >= 1_000 || "debe ser >= 1000" }
     }
   }.freeze
 

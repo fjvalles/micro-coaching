@@ -2,7 +2,7 @@ module Openai
   class Client
     include Openai::Retryable
 
-    Result = Struct.new(:content, :tokens_input, :tokens_output, :model, :latency_ms, keyword_init: true)
+    Result = Struct.new(:content, :tokens_input, :tokens_output, :model, :latency_ms, :tool_calls, keyword_init: true)
 
     DEFAULT_MODEL = Openai::ModelRouter::DEFAULT_MODEL
 
@@ -12,14 +12,15 @@ module Openai
       @model   = @model_override || Setting.fetch("openai_model").presence || DEFAULT_MODEL
     end
 
-    def chat(messages:, max_tokens: nil, temperature: nil, response_format: nil, task: nil)
+    def chat(messages:, max_tokens: nil, temperature: nil, response_format: nil, task: nil,
+             tools: nil, tool_choice: nil)
       temperature ||= Setting.fetch("openai_temperature_generative")
       model = model_for(task)
 
       if Setting.fetch("openai_dry_run_global")
         return Result.new(
           content: "[dry-run] OpenAI desactivado vía openai_dry_run_global.",
-          tokens_input: 0, tokens_output: 0, model: "dry-run", latency_ms: 0
+          tokens_input: 0, tokens_output: 0, model: "dry-run", latency_ms: 0, tool_calls: nil
         )
       end
 
@@ -33,12 +34,15 @@ module Openai
       params[:temperature] = temperature unless default_temperature_only?(model)
       params[:reasoning_effort] = reasoning_effort_for(model) if reasoning_model?(model)
       params[:response_format] = response_format if response_format
+      params[:tools] = tools if tools.present?
+      params[:tool_choice] = tool_choice if tools.present? && tool_choice.present?
 
       started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       response = with_retries { http_client.chat(parameters: params) }
       latency_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
 
-      content = response.dig("choices", 0, "message", "content").to_s.strip
+      message = response.dig("choices", 0, "message") || {}
+      content = message["content"].to_s.strip
       usage = response["usage"] || {}
 
       Result.new(
@@ -46,7 +50,8 @@ module Openai
         tokens_input: usage["prompt_tokens"].to_i,
         tokens_output: usage["completion_tokens"].to_i,
         model: response["model"] || model,
-        latency_ms: latency_ms
+        latency_ms: latency_ms,
+        tool_calls: message["tool_calls"].presence
       )
     end
 
