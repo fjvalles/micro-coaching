@@ -26,4 +26,17 @@ class Conversation < ApplicationRecord
   scope :chronological, -> { order(:created_at) }
   scope :failed, -> { where.not(error_message: nil) }
   scope :for_day, ->(day) { where(day_number: day) }
+
+  after_commit :broadcast_conversations
+
+  private
+
+  def broadcast_conversations
+    broadcast_replace_later_to(
+      "participant_#{participant_id}_conversations",
+      target: "participant_conversations",
+      partial: "admin/participants/conversations",
+      locals: { participant: participant }
+    )
+  end
 end

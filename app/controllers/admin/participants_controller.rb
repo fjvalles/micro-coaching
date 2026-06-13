@@ -75,38 +75,7 @@ module Admin
       @conversations = @participant.conversations.kept.order(created_at: :desc).limit(200)
       @enrollments = @participant.enrollments.includes(:program).order(started_at: :desc).to_a
 
-      @conversations_by_enrollment = []
-      unassigned = @conversations.to_a.dup
 
-      @enrollments.each_with_index do |enrollment, index|
-        start_time = enrollment.started_at || enrollment.created_at
-        end_time = if index == 0
-                     Time.current + 1.year
-        else
-                     newer_enrollment = @enrollments[index - 1]
-                     newer_enrollment.started_at || newer_enrollment.created_at
-        end
-
-        enrollment_conversations = unassigned.select do |msg|
-          msg.created_at >= start_time && msg.created_at < end_time
-        end
-
-        unassigned -= enrollment_conversations
-
-        @conversations_by_enrollment << {
-          enrollment: enrollment,
-          program: enrollment.program,
-          conversations: enrollment_conversations
-        }
-      end
-
-      if unassigned.any?
-        @conversations_by_enrollment << {
-          enrollment: nil,
-          program: nil,
-          conversations: unassigned
-        }
-      end
 
       @daily_reports = @participant.daily_reports.order(reported_at: :desc).limit(10)
       @message_templates = message_templates

@@ -1,0 +1,91 @@
+<%= turbo_frame_tag "participant_conversations" do %>
+  <%
+    conversations = participant.conversations.kept.order(created_at: :desc).limit(200)
+    enrollments = participant.enrollments.includes(:program).order(started_at: :desc).to_a
+
+    conversations_by_enrollment = []
+    unassigned = conversations.to_a.dup
+
+    enrollments.each_with_index do |enrollment, index|
+      start_time = enrollment.started_at || enrollment.created_at
+      end_time = if index == 0
+                   Time.current + 1.year
+      else
+                   newer_enrollment = enrollments[index - 1]
+                   newer_enrollment.started_at || newer_enrollment.created_at
+      end
+
+      enrollment_conversations = unassigned.select do |msg|
+        msg.created_at >= start_time && msg.created_at < end_time
+      end
+
+      unassigned -= enrollment_conversations
+
+      conversations_by_enrollment << {
+        enrollment: enrollment,
+        program: enrollment.program,
+        conversations: enrollment_conversations
+      }
+    end
+
+    if unassigned.any?
+      conversations_by_enrollment << {
+        enrollment: nil,
+        program: nil,
+        conversations: unassigned
+      }
+    end
+  %>
+
+  <% if conversations_by_enrollment.any? { |group| group[:conversations].any? } %>
+    <div class="chat-container">
+      <% conversations_by_enrollment.reverse_each do |group| %>
+        <% next if group[:conversations].empty? %>
+        
+        <div class="program-divider" style="text-align: center; margin: 24px 0 16px; border-bottom: 1px solid var(--border); line-height: 0.1em;">
+          <span style="background: var(--card-bg, #fff); padding: 0 10px; font-weight: 600; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+            <% if group[:program] %>
+              <%= group[:program].name %>
+              <% if group[:enrollment] %>
+                (Ciclo <%= group[:enrollment].cycle_number %>)
+              <% end %>
+            <% else %>
+              Sin programa asignado
+            <% end %>
+          </span>
+        </div>
+
+        <% group[:conversations].reverse_each do |msg| %>
+          <div class="chat-bubble-wrapper <%= msg.role %>">
+            <div class="chat-bubble">
+              <%= msg.body %>
+              <% if msg.error_message.present? %>
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(239,68,68,0.2); color: var(--danger); font-size: 11px;">
+                  ⚠️ Error: <%= msg.error_message %>
+                </div>
+              <% end %>
+            </div>
+            <div class="chat-meta">
+              <span style="font-weight: 600;"><%= translate_role(msg.role).upcase %></span>
+              <span>·</span>
+              <span>Día <%= msg.day_number %></span>
+              <span>·</span>
+              <span><%= translate_moment(msg.moment) %></span>
+              <span>·</span>
+              <span><%= l(msg.created_at, format: :short) rescue msg.created_at.strftime("%d/%m %H:%M") %></span>
+              <% if msg.role == 'assistant' && msg.tokens_input.present? %>
+                <span>·</span>
+                <span title="Tokens input / output"><%= msg.tokens_input %> in / <%= msg.tokens_output %> out</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="empty-state">
+      <div class="empty-state-title">Sin mensajes</div>
+      <div class="empty-state-desc">Este participante no registra conversaciones en WhatsApp todavía.</div>
+    </div>
+  <% end %>
+<% end %>
