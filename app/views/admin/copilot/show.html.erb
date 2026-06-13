@@ -12,24 +12,65 @@
 
 <%= render "pending_actions", session: @session %>
 
-<div class="card" style="margin-bottom:24px;">
-  <div class="card-header"><h2 class="card-title">Conversación</h2></div>
-  <div class="card-body">
-    <div id="copilot_messages">
-      <% if @messages.empty? %>
-        <p style="color:var(--text-muted); font-size:13px;">Escribe un mensaje para empezar.</p>
-      <% else %>
-        <%= render partial: "message", collection: @messages, as: :message %>
-      <% end %>
-    </div>
+<div class="copilot-layout">
+  <div class="copilot-chat-container" id="copilot_messages">
+    <% if @messages.empty? %>
+      <div class="copilot-empty-state">
+        <div class="copilot-empty-icon">✨</div>
+        <h3>¿En qué puedo ayudarte hoy?</h3>
+        <p>Escribe un mensaje abajo para empezar la conversación con el copiloto de operaciones.</p>
+      </div>
+    <% else %>
+      <%= render partial: "message", collection: @messages, as: :message %>
+    <% end %>
   </div>
-</div>
 
-<div class="card">
-  <div class="card-body">
-    <%= form_with url: admin_copilot_session_message_path(@session), method: :post do |f| %>
-      <%= f.text_area :content, rows: 3, placeholder: "Pregunta o pide una acción…", style: "width:100%;" %>
-      <div style="margin-top:8px;"><%= f.submit "Enviar", class: "btn btn-primary" %></div>
+  <div class="copilot-input-container">
+    <%= form_with url: admin_copilot_session_message_path(@session), method: :post, class: "copilot-form" do |f| %>
+      <div class="copilot-input-wrapper">
+        <%= f.text_area :content, rows: 1, class: "copilot-textarea", placeholder: "Pregunta o pide una acción al copiloto...", id: "copilot_input" %>
+        <button type="submit" class="copilot-submit-btn" aria-label="Enviar mensaje">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+          </svg>
+        </button>
+      </div>
+      <div class="copilot-input-footer">
+        El copiloto puede cometer errores. Considera verificar la información importante.
+      </div>
     <% end %>
   </div>
 </div>
+
+<script>
+  (function() {
+    // Auto-resize textarea
+    const textarea = document.getElementById('copilot_input');
+    if (textarea) {
+      textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        if (this.scrollHeight > 200) {
+          this.style.overflowY = 'auto';
+        } else {
+          this.style.overflowY = 'hidden';
+        }
+      });
+
+      // Enter to submit (Shift+Enter for new line)
+      textarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (this.value.trim() !== '') {
+            this.form.requestSubmit();
+            this.value = '';
+            this.style.height = 'auto';
+          }
+        }
+      });
+      
+      // Auto focus
+      setTimeout(() => textarea.focus(), 100);
+    }
+  })();
+</script>
