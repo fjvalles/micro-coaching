@@ -2,7 +2,7 @@ module Admin
   class ParticipantsController < BaseController
     before_action :set_participant, only: [
       :show, :edit, :update, :destroy, :enroll, :discard, :undiscard,
-      :send_message, :re_enroll, :start_program
+      :send_message, :re_enroll, :start_program, :versions
     ]
 
     def index
@@ -80,6 +80,40 @@ module Admin
       @daily_reports = @participant.daily_reports.order(reported_at: :desc).limit(10)
       @message_templates = message_templates
       @dominant_skills = @participant.dominant_skills
+    end
+
+    def versions
+      scope = @participant.versions
+
+      if params[:date].present?
+        date = Date.parse(params[:date]) rescue nil
+        if date
+          scope = scope.where(created_at: date.beginning_of_day..date.end_of_day)
+        end
+      end
+
+      if params[:event].present?
+        scope = scope.where(event: params[:event])
+      end
+
+      if params[:source].present?
+        scope = scope.where(source: params[:source])
+      end
+
+      if params[:whodunnit].present?
+        scope = scope.where("whodunnit ILIKE ?", "%#{params[:whodunnit]}%")
+      end
+
+      @page = (params[:page] || 1).to_i
+      @per_page = 15
+      @total_count = scope.count
+      @total_pages = (@total_count.to_f / @per_page).ceil
+
+      @versions = scope.order(created_at: :desc)
+                       .limit(@per_page)
+                       .offset((@page - 1) * @per_page)
+
+      render layout: false
     end
 
     def new

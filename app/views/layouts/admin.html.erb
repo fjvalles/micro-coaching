@@ -492,11 +492,17 @@
           if (newOverlay) newOverlay.addEventListener("click", closeSidebar);
         }
 
+        function initChatAutoScroll() {
+          const chat = document.querySelector('.chat-container');
+          if (chat) chat.scrollTop = chat.scrollHeight;
+        }
+
         // Run formatters and initiations
         function runInitializers() {
           formatMarkdownAlerts();
           initHelpDrawer();
           initSidebar();
+          initChatAutoScroll();
         }
 
         document.addEventListener("turbo:load", runInitializers);
@@ -505,6 +511,18 @@
         } else {
           runInitializers();
         }
+
+        // Auto-scroll chat on Turbo Stream updates
+        document.addEventListener("turbo:before-stream-render", function(event) {
+          const targetId = event.target.getAttribute("target");
+          if (targetId === "participant_conversations") {
+            const fallbackToDefault = event.detail.render;
+            event.detail.render = function(streamElement) {
+              fallbackToDefault(streamElement);
+              setTimeout(initChatAutoScroll, 10);
+            };
+          }
+        });
 
         // Escape key closes the help drawer
         document.addEventListener("keydown", function(e) {

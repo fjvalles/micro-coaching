@@ -1,6 +1,10 @@
 <%
   changes = begin
-    version.object_changes ? PaperTrail.serializer.load(version.object_changes) : {}
+    if version.object_changes.present?
+      version.object_changes.is_a?(Hash) ? version.object_changes : YAML.unsafe_load(version.object_changes)
+    else
+      {}
+    end
   rescue
     {}
   end

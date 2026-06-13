@@ -20,6 +20,7 @@ Rails.application.routes.draw do
       end
       resources :participants do
         member do
+          get :versions
           post :enroll
           post :discard
           post :undiscard

@@ -1,0 +1,65 @@
+<%= turbo_frame_tag "participant_versions" do %>
+  <div style="padding: 16px; background: var(--bg-secondary); border-bottom: 1px solid var(--border);">
+    <%= form_with url: versions_admin_participant_path(@participant), method: :get, data: { turbo_frame: "participant_versions" }, style: "display: flex; gap: 12px; width: 100%; flex-wrap: wrap; align-items: flex-end;" do |f| %>
+      
+      <div style="flex: 1; min-width: 150px;">
+        <%= f.label :date, "Fecha", style: "display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px;" %>
+        <%= f.date_field :date, value: params[:date], class: "form-control form-control-sm", style: "width: 100%;", onchange: "this.form.requestSubmit()" %>
+      </div>
+
+      <div style="flex: 1; min-width: 150px;">
+        <%= f.label :event, "Acción", style: "display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px;" %>
+        <%= f.select :event, options_for_select([["Todas las acciones", ""], ["Crear", "create"], ["Modificar", "update"], ["Eliminar", "destroy"]], params[:event]), {}, class: "form-select form-select-sm", style: "width: 100%;", onchange: "this.form.requestSubmit()" %>
+      </div>
+
+      <div style="flex: 1; min-width: 150px;">
+        <%= f.label :source, "Origen", style: "display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px;" %>
+        <%= f.select :source, options_for_select([["Todos los orígenes", ""], ["Admin manual", "admin"], ["IA automático", "ai"], ["Sistema", "system"]], params[:source]), {}, class: "form-select form-select-sm", style: "width: 100%;", onchange: "this.form.requestSubmit()" %>
+      </div>
+
+      <div style="flex: 1; min-width: 150px;">
+        <%= f.label :whodunnit, "Ejecutado Por", style: "display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px;" %>
+        <%= f.text_field :whodunnit, value: params[:whodunnit], class: "form-control form-control-sm", style: "width: 100%;", placeholder: "Buscar...", onchange: "this.form.requestSubmit()" %>
+      </div>
+      
+      <div style="display: flex; gap: 8px;">
+        <noscript>
+          <%= f.submit "Filtrar", class: "btn btn-secondary btn-sm" %>
+        </noscript>
+        <% if params[:date].present? || params[:event].present? || params[:source].present? || params[:whodunnit].present? %>
+          <a href="<%= versions_admin_participant_path(@participant) %>" class="btn btn-secondary btn-sm" style="height: 34px; display: flex; align-items: center;" data-turbo-frame="participant_versions">
+            Limpiar
+          </a>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div style="padding: 0;">
+    <%= render "admin/audit_logs/versions_table", versions: @versions, show_item_col: false %>
+  </div>
+
+  <% if @total_pages > 1 %>
+    <div style="padding: 16px; border-top: 1px solid var(--border); display: flex; justify-content: center;">
+      <nav aria-label="Navegación de versiones">
+        <ul style="display: flex; list-style: none; padding: 0; margin: 0; gap: 4px;">
+          <% if @page > 1 %>
+            <li>
+              <%= link_to "Anterior", versions_admin_participant_path(@participant, date: params[:date], event: params[:event], source: params[:source], whodunnit: params[:whodunnit], page: @page - 1), class: "btn btn-sm btn-secondary", data: { turbo_frame: "participant_versions" } %>
+            </li>
+          <% end %>
+          
+          <li style="display: flex; align-items: center; padding: 0 12px; font-size: 13px; color: var(--text-muted); font-weight: 500;">
+            Página <%= @page %> de <%= @total_pages %> (<%= @total_count %> registros)
+          </li>
+
+          <% if @page < @total_pages %>
+            <li>
+              <%= link_to "Siguiente", versions_admin_participant_path(@participant, date: params[:date], event: params[:event], source: params[:source], whodunnit: params[:whodunnit], page: @page + 1), class: "btn btn-sm btn-secondary", data: { turbo_frame: "participant_versions" } %>
+            </li>
+          <% end %>
+        </ul>
+      </nav>
+    </div>
+  <% end %>
+<% end %>

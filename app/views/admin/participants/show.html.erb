@@ -29,6 +29,7 @@
 
   <% if @participant.program.present? && !@participant.completed? && @participant.current_day.to_i <= 1 %>
     <%= button_to start_program_admin_participant_path(@participant), method: :post, class: "btn btn-primary",
+          disabled: @participant.started_at.present?,
           form: { data: { turbo_confirm: "¿Empezar el programa ahora? Se enviará la bienvenida y el despertar del día 1 sin esperar el horario normal." } } do %>
       <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.25v13.5l12-6.75-12-6.75Z" />
@@ -461,14 +462,76 @@
 
     <!-- Conversaciones (Messages) -->
     <div class="card" style="margin-bottom: 0;">
-      <div class="card-header">
-        <h3 class="card-title">Historial de Conversación (Últimos 200 mensajes)</h3>
+      <div class="card-header" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+        <h3 class="card-title" style="margin: 0;">Historial de Conversación (Últimos 200 mensajes)</h3>
+        
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <select id="chat-program-filter" class="form-control" style="font-size: 13px; padding: 4px 8px; width: auto; min-width: 150px;" onchange="applyChatFilters()">
+            <option value="">Todos los programas</option>
+            <% @participant.enrollments.includes(:program).map(&:program).compact.uniq.each do |prog| %>
+              <option value="<%= prog.id %>"><%= prog.name %></option>
+            <% end %>
+            <option value="none">Sin programa</option>
+          </select>
+
+          <select id="chat-day-filter" class="form-control" style="font-size: 13px; padding: 4px 8px; width: auto; min-width: 120px;" onchange="applyChatFilters()">
+            <option value="">Todos los días</option>
+            <% @participant.conversations.kept.select(:day_number).distinct.pluck(:day_number).compact.sort.each do |day| %>
+              <option value="<%= day %>">Día <%= day %></option>
+            <% end %>
+          </select>
+        </div>
       </div>
       <div class="card-body">
         <%= turbo_stream_from "participant_#{@participant.id}_conversations" %>
         <%= render "admin/participants/conversations", participant: @participant %>
       </div>
     </div>
+    
+    <script>
+      function applyChatFilters() {
+        const programFilter = document.getElementById('chat-program-filter').value;
+        const dayFilter = document.getElementById('chat-day-filter').value;
+
+        const chatContainer = document.querySelector('#participant_conversations');
+        if (!chatContainer) return;
+
+        chatContainer.querySelectorAll('.chat-group-container').forEach(group => {
+          const groupProgramId = group.getAttribute('data-program-id');
+          let anyVisible = false;
+
+          // First check program
+          if (programFilter && programFilter !== groupProgramId) {
+            group.style.display = 'none';
+            return;
+          }
+
+          // Then check day inside group
+          group.querySelectorAll('.chat-bubble-wrapper').forEach(bubble => {
+            const bubbleDay = bubble.getAttribute('data-day');
+            
+            if (dayFilter && dayFilter !== bubbleDay) {
+              bubble.style.display = 'none';
+            } else {
+              bubble.style.display = '';
+              anyVisible = true;
+            }
+          });
+
+          // Show/hide entire group header
+          group.style.display = anyVisible ? '' : 'none';
+        });
+      }
+
+      document.addEventListener('turbo:frame-render', (event) => {
+        if (event.target.id === 'participant_conversations') {
+          applyChatFilters();
+        }
+      });
+      document.addEventListener('turbo:before-stream-render', (event) => {
+        setTimeout(applyChatFilters, 50);
+      });
+    </script>
   </div>
 
   <!-- Sidebar: Send message + Daily Reports -->
@@ -534,8 +597,15 @@
     <h3 class="card-title">Historial de cambios</h3>
   </div>
   <div class="card-body" style="padding:0;">
-    <%= render "admin/audit_logs/versions_table",
-               versions: @participant.versions.order(created_at: :desc).limit(50),
-               show_item_col: false %>
+    <%= turbo_frame_tag "participant_versions", src: versions_admin_participant_path(@participant) do %>
+      <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+        <div style="margin-bottom: 8px;">
+          <svg style="width: 24px; height: 24px; animation: spin 1s linear infinite;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </div>
+        Cargando historial...
+      </div>
+    <% end %>
   </div>
 </div>
