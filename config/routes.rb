@@ -40,7 +40,11 @@ Rails.application.routes.draw do
       get  "metodologia",         to: "methodology#index",   as: :methodology
       post "metodologia/refresh", to: "methodology#refresh", as: :refresh_methodology
 
-      resources :conversations, only: [ :index, :show, :destroy ]
+      resources :conversations, only: [ :index, :show, :destroy ] do
+        member do
+          post :retry
+        end
+      end
       resources :daily_reports, only: [ :index, :show, :destroy ]
       resources :settings, only: [ :index, :edit, :update ]
       resources :admin_users

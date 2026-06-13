@@ -1,6 +1,6 @@
 module Admin
   class ConversationsController < BaseController
-    before_action :set_conversation, only: [ :show, :destroy ]
+    before_action :set_conversation, only: [ :show, :destroy, :retry ]
 
     def index
       if params[:tab] == "unknown"
@@ -99,6 +99,55 @@ module Admin
     def destroy
       @conversation.destroy
       redirect_to admin_conversations_path, notice: "Mensaje eliminado."
+    end
+
+    def retry
+      if @conversation.role != "assistant" || @conversation.error_message.blank?
+        return redirect_back fallback_location: admin_conversations_path, alert: "Este mensaje no se puede reintentar."
+      end
+
+      client = Whatsapp::Client.new
+      response = nil
+
+      if @conversation.whatsapp_template_name.present?
+        prefix = "[template:#{@conversation.whatsapp_template_name}] "
+        variables = if @conversation.body.to_s.start_with?(prefix)
+                      @conversation.body.to_s.sub(prefix, "").split(" | ")
+        else
+                      []
+        end
+
+        components = []
+        if variables.any?
+          components = [ {
+            type: "body",
+            parameters: variables.map { |v| { type: "text", text: v.to_s } }
+          } ]
+        end
+
+        response = client.send_template(
+          to: @conversation.participant.phone_e164,
+          template_name: @conversation.whatsapp_template_name,
+          components: components
+        )
+      else
+        response = client.send_text(
+          to: @conversation.participant.phone_e164,
+          body: @conversation.body
+        )
+      end
+
+      if response.success?
+        @conversation.update!(
+          whatsapp_message_id: response.wamid,
+          sent_at: Time.current,
+          error_message: nil
+        )
+        redirect_back fallback_location: admin_conversations_path, notice: "Mensaje reintentado con éxito."
+      else
+        @conversation.update!(error_message: response.error)
+        redirect_back fallback_location: admin_conversations_path, alert: "El reintento falló: #{response.error}"
+      end
     end
 
     private

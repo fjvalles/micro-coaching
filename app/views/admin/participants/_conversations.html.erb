@@ -60,8 +60,11 @@
             <div class="chat-bubble">
               <%= msg.body %>
               <% if msg.error_message.present? %>
-                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(239,68,68,0.2); color: var(--danger); font-size: 11px;">
-                  ⚠️ Error: <%= msg.error_message %>
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(239,68,68,0.2); color: var(--danger); font-size: 11px; display: flex; align-items: center; justify-content: space-between;">
+                  <span>⚠️ Error: <%= msg.error_message %></span>
+                  <% if msg.role == 'assistant' %>
+                    <%= button_to "Reintentar", retry_admin_conversation_path(msg), method: :post, form: { style: "margin: 0;", data: { turbo: false } }, style: "font-size: 10px; padding: 4px 8px; border-radius: 4px; background: var(--danger); color: white; border: none; cursor: pointer; font-weight: 600;" %>
+                  <% end %>
                 </div>
               <% end %>
             </div>
