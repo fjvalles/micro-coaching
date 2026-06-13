@@ -95,8 +95,8 @@ class Setting < ApplicationRecord
       validate: ->(v) { (0.0..2.0).cover?(v) || "debe estar entre 0.0 y 2.0" }
     },
     "openai_max_tokens_morning" => {
-      type: :integer, category: "openai", default: 400,
-      description: "max_tokens del mensaje matinal."
+      type: :integer, category: "openai", default: 1024,
+      description: "max_tokens del mensaje matinal. Con reasoning_effort=minimal el cap es salida pura; 1024 da margen amplio (mensajes matinales son cortos)."
     },
     "openai_max_tokens_free" => {
       type: :integer, category: "openai", default: 1024,

@@ -13,7 +13,6 @@ module Openai
     end
 
     def chat(messages:, max_tokens: nil, temperature: nil, response_format: nil, task: nil)
-      # max_tokens  ||= Setting.fetch("openai_max_tokens_free") # Removido temporalmente para pruebas
       temperature ||= Setting.fetch("openai_temperature_generative")
       model = model_for(task)
 
