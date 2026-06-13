@@ -74,6 +74,39 @@ class Setting < ApplicationRecord
       type: :integer, category: "openai", default: 200,
       description: "max_tokens del etiquetado de habilidades (SkillTagger, modo JSON)."
     },
+    "openai_max_tokens_inbound_intent" => {
+      type: :integer, category: "openai", default: 220,
+      description: "max_tokens del clasificador semántico de mensajes entrantes (InboundIntentClassifier, modo JSON)."
+    },
+    "inbound_intent_classification_enabled" => {
+      type: :boolean, category: "openai", default: true,
+      description: "Kill-switch: si es true, clasifica semánticamente cada inbound libre/check-in para evitar consumir check-ins con mensajes fuera de contexto."
+    },
+    "inbound_intent_min_confidence" => {
+      type: :float, category: "openai", default: 0.65,
+      description: "Confianza mínima (0.0–1.0) para tratar un mensaje como respuesta real de check-in.",
+      validate: ->(v) { (0.0..1.0).cover?(v) || "debe estar entre 0.0 y 1.0" }
+    },
+    "checkin_pending_followup_text" => {
+      type: :text, category: "program",
+      default: "Te respondo eso y dejo pendiente el check-in de hoy. Cuando puedas, responde las preguntas del día para cerrar el avance.",
+      description: "Contexto operativo que se inyecta a la respuesta libre cuando un mensaje no es check-in pero llega con check-in pendiente."
+    },
+    "support_request_review_reply_text" => {
+      type: :text, category: "admin",
+      default: "Recibí tu solicitud. La voy a dejar para revisión del equipo y te respondemos por este mismo canal.",
+      description: "Borrador que queda pendiente para admin cuando un inbound parece soporte, pagos, horarios o solicitud humana."
+    },
+    "sensitive_request_review_reply_text" => {
+      type: :text, category: "admin",
+      default: "Gracias por decirlo. Esto merece revisión humana cuidadosa; lo voy a dejar al equipo para que pueda responderte con más atención.",
+      description: "Borrador que queda pendiente para admin cuando un inbound parece sensible o riesgoso."
+    },
+    "pause_request_reply_text" => {
+      type: :text, category: "program",
+      default: "Entendido, pausé tus mensajes del programa. Si quieres retomarlo, escríbenos por este mismo chat.",
+      description: "Respuesta al participante cuando pide pausar o salir del programa."
+    },
     "skill_tagging_enabled" => {
       type: :boolean, category: "openai", default: true,
       description: "Kill-switch: si es true, TagConversationSkillsJob detecta habilidades del participante en cada mensaje de check-in/libre. Sin catálogo de habilidades sembrado no llama a OpenAI."

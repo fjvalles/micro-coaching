@@ -1,0 +1,72 @@
+require "rails_helper"
+
+RSpec.describe Participants::InboundIntentClassifier do
+  let(:participant) { create(:participant, initial_pattern: "evita conversaciones difíciles") }
+  let(:client) { instance_double(Openai::Client) }
+
+  before do
+    create(:day_content, program: participant.program, day_number: participant.current_day)
+    Setting.set("inbound_intent_classification_enabled", true)
+  end
+
+  it "parses a strict JSON intent response" do
+    allow(client).to receive(:chat).and_return(
+      Openai::Client::Result.new(
+        content: { intent: "program_question", confidence: 0.82, reason: "asks about the program" }.to_json,
+        tokens_input: 10,
+        tokens_output: 5,
+        model: "gpt-4.1-mini",
+        latency_ms: 12
+      )
+    )
+
+    result = described_class.new(
+      participant: participant,
+      text: "¿Cómo funciona el reto de hoy?",
+      checkin_pending: false,
+      client: client
+    ).call
+
+    expect(result.intent).to eq("program_question")
+    expect(result.confidence).to eq(0.82)
+    expect(result.tokens_input).to eq(10)
+    expect(result.model).to eq("gpt-4.1-mini")
+  end
+
+  it "falls back conservatively when JSON parsing fails" do
+    allow(client).to receive(:chat).and_return(
+      Openai::Client::Result.new(
+        content: "not json",
+        tokens_input: 1,
+        tokens_output: 1,
+        model: "gpt-4.1-mini",
+        latency_ms: 1
+      )
+    )
+
+    result = described_class.new(
+      participant: participant,
+      text: "¿Cuánto cuesta el programa?",
+      checkin_pending: true,
+      client: client
+    ).call
+
+    expect(result.intent).to eq("program_question")
+    expect(result.reason).to include("json fallback")
+  end
+
+  it "uses the heuristic path without calling OpenAI when disabled" do
+    Setting.set("inbound_intent_classification_enabled", false)
+    expect(client).not_to receive(:chat)
+
+    result = described_class.new(
+      participant: participant,
+      text: "Quiero pausar, no me escriban más.",
+      checkin_pending: true,
+      client: client
+    ).call
+
+    expect(result.intent).to eq("stop_or_pause")
+    expect(result.model).to eq("heuristic")
+  end
+end

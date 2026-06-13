@@ -20,6 +20,8 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
     UnknownInbound.delete_all
     ENV["META_PHONE_NUMBER_ID"] = "1234"
     ENV["META_ACCESS_TOKEN"] = "tok"
+    Setting.set("inbound_intent_classification_enabled", false)
+    Setting.set("inbound_intent_min_confidence", 0.65)
     stub_request(:post, "https://graph.facebook.com/v21.0/1234/messages")
       .to_return(status: 200, body: { messages: [ { id: "wamid.OUT" } ] }.to_json)
   end
@@ -123,6 +125,81 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
     )
     described_class.new.perform(text_payload(text: "Procrastinar"))
     expect(participant.reload.initial_pattern).to eq("Procrastinar")
+  end
+
+  describe "semantic inbound intent routing" do
+    let(:now) { Time.utc(2026, 5, 23, 20, 30) }
+
+    before do
+      participant.update!(timezone: "UTC")
+      create(:day_content, program: participant.program, day_number: participant.current_day)
+      participant.update!(pending_checkin_at: now)
+    end
+
+    it "does not consume a program question as check-in during the check-in window" do
+      allow_any_instance_of(Openai::FreeResponseGenerator).to receive(:call) do |generator|
+        expect(generator.instance_variable_get(:@operational_context)).to include("check-in")
+        Openai::FreeResponseGenerator::Result.new(body: "respuesta breve", prompt_used: "p", tokens_input: 1, tokens_output: 1, model: "m")
+      end
+
+      travel_to(now) do
+        described_class.new.perform(text_payload(text: "¿cuánto cuesta el programa?"))
+      end
+
+      inbound = participant.conversations.where(role: :user).last
+      expect(inbound.moment).to eq("free_user")
+      expect(inbound.inbound_intent).to eq("program_question")
+      expect(DailyReport.count).to eq(0)
+      expect(participant.conversations.where(moment: :checkin_response).count).to eq(0)
+    end
+
+    it "consumes a real check-in answer when semantic confidence passes the threshold" do
+      allow_any_instance_of(Openai::CheckinSummarizer).to receive(:call).and_return(
+        Openai::CheckinSummarizer::Result.new(
+          summary: "Observó su patrón.",
+          key_pattern: "evitación",
+          prompt_used: "p",
+          tokens_input: 1,
+          tokens_output: 1,
+          model: "m"
+        )
+      )
+
+      travel_to(now) do
+        described_class.new.perform(text_payload(text: "Hoy me di cuenta de mi patrón y elegí pausar antes de responder."))
+      end
+
+      inbound = participant.conversations.where(role: :user).last
+      expect(inbound.moment).to eq("checkin_response")
+      expect(inbound.inbound_intent).to eq("checkin_answer")
+      expect(DailyReport.count).to eq(1)
+    end
+
+    it "queues support requests for admin review without generating a free AI reply" do
+      expect_any_instance_of(Openai::FreeResponseGenerator).not_to receive(:call)
+
+      travel_to(now) do
+        described_class.new.perform(text_payload(text: "Necesito hablar con humano por el pago."))
+      end
+
+      inbound = participant.conversations.where(role: :user).last
+      expect(inbound.inbound_intent).to eq("support_request")
+      expect(PendingResponse.count).to eq(1)
+      expect(PendingResponse.last.mode).to eq("approve")
+      expect(PendingResponse.last.draft_body).to include("revisión del equipo")
+      expect(DailyReport.count).to eq(0)
+    end
+
+    it "pauses the participant when they ask to stop or pause messages" do
+      travel_to(now) do
+        described_class.new.perform(text_payload(text: "Quiero pausar el programa, no me escriban por ahora."))
+      end
+
+      inbound = participant.conversations.where(role: :user).last
+      expect(inbound.inbound_intent).to eq("stop_or_pause")
+      expect(participant.reload.status).to eq("paused")
+      expect(participant.conversations.where(role: :assistant).last.body).to include("pausé")
+    end
   end
 
   describe "free message daily cap" do

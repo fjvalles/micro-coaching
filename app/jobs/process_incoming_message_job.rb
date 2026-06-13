@@ -94,19 +94,53 @@ class ProcessIncomingMessageJob < ApplicationJob
 
     case classification.type
     when :initial_pattern_answer
+      record_inbound_intent!(
+        inbound,
+        Participants::InboundIntentClassifier::Result.new(
+          intent: "initial_pattern_answer",
+          confidence: 1.0,
+          reason: classification.reason,
+          model: "state"
+        )
+      )
       PaperTrail.request(whodunnit: "ai:MessageClassifier", controller_info: { source: "ai" }) do
         participant.update!(initial_pattern: text)
       end
       inbound.update!(moment: :welcome)
       ack(participant, "Recibido. Mañana empieza tu primer día.")
     when :checkin_response
+      intent = classify_inbound_intent(
+        participant: participant, inbound: inbound, text: text,
+        checkin_pending: true
+      )
+      record_inbound_intent!(inbound, intent)
+
+      unless intent.checkin_answer?(Setting.fetch("inbound_intent_min_confidence"))
+        taggable = route_by_intent(
+          participant: participant, inbound: inbound, text: text, intent: intent,
+          voice_analysis: voice_analysis,
+          operational_context: Setting.fetch("checkin_pending_followup_text").to_s
+        )
+        enqueue_skill_tagging(inbound) if taggable
+        return
+      end
+
       inbound.update!(moment: :checkin_response)
       handle_checkin(participant, text, voice_analysis: voice_analysis)
       enqueue_skill_tagging(inbound)
       RefreshParticipantSummaryJob.perform_later(participant.id) if Setting.fetch("participant_summary_enabled")
     else
-      handle_free(participant, text, voice_analysis: voice_analysis)
-      enqueue_skill_tagging(inbound)
+      intent = classify_inbound_intent(
+        participant: participant, inbound: inbound, text: text,
+        checkin_pending: false
+      )
+      record_inbound_intent!(inbound, intent)
+
+      taggable = route_by_intent(
+        participant: participant, inbound: inbound, text: text, intent: intent,
+        voice_analysis: voice_analysis
+      )
+      enqueue_skill_tagging(inbound) if taggable
     end
   end
 
@@ -146,7 +180,7 @@ class ProcessIncomingMessageJob < ApplicationJob
         tokens_output: result.tokens_output, model_used: result.model)
   end
 
-  def handle_free(participant, text, voice_analysis: nil)
+  def handle_free(participant, text, voice_analysis: nil, operational_context: nil)
     if ResponseMode.manual?(participant)
       Outbound::Dispatcher.new(participant: participant, moment: :free_assistant).send_text(body: "")
       return
@@ -156,12 +190,70 @@ class ProcessIncomingMessageJob < ApplicationJob
 
     enriched = enrich_with_voice(text, voice_analysis)
     result = Openai::FreeResponseGenerator.new(
-      participant: participant, user_message: enriched
+      participant: participant, user_message: enriched, operational_context: operational_context
     ).call
 
     ack(participant, result.body, moment: :free_assistant,
         prompt_used: result.prompt_used, tokens_input: result.tokens_input,
         tokens_output: result.tokens_output, model_used: result.model)
+  end
+
+  def route_by_intent(participant:, inbound:, text:, intent:, voice_analysis: nil, operational_context: nil)
+    if intent.stop_or_pause?
+      handle_stop_or_pause(participant)
+      return false
+    end
+
+    if intent.risk_or_sensitive?
+      queue_human_review(participant, inbound, intent, Setting.fetch("sensitive_request_review_reply_text").to_s)
+      return false
+    end
+
+    if intent.support_request?
+      queue_human_review(participant, inbound, intent, Setting.fetch("support_request_review_reply_text").to_s)
+      return false
+    end
+
+    handle_free(participant, text, voice_analysis: voice_analysis, operational_context: operational_context)
+    true
+  end
+
+  def handle_stop_or_pause(participant)
+    PaperTrail.request(whodunnit: "system:InboundIntentClassifier", controller_info: { source: "system" }) do
+      participant.update!(status: :paused) unless participant.paused?
+    end
+
+    ack(participant, Setting.fetch("pause_request_reply_text").to_s)
+  end
+
+  def queue_human_review(participant, inbound, intent, body)
+    result = Outbound::Dispatcher.new(participant: participant, moment: :free_assistant, mode: "approve").send_text(
+      body: body,
+      ai: {
+        prompt_used: intent.prompt_used,
+        tokens_input: intent.tokens_input,
+        tokens_output: intent.tokens_output,
+        model: intent.model
+      }
+    )
+    result.pending_response&.update!(conversation: inbound)
+  end
+
+  def classify_inbound_intent(participant:, inbound:, text:, checkin_pending:)
+    Participants::InboundIntentClassifier.new(
+      participant: participant,
+      text: text,
+      checkin_pending: checkin_pending,
+      conversation: inbound
+    ).call
+  end
+
+  def record_inbound_intent!(inbound, intent)
+    inbound.update!(
+      inbound_intent: intent.intent,
+      inbound_intent_confidence: intent.confidence,
+      inbound_intent_reason: intent.reason
+    )
   end
 
   def enrich_with_voice(text, voice_analysis)

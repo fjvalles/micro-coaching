@@ -128,6 +128,12 @@ Decisiones que tomé durante la implementación, separadas de lo que el plan ya 
 - **Análisis se inyecta como "nota paralingüística" al prompt, no al body.** La transcripción literal queda intacta en `Conversation#body` y `#transcription`; las señales de voz se anexan únicamente en el mensaje que recibe el LLM generativo. Razón: preservar la trazabilidad de lo que la persona literalmente dijo, separado de inferencias del modelo. Persistido en `voice_analysis` jsonb para que el admin pueda auditarlo más tarde.
 - **Límite duro de duración (`audio_max_duration_seconds`, default 180s).** Audios largos se transcriben (la transcripción se conserva como evidencia) pero el flujo de respuesta se corta con un copy pidiendo síntesis. Protege costo de tokens y calidad de respuesta: notas de voz de 8 minutos vuelven al LLM divagar.
 
+## Clasificación semántica de inbound
+
+- **Dos capas: estado primero, semántica después.** `MessageClassifier` conserva la decisión operacional barata (bienvenida, ventana de check-in, libre), pero `InboundIntentClassifier` confirma el significado del mensaje antes de consumirlo como check-in. La razón es evitar que preguntas administrativas o temas fuera de programa avancen el día solo porque llegaron entre 20:00 y 23:00 con `pending_checkin_at`.
+- **Derivación humana para soporte y temas sensibles.** `support_request` y `risk_or_sensitive` crean `PendingResponse` en modo `approve` sin llamar al generador libre; `stop_or_pause` pausa al participante. Esto separa conversación de coaching de operaciones, seguridad y baja del servicio.
+- **Auditoría en `Conversation`, no solo logs.** Se persisten `inbound_intent`, `inbound_intent_confidence` y `inbound_intent_reason` en la conversación entrante para revisar falsos positivos/negativos y ajustar prompts sin depender de logs temporales.
+
 ## Backup diario a Google Drive
 
 - **`pg_dump --format=custom` directo a archivo, no streaming.** Permite verificar tamaño antes de subir y reusar `upload_source` (file path) del SDK de Drive, que internamente hace upload resumable sin cargar todo a memoria. El archivo vive en `tmp/backups/` y se borra en el `ensure` del job sin importar si la subida falló — el dump no debe persistir local.

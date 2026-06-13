@@ -147,34 +147,39 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 - **Enforce.** `app/jobs/process_incoming_message_job.rb` (`process_audio_message`, `enrich_with_voice`), `app/services/participants/audio_processor.rb`.
 
 ### 6.3 Toda inbound se persiste como `Conversation`
-- **Regla.** Antes de clasificar, se crea `Conversation(moment: :free_user, role: :user)`. Luego el moment se reescribe según clasificación (`:welcome` o `:checkin_response`).
+- **Regla.** Antes de clasificar, se crea `Conversation(moment: :free_user, role: :user)`. Luego el moment se reescribe según clasificación (`:welcome` o `:checkin_response`) y se persiste `inbound_intent` / `inbound_intent_confidence` / `inbound_intent_reason` cuando aplica.
 - **Por qué.** Auditoría completa. Pérdida de un inbound = pérdida de evidencia.
-- **Enforce.** `app/jobs/process_incoming_message_job.rb:45-53`.
+- **Enforce.** `app/jobs/process_incoming_message_job.rb:47-57`, `app/jobs/process_incoming_message_job.rb:250-256`.
 ### 6.4 Registro de números desconocidos
 - **Regla.** Si un mensaje proviene de un número que no corresponde a ningún participante en el sistema, se registra en `UnknownInbound` y no se envía ninguna respuesta al remitente.
 - **Por qué.** Evitar costos innecesarios en llamadas a la API de OpenAI y llamadas de WhatsApp para remitentes accidentales o spam, a la vez que se mantiene trazabilidad para auditorías.
-- **Enforce.** `app/jobs/process_incoming_message_job.rb:30-32` y `app/jobs/process_incoming_message_job.rb:171-186`.
+- **Enforce.** `app/jobs/process_incoming_message_job.rb:30-32` y `app/jobs/process_incoming_message_job.rb:300-315`.
 
 ---
 
 ## 7. Clasificación inbound
 
-`Participants::MessageClassifier` retorna uno de tres tipos:
+La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide por estado/ventana operacional. `Participants::InboundIntentClassifier` decide por significado semántico antes de consumir check-ins o derivar excepciones.
 
 ### 7.1 `:initial_pattern_answer`
 - **Condición.** `participant.initial_pattern.blank?` Y existe `Conversation(moment: :welcome)`.
 - **Efecto.** Set `initial_pattern = text`, reescribe inbound a `moment: :welcome`, envía ack "Mañana empieza tu primer día".
-- **Enforce.** `app/services/participants/message_classifier.rb:20-22`, `process_incoming_message_job.rb:47-50`.
+- **Enforce.** `app/services/participants/message_classifier.rb:20-22`, `app/jobs/process_incoming_message_job.rb:96-110`.
 
 ### 7.2 `:checkin_response`
 - **Condición.** Hora local en `CHECKIN_WINDOW = 20..23` Y `pending_checkin_at` mismo día local Y no existe ya `Conversation(moment: :checkin_response, day_number: current_day)`.
-- **Efecto.** Reescribe a `moment: :checkin_response`, llama `Openai::CheckinSummarizer`, crea `DailyReport`, ack "Gracias. Mañana retomamos".
-- **Enforce.** `app/services/participants/message_classifier.rb:24-36`, `process_incoming_message_job.rb:59-77`.
+- **Efecto.** Antes de consumirlo, `InboundIntentClassifier` debe clasificar el mensaje como `checkin_answer` con confianza mínima `inbound_intent_min_confidence`. Solo entonces reescribe a `moment: :checkin_response`, llama `Openai::CheckinSummarizer`, crea `DailyReport`, ack "Gracias. Mañana retomamos".
+- **Enforce.** `app/services/participants/message_classifier.rb:24-36`, `app/services/participants/inbound_intent_classifier.rb`, `app/jobs/process_incoming_message_job.rb:111-133`.
 
 ### 7.3 `:free_user` (default)
-- **Condición.** Cualquier otra cosa.
-- **Efecto.** Llama `Openai::FreeResponseGenerator`, ack con `moment: :free_assistant`.
-- **Enforce.** `process_incoming_message_job.rb:79-87`.
+- **Condición.** Cualquier otra cosa, o un mensaje recibido con check-in pendiente que semánticamente no es `checkin_answer`.
+- **Efecto.** Llama `Openai::FreeResponseGenerator`, ack con `moment: :free_assistant`. Si había check-in pendiente, se inyecta contexto operativo para responder y recordar que el check-in sigue pendiente.
+- **Enforce.** `app/jobs/process_incoming_message_job.rb:132-144`, `app/jobs/process_incoming_message_job.rb:183-199`, `app/services/openai/free_response_generator.rb:50-85`.
+
+### 7.4 Intents semánticos especiales
+- **Regla.** `InboundIntentClassifier` puede retornar `program_question`, `support_request`, `off_topic`, `risk_or_sensitive`, `stop_or_pause`, `unclear` o `checkin_answer`. `support_request` y `risk_or_sensitive` se derivan a `PendingResponse` en modo `approve` sin generar respuesta libre. `stop_or_pause` pausa al participante y responde con `pause_request_reply_text`.
+- **Por qué.** Evitar que preguntas administrativas, mensajes sensibles o pedidos de baja se mezclen con la memoria metodológica del programa.
+- **Enforce.** `app/services/participants/inbound_intent_classifier.rb`, `app/jobs/process_incoming_message_job.rb:201-239`.
 
 ---
 
@@ -288,6 +293,11 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 ### 12.1 Keys conocidas
 - `wake_hour` — hora local 0..23, default 7
 - `iareto_delay_minutes` — entero, default 30
+- `inbound_intent_classification_enabled` — boolean, default true; habilita clasificación semántica de inbound
+- `inbound_intent_min_confidence` — float 0..1, default 0.65; umbral para consumir un inbound como check-in real
+- `openai_max_tokens_inbound_intent` — entero, default 220; token budget del clasificador semántico
+- `checkin_pending_followup_text` — texto inyectado cuando hay check-in pendiente pero el inbound no es check-in
+- `support_request_review_reply_text` / `sensitive_request_review_reply_text` / `pause_request_reply_text` — borradores operativos para soporte, temas sensibles y pausa
 
 ### 12.2 Cambio en vivo
 - **Regla.** Cambiar un `Setting` afecta el próximo tick de cron. No requiere deploy ni reinicio.
