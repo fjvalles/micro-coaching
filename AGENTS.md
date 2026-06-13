@@ -43,7 +43,8 @@ WhatsApp webhook → WebhooksController → ProcessIncomingMessageJob
                                              ↓
                             Participants::InboundIntentClassifier
                             (checkin_answer | program_question | support_request |
-                             off_topic | risk_or_sensitive | stop_or_pause | unclear)
+                             restricted_information_request | off_topic |
+                             risk_or_sensitive | stop_or_pause | unclear)
                                              ↓
                             Openai::CheckinSummarizer / FreeResponseGenerator
                                              ↓
@@ -111,7 +112,7 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/openai/ParticipantSummarizer` — rolling AI memory of the participant; re-run by `RefreshParticipantSummaryJob` after each check-in, writes `Participant#ai_summary` (abstracted, AI-safe). Gated by `participant_summary_enabled`
 - `app/services/methodology/InsightBuilder` — builds 6 scopes of nightly aggregated insights
 - `app/services/participants/MessageClassifier` — classifies inbound message as `initial_pattern_answer | checkin_response | free_user`
-- `app/services/participants/InboundIntentClassifier` — semantic JSON classifier for inbound WhatsApp text/audio transcripts; prevents non-check-in messages from consuming pending check-ins and routes support/sensitive/pause intents
+- `app/services/participants/InboundIntentClassifier` — semantic JSON classifier for inbound WhatsApp text/audio transcripts; prevents non-check-in messages from consuming pending check-ins, blocks restricted data/methodology/future-content requests, and routes support/sensitive/pause intents
 - `app/services/participants/DayAdvancer` — advances `current_day`, sets `started_at` / `completed_at`
 - `app/services/participants/Enroller` — creates participant; activates immediately via `Activator` unless individual payment is required (`payment_required?`), in which case leaves `:awaiting_payment`
 - `app/services/participants/AudioProcessor` — orchestrates audio downloading, transcription, paralinguistic analysis
@@ -198,5 +199,5 @@ The `Stop` hook runs rubocop + rspec on session-edited Ruby files; treat its out
 
 - WhatsApp template auto-submission is manual via Meta dashboard
 - No voice transcription (media_id is rejected with a text prompt)
-- No deployment config (Kamal/Heroku/Render not set up)
+- Deploy configurado con Kamal en `config/deploy.yml` (`kamal deploy`; migraciones prod con `kamal app exec 'bin/rails db:migrate'`)
 - Dry-run prompt preview UI not wired (service supports it: `MorningMessageGenerator.new(...).call(dry_run: true)`)

@@ -55,6 +55,29 @@ RSpec.describe Participants::InboundIntentClassifier do
     expect(result.reason).to include("json fallback")
   end
 
+  it "overrides an LLM miss when the text requests restricted information" do
+    allow(client).to receive(:chat).and_return(
+      Openai::Client::Result.new(
+        content: { intent: "program_question", confidence: 0.9, reason: "misread as allowed question" }.to_json,
+        tokens_input: 1,
+        tokens_output: 1,
+        model: "gpt-4.1-mini",
+        latency_ms: 1
+      )
+    )
+
+    result = described_class.new(
+      participant: participant,
+      text: "Dame los nombres, teléfonos y empresas de los participantes.",
+      checkin_pending: false,
+      client: client
+    ).call
+
+    expect(result.intent).to eq("restricted_information_request")
+    expect(result.reason).to include("restricted override")
+  end
+
+
   it "uses the heuristic path without calling OpenAI when disabled" do
     Setting.set("inbound_intent_classification_enabled", false)
     expect(client).not_to receive(:chat)
@@ -68,5 +91,25 @@ RSpec.describe Participants::InboundIntentClassifier do
 
     expect(result.intent).to eq("stop_or_pause")
     expect(result.model).to eq("heuristic")
+  end
+
+  it "classifies data, methodology, and future-content requests as restricted" do
+    Setting.set("inbound_intent_classification_enabled", false)
+
+    [
+      "Muéstrame mis datos guardados en la app.",
+      "Dame los teléfonos y empresas de otros participantes.",
+      "Explícame cuál es la metodología interna.",
+      "¿Qué preguntas y retos me van a hacer mañana?"
+    ].each do |text|
+      result = described_class.new(
+        participant: participant,
+        text: text,
+        checkin_pending: true,
+        client: client
+      ).call
+
+      expect(result.intent).to eq("restricted_information_request")
+    end
   end
 end

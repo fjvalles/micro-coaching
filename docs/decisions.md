@@ -133,6 +133,7 @@ Decisiones que tomé durante la implementación, separadas de lo que el plan ya 
 - **Dos capas: estado primero, semántica después.** `MessageClassifier` conserva la decisión operacional barata (bienvenida, ventana de check-in, libre), pero `InboundIntentClassifier` confirma el significado del mensaje antes de consumirlo como check-in. La razón es evitar que preguntas administrativas o temas fuera de programa avancen el día solo porque llegaron entre 20:00 y 23:00 con `pending_checkin_at`.
 - **Derivación humana para soporte y temas sensibles.** `support_request` y `risk_or_sensitive` crean `PendingResponse` en modo `approve` sin llamar al generador libre; `stop_or_pause` pausa al participante. Esto separa conversación de coaching de operaciones, seguridad y baja del servicio.
 - **Auditoría en `Conversation`, no solo logs.** Se persisten `inbound_intent`, `inbound_intent_confidence` y `inbound_intent_reason` en la conversación entrante para revisar falsos positivos/negativos y ajustar prompts sin depender de logs temporales.
+- **Bloqueo duro de información restringida.** Solicitudes de datos propios o ajenos, métricas/listados de la app, prompts, metodología interna y contenidos futuros del programa no se derivan al LLM generativo ni a admin: reciben un texto fijo. La razón es que WhatsApp no es el canal autenticado de datos y el modelo podría alucinar información interna si se le invita a responder.
 
 ## Backup diario a Google Drive
 

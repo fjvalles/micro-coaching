@@ -174,12 +174,17 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 ### 7.3 `:free_user` (default)
 - **Condición.** Cualquier otra cosa, o un mensaje recibido con check-in pendiente que semánticamente no es `checkin_answer`.
 - **Efecto.** Llama `Openai::FreeResponseGenerator`, ack con `moment: :free_assistant`. Si había check-in pendiente, se inyecta contexto operativo para responder y recordar que el check-in sigue pendiente.
-- **Enforce.** `app/jobs/process_incoming_message_job.rb:132-144`, `app/jobs/process_incoming_message_job.rb:183-199`, `app/services/openai/free_response_generator.rb:50-85`.
+- **Enforce.** `app/jobs/process_incoming_message_job.rb:132-144`, `app/jobs/process_incoming_message_job.rb:182-198`, `app/services/openai/free_response_generator.rb:50-90`.
 
 ### 7.4 Intents semánticos especiales
-- **Regla.** `InboundIntentClassifier` puede retornar `program_question`, `support_request`, `off_topic`, `risk_or_sensitive`, `stop_or_pause`, `unclear` o `checkin_answer`. `support_request` y `risk_or_sensitive` se derivan a `PendingResponse` en modo `approve` sin generar respuesta libre. `stop_or_pause` pausa al participante y responde con `pause_request_reply_text`.
+- **Regla.** `InboundIntentClassifier` puede retornar `program_question`, `support_request`, `restricted_information_request`, `off_topic`, `risk_or_sensitive`, `stop_or_pause`, `unclear` o `checkin_answer`. `support_request` y `risk_or_sensitive` se derivan a `PendingResponse` en modo `approve` sin generar respuesta libre. `stop_or_pause` pausa al participante y responde con `pause_request_reply_text`.
 - **Por qué.** Evitar que preguntas administrativas, mensajes sensibles o pedidos de baja se mezclen con la memoria metodológica del programa.
-- **Enforce.** `app/services/participants/inbound_intent_classifier.rb`, `app/jobs/process_incoming_message_job.rb:201-239`.
+- **Enforce.** `app/services/participants/inbound_intent_classifier.rb:3-228`, `app/jobs/process_incoming_message_job.rb:200-256`.
+
+### 7.5 Bloqueo de información restringida
+- **Regla.** Si un participante pide datos propios, datos de otros, métricas/listados de la app, nombres, teléfonos, empresas, prompts, metodología interna o retos/preguntas futuras, se clasifica como `restricted_information_request` y se responde solo `restricted_information_reply_text`. No se llama a `FreeResponseGenerator`, no se crea `DailyReport`, no se etiqueta habilidad y no se guarda como patrón inicial.
+- **Por qué.** WhatsApp no es un canal autenticado para exponer datos ni contenidos internos/futuros del programa; además evita alucinación de datos por parte de la IA.
+- **Enforce.** `app/services/participants/inbound_intent_classifier.rb:92-107`, `app/services/participants/inbound_intent_classifier.rb:147-152`, `app/services/participants/inbound_intent_classifier.rb:206-227`, `app/jobs/process_incoming_message_job.rb:96-103`, `app/jobs/process_incoming_message_job.rb:216-235`.
 
 ---
 
@@ -297,6 +302,7 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 - `inbound_intent_min_confidence` — float 0..1, default 0.65; umbral para consumir un inbound como check-in real
 - `openai_max_tokens_inbound_intent` — entero, default 220; token budget del clasificador semántico
 - `checkin_pending_followup_text` — texto inyectado cuando hay check-in pendiente pero el inbound no es check-in
+- `restricted_information_reply_text` — texto fijo para bloquear solicitudes de datos, metodología, prompts o contenidos futuros
 - `support_request_review_reply_text` / `sensitive_request_review_reply_text` / `pause_request_reply_text` — borradores operativos para soporte, temas sensibles y pausa
 
 ### 12.2 Cambio en vivo

@@ -94,15 +94,14 @@ class ProcessIncomingMessageJob < ApplicationJob
 
     case classification.type
     when :initial_pattern_answer
-      record_inbound_intent!(
-        inbound,
-        Participants::InboundIntentClassifier::Result.new(
-          intent: "initial_pattern_answer",
-          confidence: 1.0,
-          reason: classification.reason,
-          model: "state"
-        )
+      intent = classify_inbound_intent(
+        participant: participant, inbound: inbound, text: text,
+        checkin_pending: false
       )
+      intent = initial_pattern_intent(classification) unless intent.restricted_information_request?
+      record_inbound_intent!(inbound, intent)
+      return handle_restricted_information(participant) if intent.restricted_information_request?
+
       PaperTrail.request(whodunnit: "ai:MessageClassifier", controller_info: { source: "ai" }) do
         participant.update!(initial_pattern: text)
       end
@@ -214,8 +213,26 @@ class ProcessIncomingMessageJob < ApplicationJob
       return false
     end
 
+    if intent.restricted_information_request?
+      handle_restricted_information(participant)
+      return false
+    end
+
     handle_free(participant, text, voice_analysis: voice_analysis, operational_context: operational_context)
     true
+  end
+
+  def initial_pattern_intent(classification)
+    Participants::InboundIntentClassifier::Result.new(
+      intent: "initial_pattern_answer",
+      confidence: 1.0,
+      reason: classification.reason,
+      model: "state"
+    )
+  end
+
+  def handle_restricted_information(participant)
+    ack(participant, Setting.fetch("restricted_information_reply_text").to_s)
   end
 
   def handle_stop_or_pause(participant)

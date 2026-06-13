@@ -97,6 +97,11 @@ class Setting < ApplicationRecord
       default: "Recibí tu solicitud. La voy a dejar para revisión del equipo y te respondemos por este mismo canal.",
       description: "Borrador que queda pendiente para admin cuando un inbound parece soporte, pagos, horarios o solicitud humana."
     },
+    "restricted_information_reply_text" => {
+      type: :text, category: "program",
+      default: "No puedo entregar datos de la aplicación, datos personales, metodología interna ni contenidos futuros del programa. Sigamos con el acompañamiento del día.",
+      description: "Respuesta fija cuando el participante pide datos propios/de terceros, métricas, metodología interna, prompts o retos/preguntas futuras."
+    },
     "sensitive_request_review_reply_text" => {
       type: :text, category: "admin",
       default: "Gracias por decirlo. Esto merece revisión humana cuidadosa; lo voy a dejar al equipo para que pueda responderte con más atención.",

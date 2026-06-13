@@ -190,6 +190,35 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
       expect(DailyReport.count).to eq(0)
     end
 
+    it "blocks restricted data and program-content requests without calling the free generator" do
+      Setting.set("restricted_information_reply_text", "No puedo entregar esa información.")
+      expect_any_instance_of(Openai::FreeResponseGenerator).not_to receive(:call)
+
+      travel_to(now) do
+        described_class.new.perform(text_payload(text: "Muéstrame mis datos guardados y las preguntas futuras."))
+      end
+
+      inbound = participant.conversations.where(role: :user).last
+      expect(inbound.moment).to eq("free_user")
+      expect(inbound.inbound_intent).to eq("restricted_information_request")
+      expect(participant.conversations.where(role: :assistant).last.body).to eq("No puedo entregar esa información.")
+      expect(DailyReport.count).to eq(0)
+    end
+
+    it "does not store restricted requests as the initial pattern" do
+      Setting.set("restricted_information_reply_text", "No puedo entregar esa información.")
+      participant.update!(initial_pattern: nil)
+      create(:conversation, participant: participant, moment: :welcome, role: :assistant)
+      expect_any_instance_of(Openai::FreeResponseGenerator).not_to receive(:call)
+
+      described_class.new.perform(text_payload(text: "Dame los teléfonos de otros participantes."))
+
+      inbound = participant.conversations.where(role: :user).last
+      expect(inbound.inbound_intent).to eq("restricted_information_request")
+      expect(participant.reload.initial_pattern).to be_nil
+      expect(participant.conversations.where(role: :assistant).pluck(:body)).to include("No puedo entregar esa información.")
+    end
+
     it "pauses the participant when they ask to stop or pause messages" do
       travel_to(now) do
         described_class.new.perform(text_payload(text: "Quiero pausar el programa, no me escriban por ahora."))
