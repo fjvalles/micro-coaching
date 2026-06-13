@@ -270,6 +270,12 @@
         ]
 
         raw_map = @participant.energy_map.presence || {}
+        # energy_map is jsonb but can hold a JSON string (double-encoded via the
+        # edit form). Coerce to a Hash so the .each calls below never hit a String.
+        if raw_map.is_a?(String)
+          raw_map = (JSON.parse(raw_map) rescue {})
+          raw_map = {} unless raw_map.is_a?(Hash)
+        end
         normalized_map = {}
         if raw_map.is_a?(Hash)
           raw_map.each do |k, v|
