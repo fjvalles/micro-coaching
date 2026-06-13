@@ -22,15 +22,26 @@ RSpec.describe Participants::AudioProcessor do
 
   it "transcribes, analyzes and persists" do
     allow_any_instance_of(Whatsapp::MediaFetcher).to receive(:call).and_return(media_result)
-    allow_any_instance_of(Openai::AudioTranscriber).to receive(:call).and_return(
-      Openai::AudioTranscriber::Result.new(text: "hola desde audio", language: "es", duration: 4.0, model: "m")
+    transcription_result = Openai::AudioTranscriber::Result.new(
+      text: "hola desde audio", language: "es", duration: 4.0, model: "m"
     )
-    allow_any_instance_of(Openai::VoiceAnalyzer).to receive(:call).and_return(
-      Openai::VoiceAnalyzer::Result.new(
-        analysis: { "tone" => "cálido", "primary_emotion" => "calma" },
-        prompt_used: "p", tokens_input: 10, tokens_output: 5, model: "gpt-4o-audio"
-      )
+    expect(Openai::AudioTranscriber).to receive(:new).with(
+      bytes: "RAW",
+      filename: "wa_audio.ogg",
+      mime_type: "audio/ogg",
+      participant: participant,
+      conversation: conversation
+    ).and_return(instance_double(Openai::AudioTranscriber, call: transcription_result))
+    voice_result = Openai::VoiceAnalyzer::Result.new(
+      analysis: { "tone" => "cálido", "primary_emotion" => "calma" },
+      prompt_used: "p", tokens_input: 10, tokens_output: 5, model: "gpt-4o-audio"
     )
+    expect(Openai::VoiceAnalyzer).to receive(:new).with(
+      bytes: "RAW",
+      mime_type: "audio/ogg",
+      participant: participant,
+      conversation: conversation
+    ).and_return(instance_double(Openai::VoiceAnalyzer, call: voice_result))
 
     result = described_class.new(conversation: conversation, media_id: "MID").call
 

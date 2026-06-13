@@ -84,6 +84,7 @@
               <th style="text-align:right;">Llamadas</th>
               <th style="text-align:right;">Tokens in</th>
               <th style="text-align:right;">Tokens out</th>
+              <th style="text-align:right;">Seg. audio</th>
               <th style="text-align:right;">Costo USD</th>
             </tr>
           </thead>
@@ -94,6 +95,7 @@
                 <td style="text-align:right;"><%= number_with_delimiter(row[:calls]) %></td>
                 <td style="text-align:right;"><%= number_with_delimiter(row[:tokens_in]) %></td>
                 <td style="text-align:right;"><%= number_with_delimiter(row[:tokens_out]) %></td>
+                <td style="text-align:right;"><%= number_with_delimiter(row[:billable_seconds]) %></td>
                 <td style="text-align:right; font-family:monospace;">$<%= "%.4f" % row[:cost] %></td>
               </tr>
             <% end %>
@@ -104,6 +106,7 @@
               <td style="text-align:right;"><%= number_with_delimiter(@ai_calls) %></td>
               <td style="text-align:right;"><%= number_with_delimiter(@ai_tokens_in) %></td>
               <td style="text-align:right;"><%= number_with_delimiter(@ai_tokens_out) %></td>
+              <td style="text-align:right;"><%= number_with_delimiter(@ai_by_model.sum { |row| row[:billable_seconds] }) %></td>
               <td style="text-align:right; font-family:monospace;">$<%= "%.4f" % @ai_total %></td>
             </tr>
           </tfoot>
@@ -166,6 +169,85 @@
       <p style="padding:8px 16px; font-size:11px; color:var(--text-muted);">
         Los costos fijos se prorratean según los días del período. Haz clic en "editar" para actualizar cada valor.
       </p>
+    </div>
+  </div>
+</div>
+
+<!-- Direct AI cost by entity -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px;">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">OpenAI por Participante</h2>
+      <span class="badge badge-neutral"><%= @ai_by_participant.size %> part.</span>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <% if @ai_by_participant.empty? %>
+        <p style="padding:16px; color:var(--text-muted); font-size:13px;">Sin ejecuciones atribuibles en el período.</p>
+      <% else %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Participante</th>
+              <th style="text-align:right;">Llamadas</th>
+              <th style="text-align:right;">Tokens</th>
+              <th style="text-align:right;">Seg. audio</th>
+              <th style="text-align:right;">Costo USD</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @ai_by_participant.first(10).each do |row| %>
+              <tr>
+                <td><%= row[:name] %></td>
+                <td style="text-align:right;"><%= number_with_delimiter(row[:calls]) %></td>
+                <td style="text-align:right;"><%= number_with_delimiter(row[:tokens_in] + row[:tokens_out]) %></td>
+                <td style="text-align:right;"><%= number_with_delimiter(row[:billable_seconds]) %></td>
+                <td style="text-align:right; font-family:monospace;">$<%= "%.4f" % row[:cost] %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+        <p style="padding:8px 16px; font-size:11px; color:var(--text-muted);">
+          Costos directos de OpenAI atribuidos por <code>PromptExecution#participant_id</code>. No reparte costos fijos.
+        </p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">OpenAI por Programa</h2>
+      <span class="badge badge-neutral"><%= @ai_by_program.size %> prog.</span>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <% if @ai_by_program.empty? %>
+        <p style="padding:16px; color:var(--text-muted); font-size:13px;">Sin ejecuciones atribuibles en el período.</p>
+      <% else %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Programa</th>
+              <th style="text-align:right;">Llamadas</th>
+              <th style="text-align:right;">Tokens</th>
+              <th style="text-align:right;">Seg. audio</th>
+              <th style="text-align:right;">Costo USD</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @ai_by_program.each do |row| %>
+              <tr>
+                <td><%= row[:name] %></td>
+                <td style="text-align:right;"><%= number_with_delimiter(row[:calls]) %></td>
+                <td style="text-align:right;"><%= number_with_delimiter(row[:tokens_in] + row[:tokens_out]) %></td>
+                <td style="text-align:right;"><%= number_with_delimiter(row[:billable_seconds]) %></td>
+                <td style="text-align:right; font-family:monospace;">$<%= "%.4f" % row[:cost] %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+        <p style="padding:8px 16px; font-size:11px; color:var(--text-muted);">
+          Costos directos de OpenAI guardados en <code>PromptExecution#program_id</code> al momento de cada llamada.
+        </p>
+      <% end %>
     </div>
   </div>
 </div>

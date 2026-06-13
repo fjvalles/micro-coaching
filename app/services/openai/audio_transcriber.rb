@@ -6,11 +6,14 @@ module Openai
 
     Result = Struct.new(:text, :language, :duration, :model, keyword_init: true)
 
-    def initialize(bytes:, filename:, mime_type: nil, language: "es", api_key: ENV["OPENAI_API_KEY"], model: nil)
+    def initialize(bytes:, filename:, mime_type: nil, language: "es", participant: nil, conversation: nil,
+                   api_key: ENV["OPENAI_API_KEY"], model: nil)
       @bytes     = bytes
       @filename  = filename
       @mime_type = mime_type
       @language  = language
+      @participant = participant
+      @conversation = conversation
       @api_key   = api_key
       @model     = model || Setting.fetch("openai_transcription_model").presence || "gpt-4o-mini-transcribe"
     end
@@ -31,11 +34,30 @@ module Openai
         params = { model: @model, file: tempfile, language: @language, response_format: "json" }
         response = with_retries { http_client.audio.transcribe(parameters: params) }
         text = response.is_a?(Hash) ? response["text"].to_s : response.to_s
+        duration = response.is_a?(Hash) ? response["duration"] : nil
+
+        Openai::PromptLogger.record(
+          key: "audio_transcriber",
+          name: "Transcripción de audio",
+          description: "Transcribe audios entrantes de WhatsApp.",
+          system_body: "Transcribe audio entrante en #{@language}.",
+          messages: [ { role: "user", content: "Audio #{@mime_type || ext}" } ],
+          output_body: text.strip,
+          model_used: @model,
+          tokens_input: 0,
+          tokens_output: 0,
+          billable_seconds: duration&.to_f&.ceil,
+          program: @participant&.program,
+          participant: @participant,
+          conversation: @conversation,
+          day_number: @conversation&.day_number || @participant&.current_day,
+          moment: "audio_transcription"
+        )
 
         Result.new(
           text: text.strip,
           language: response.is_a?(Hash) ? response["language"] : @language,
-          duration: response.is_a?(Hash) ? response["duration"] : nil,
+          duration: duration,
           model: @model
         )
       end

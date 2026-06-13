@@ -32,9 +32,11 @@ module Openai
       Responde EXCLUSIVAMENTE el JSON, sin markdown.
     PROMPT
 
-    def initialize(bytes:, mime_type:, api_key: ENV["OPENAI_API_KEY"], model: nil)
+    def initialize(bytes:, mime_type:, participant: nil, conversation: nil, api_key: ENV["OPENAI_API_KEY"], model: nil)
       @bytes     = bytes
       @mime_type = mime_type
+      @participant = participant
+      @conversation = conversation
       @api_key   = api_key
       @model     = model || Setting.fetch("openai_voice_analysis_model").presence || "gpt-4o-mini-audio-preview"
     end
@@ -86,6 +88,10 @@ module Openai
         model_used: response["model"] || @model,
         tokens_input: usage["prompt_tokens"].to_i,
         tokens_output: usage["completion_tokens"].to_i,
+        program: @participant&.program,
+        participant: @participant,
+        conversation: @conversation,
+        day_number: @conversation&.day_number || @participant&.current_day,
         moment: "voice_analysis"
       )
 

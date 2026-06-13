@@ -7,6 +7,7 @@ module Openai
     def initialize(key:, name:, system_body:, messages:,
                    response: nil, output_body: nil, model_used: nil,
                    tokens_input: 0, tokens_output: 0, latency_ms: nil,
+                   billable_seconds: nil,
                    description: nil, program: nil, day_number: nil,
                    participant: nil, moment: nil, conversation: nil,
                    error_message: nil)
@@ -21,6 +22,7 @@ module Openai
       @moment = moment&.to_s
       @conversation = conversation
       @error_message = error_message
+      @billable_seconds = billable_seconds
 
       if response
         @output_body = response.respond_to?(:content) ? response.content : response.to_s
@@ -42,6 +44,7 @@ module Openai
       PromptExecution.create!(
         prompt_template: template,
         prompt_version: version,
+        program: resolved_program,
         participant: @participant,
         conversation: @conversation,
         day_number: @day_number || @participant&.current_day,
@@ -52,6 +55,7 @@ module Openai
         tokens_input: @tokens_input,
         tokens_output: @tokens_output,
         latency_ms: @latency_ms,
+        billable_seconds: @billable_seconds,
         error_message: @error_message
       )
     rescue => e
@@ -64,7 +68,7 @@ module Openai
     def find_or_create_template
       PromptTemplate.find_or_create_by!(
         key: @key,
-        program_id: @program&.id,
+        program_id: resolved_program&.id,
         day_number: day_number_for_template
       ) do |t|
         t.name = @name
@@ -76,13 +80,17 @@ module Openai
     rescue ActiveRecord::RecordNotUnique
       PromptTemplate.find_by!(
         key: @key,
-        program_id: @program&.id,
+        program_id: resolved_program&.id,
         day_number: day_number_for_template
       )
     end
 
     def day_number_for_template
       @key.start_with?("day_system_prompt") ? @day_number : nil
+    end
+
+    def resolved_program
+      @resolved_program ||= @program || @participant&.program
     end
 
     def sync_version(template)

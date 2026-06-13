@@ -20,7 +20,34 @@ RSpec.describe Openai::PromptLogger do
     template = PromptTemplate.find_by!(key: "morning_message")
     expect(template.current_version).to eq(1)
     expect(template.current_body).to eq("sys body")
-    expect(template.prompt_executions.first.day_number).to eq(3)
+    execution = template.prompt_executions.first
+    expect(execution.day_number).to eq(3)
+    expect(execution.program).to eq(program)
+    expect(execution.participant).to eq(participant)
+  end
+
+  it "uses the participant program when no explicit program is passed" do
+    described_class.record(
+      key: "free_response", name: "Free",
+      system_body: "sys body", messages: messages, response: response,
+      participant: participant, moment: "free_assistant"
+    )
+
+    execution = PromptExecution.last
+
+    expect(execution.program).to eq(program)
+    expect(execution.prompt_template.program).to eq(program)
+  end
+
+  it "persists billable seconds for minute-priced executions" do
+    described_class.record(
+      key: "audio_transcriber", name: "Transcripción",
+      system_body: "transcribe", messages: messages,
+      output_body: "hola", model_used: "gpt-4o-mini-transcribe",
+      billable_seconds: 12, participant: participant
+    )
+
+    expect(PromptExecution.last.billable_seconds).to eq(12)
   end
 
   it "bumps version when system body changes between calls" do

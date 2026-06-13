@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_13_140000) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_13_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -306,9 +306,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_140000) do
     t.text "error_message"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "program_id"
+    t.integer "billable_seconds"
     t.index ["conversation_id"], name: "index_prompt_executions_on_conversation_id"
     t.index ["created_at"], name: "index_prompt_executions_on_created_at"
     t.index ["participant_id"], name: "index_prompt_executions_on_participant_id"
+    t.index ["program_id"], name: "index_prompt_executions_on_program_id"
     t.index ["prompt_template_id", "day_number"], name: "index_prompt_executions_on_prompt_template_id_and_day_number"
     t.index ["prompt_template_id"], name: "index_prompt_executions_on_prompt_template_id"
     t.index ["prompt_version_id"], name: "index_prompt_executions_on_prompt_version_id"
@@ -469,6 +472,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_140000) do
   add_foreign_key "prompt_analyses", "prompt_versions"
   add_foreign_key "prompt_executions", "conversations"
   add_foreign_key "prompt_executions", "participants"
+  add_foreign_key "prompt_executions", "programs"
   add_foreign_key "prompt_executions", "prompt_templates"
   add_foreign_key "prompt_executions", "prompt_versions"
   add_foreign_key "prompt_templates", "programs"

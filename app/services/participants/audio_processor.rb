@@ -11,7 +11,9 @@ module Participants
       media = Whatsapp::MediaFetcher.new(media_id: @media_id).call
 
       transcription = Openai::AudioTranscriber.new(
-        bytes: media.bytes, filename: media.filename, mime_type: media.mime_type
+        bytes: media.bytes, filename: media.filename, mime_type: media.mime_type,
+        participant: @conversation.participant,
+        conversation: @conversation
       ).call
 
       duration = transcription.duration&.to_f
@@ -27,7 +29,9 @@ module Participants
       end
 
       analysis = Openai::VoiceAnalyzer.new(
-        bytes: media.bytes, mime_type: media.mime_type
+        bytes: media.bytes, mime_type: media.mime_type,
+        participant: @conversation.participant,
+        conversation: @conversation
       ).call
 
       @conversation.update!(

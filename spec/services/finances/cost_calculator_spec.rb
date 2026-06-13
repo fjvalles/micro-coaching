@@ -66,5 +66,86 @@ RSpec.describe Finances::CostCalculator do
         cost: be_within(0.001).of(1.45)
       )
     end
+
+    it "prices minute-based transcription executions" do
+      create(
+        :prompt_execution,
+        model_used: "gpt-4o-mini-transcribe",
+        tokens_input: 0,
+        tokens_output: 0,
+        billable_seconds: 120,
+        created_at: Time.current
+      )
+
+      result = described_class.new(range).call
+
+      expect(result.ai_by_model.first).to include(
+        model: "gpt-4o-mini-transcribe",
+        billable_seconds: 120,
+        cost: be_within(0.001).of(0.006)
+      )
+    end
+
+    it "breaks direct AI cost down by participant using each model rate" do
+      program = create(:program, name: "Liderazgo")
+      participant = create(:participant, name: "Ana", phone_e164: "+56911111111", program: program)
+
+      create(
+        :prompt_execution,
+        participant: participant,
+        program: program,
+        model_used: "gpt-5-nano",
+        tokens_input: 1_000_000,
+        tokens_output: 1_000_000,
+        created_at: Time.current
+      )
+      create(
+        :prompt_execution,
+        participant: participant,
+        program: program,
+        model_used: "gpt-5-mini",
+        tokens_input: 1_000_000,
+        tokens_output: 1_000_000,
+        created_at: Time.current
+      )
+
+      result = described_class.new(range).call
+
+      expect(result.ai_by_participant.first).to include(
+        id: participant.id,
+        name: "Ana · +56911111111",
+        calls: 2,
+        cost: be_within(0.001).of(2.70)
+      )
+    end
+
+    it "breaks direct AI cost down by program" do
+      leadership = create(:program, name: "Liderazgo")
+      productivity = create(:program, name: "Productividad")
+
+      create(
+        :prompt_execution,
+        program: leadership,
+        model_used: "gpt-5-nano",
+        tokens_input: 1_000_000,
+        tokens_output: 1_000_000,
+        created_at: Time.current
+      )
+      create(
+        :prompt_execution,
+        program: productivity,
+        model_used: "gpt-5.4-nano",
+        tokens_input: 1_000_000,
+        tokens_output: 1_000_000,
+        created_at: Time.current
+      )
+
+      result = described_class.new(range).call
+
+      expect(result.ai_by_program.map { |row| row.slice(:id, :name, :cost) }).to contain_exactly(
+        include(id: leadership.id, name: "Liderazgo", cost: be_within(0.001).of(0.45)),
+        include(id: productivity.id, name: "Productividad", cost: be_within(0.001).of(1.45))
+      )
+    end
   end
 end

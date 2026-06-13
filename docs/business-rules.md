@@ -518,6 +518,7 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 ### 23.2 Fuente única de costos
 - **Regla.** El cálculo de costos USD (precios OpenAI por modelo + prorrateo de costos fijos) vive solo en `Finances::CostCalculator`; tanto Finanzas como Resultado lo consumen.
 - **Por qué.** Evita que las dos vistas diverjan en precios o en la matemática de prorrateo.
+- **Desgloses.** Finanzas muestra costo directo OpenAI por modelo, participante y programa desde `PromptExecution`. Las llamadas por tokens usan `tokens_input/output`; transcripción usa `billable_seconds` y precio estimado por minuto. Los fijos se mantienen como total prorrateado del período; no se reparten por participante/programa salvo que se defina una regla contable explícita.
 
 ---
 

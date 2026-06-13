@@ -78,7 +78,7 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 | `PromptTemplate` | `key`, `program_id`, `day_number`, `current_body`, `current_version` |
 | `PromptVersion` | `prompt_template_id`, `version`, `body`, `origin` (service/day_content/admin/analysis) |
 | `PromptAnalysis` | `prompt_template_id`, `findings` (jsonb), `suggested_body`, `rationale` |
-| `PromptExecution` | `prompt_template_id`, `prompt_version_id`, `rendered_messages` (jsonb), `output_body`, tokens, latency |
+| `PromptExecution` | `prompt_template_id`, `prompt_version_id`, `program_id`, `participant_id`, `conversation_id`, `rendered_messages` (jsonb), `output_body`, tokens, `billable_seconds`, latency |
 | `UnknownInbound` | `phone`, `wamid`, `message_type`, `body_preview`, `received_at` |
 | `MethodologyInsight` | `scope`, `payload` (jsonb), `generated_at`, `program_id` |
 | `CoachSession` | `participant_id`, `scheduled_at`, `duration_minutes`, `status` (scheduled/confirmed/completed/cancelled), `notes`, `reminder_sent_at` |

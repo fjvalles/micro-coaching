@@ -9,6 +9,8 @@ module Admin
 
       costs           = Finances::CostCalculator.new(@range).call
       @ai_by_model    = costs.ai_by_model
+      @ai_by_participant = costs.ai_by_participant
+      @ai_by_program  = costs.ai_by_program
       @ai_total       = costs.ai_total
       @ai_tokens_in   = costs.ai_tokens_in
       @ai_tokens_out  = costs.ai_tokens_out
