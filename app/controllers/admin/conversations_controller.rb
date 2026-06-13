@@ -106,6 +106,11 @@ module Admin
         return redirect_back fallback_location: admin_conversations_path, alert: "Este mensaje no se puede reintentar."
       end
 
+      if @conversation.whatsapp_template_name.blank? && @conversation.body.blank?
+        regenerate_blank_conversation
+        return
+      end
+
       client = Whatsapp::Client.new
       response = nil
 
@@ -151,6 +156,52 @@ module Admin
     end
 
     private
+
+    def regenerate_blank_conversation
+      participant = @conversation.participant
+      moment = @conversation.moment
+
+      @conversation.destroy
+
+      case moment
+      when "free_assistant"
+        last_user_msg = participant.conversations.kept.where(role: "user").where("created_at < ?", @conversation.created_at).order(created_at: :desc).first
+        if last_user_msg.blank?
+          return redirect_back fallback_location: admin_conversations_path, alert: "No hay mensaje de usuario para analizar."
+        end
+
+        result = Openai::FreeResponseGenerator.new(
+          participant: participant,
+          user_message: last_user_msg.body
+        ).call
+
+        Outbound::Dispatcher.new(participant: participant, moment: :free_assistant).send_text(
+          body: result.body,
+          ai: { prompt_used: result.prompt_used, tokens_input: result.tokens_input, tokens_output: result.tokens_output, model: result.model }
+        )
+      when "morning_wake"
+        result = Openai::MorningMessageGenerator.new(
+          participant: participant,
+          day_content: participant.day_content
+        ).call
+
+        Outbound::Dispatcher.new(participant: participant, moment: :morning_wake).send_text(
+          body: result.body,
+          ai: { prompt_used: result.prompt_used, tokens_input: result.tokens_input, tokens_output: result.tokens_output, model: result.model }
+        )
+      when "manifesto"
+        result = Openai::ManifestoGenerator.new(participant: participant).call
+
+        Outbound::Dispatcher.new(participant: participant, moment: :manifesto).send_text(
+          body: result.body,
+          ai: { prompt_used: result.prompt_used, tokens_input: result.tokens_input, tokens_output: result.tokens_output, model: result.model }
+        )
+      else
+        return redirect_back fallback_location: admin_conversations_path, alert: "El mensaje vacío era de tipo #{moment} y no se puede regenerar automáticamente."
+      end
+
+      redirect_back fallback_location: admin_conversations_path, notice: "El mensaje estaba vacío y fue regenerado y enviado con IA."
+    end
 
     def set_conversation
       @conversation = Conversation.find(params[:id])
