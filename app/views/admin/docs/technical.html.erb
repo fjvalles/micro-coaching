@@ -1032,17 +1032,17 @@ UNIQUE INDEX idx_prompt_templates_unique(key, program_id, day_number)</pre>
       <table class="docs-table">
         <thead><tr><th>Servicio</th><th>Modelo</th><th>Temperatura</th><th>Output</th></tr></thead>
         <tbody>
-          <tr><td><code>MorningMessageGenerator</code></td><td><code>gpt-4.1-mini</code></td><td>0.75</td><td>Texto libre ≤ 4 frases</td></tr>
-          <tr><td><code>FreeResponseGenerator</code></td><td><code>gpt-4.1-mini</code></td><td>0.75</td><td>Texto libre</td></tr>
-          <tr><td><code>CheckinSummarizer</code></td><td><code>gpt-4.1-mini</code></td><td>0.3</td><td>JSON: <code>{"summary":"...","key_pattern":"..."}</code></td></tr>
-          <tr><td><code>ManifestoGenerator</code></td><td><code>gpt-4.1-mini</code></td><td>0.75</td><td>Texto libre (manifiesto de cierre)</td></tr>
+          <tr><td><code>MorningMessageGenerator</code></td><td><code>openai_model_morning_message</code> default <code>gpt-5.4-nano</code></td><td>0.75*</td><td>Texto libre ≤ 4 frases</td></tr>
+          <tr><td><code>FreeResponseGenerator</code></td><td><code>openai_model_free_response</code> default <code>gpt-5-mini</code></td><td>0.75*</td><td>Texto libre</td></tr>
+          <tr><td><code>CheckinSummarizer</code></td><td><code>openai_model_checkin_summarizer</code> default <code>gpt-5-nano</code></td><td>0.3*</td><td>JSON: <code>{"summary":"...","key_pattern":"..."}</code></td></tr>
+          <tr><td><code>ManifestoGenerator</code></td><td><code>openai_model_manifesto</code> default <code>gpt-5-mini</code></td><td>0.75*</td><td>Texto libre (manifiesto de cierre)</td></tr>
           <tr><td><code>AudioTranscriber</code></td><td><code>gpt-4o-mini-transcribe</code></td><td>—</td><td>Texto transcrito</td></tr>
           <tr><td><code>VoiceAnalyzer</code></td><td><code>gpt-4o-mini-audio-preview</code></td><td>—</td><td>JSON paralingüístico (tono, emoción, energía, ritmo)</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>Todas las llamadas usan <code>ProgramManifesto</code> como primer bloque del system prompt para prompt caching (≥1024 tokens). <code>CheckinSummarizer</code> usa <code>response_format: { type: "json_object" }</code> con fallback a texto raw si falla el parse.</p>
+    <p>Todas las llamadas usan <code>ProgramManifesto</code> como primer bloque del system prompt para prompt caching (≥1024 tokens). Los modelos se resuelven vía <code>Openai::ModelRouter</code> con fallback a <code>openai_model</code>. <code>*</code> Los modelos <code>gpt-5*</code> usan la temperatura default del proveedor y <code>max_completion_tokens</code>.</p>
 
     <h2>Rutas Admin (Requieren sesión Devise)</h2>
     <div class="docs-table-wrap">

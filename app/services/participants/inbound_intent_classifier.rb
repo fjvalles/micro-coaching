@@ -45,7 +45,8 @@ module Participants
         messages: messages,
         max_tokens: Setting.fetch("openai_max_tokens_inbound_intent"),
         temperature: Setting.fetch("openai_temperature_json"),
-        response_format: { type: "json_object" }
+        response_format: { type: "json_object" },
+        task: :inbound_intent_classifier
       )
 
       Openai::PromptLogger.record(

@@ -26,7 +26,8 @@ module Openai
         messages: messages,
         max_tokens: Setting.fetch("openai_max_tokens_skill_tagging"),
         temperature: Setting.fetch("openai_temperature_json"),
-        response_format: { type: "json_object" }
+        response_format: { type: "json_object" },
+        task: :skill_tagger
       )
 
       Openai::PromptLogger.record(

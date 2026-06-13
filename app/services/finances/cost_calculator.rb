@@ -5,15 +5,23 @@ module Finances
   # detail) and Admin::ProfitLossController (consolidated P&L) so pricing and the
   # proration math live in exactly one place.
   class CostCalculator
-    # Pricing per 1M tokens in USD (as of 2025-05).
+    # Pricing per 1M tokens in USD (as of 2026-06).
     OPENAI_PRICING = {
+      "gpt-5-nano"                  => { input: 0.05,  output: 0.40  },
+      "gpt-5-mini"                  => { input: 0.25,  output: 2.00  },
+      "gpt-5.4-nano"                => { input: 0.20,  output: 1.25  },
+      "gpt-5.4-mini"                => { input: 0.75,  output: 4.50  },
+      "gpt-5.4"                     => { input: 2.50,  output: 15.00 },
       "gpt-4.1-mini"              => { input: 0.40,  output: 1.60  },
+      "gpt-4.1-nano"              => { input: 0.10,  output: 0.40  },
       "gpt-4.1"                   => { input: 2.00,  output: 8.00  },
       "gpt-4o-mini"               => { input: 0.15,  output: 0.60  },
       "gpt-4o"                    => { input: 5.00,  output: 15.00 },
       "gpt-4o-mini-transcribe"    => { input: 1.25,  output: 5.00  },
       "gpt-4o-transcribe"         => { input: 2.50,  output: 10.00 },
-      "gpt-4o-mini-audio-preview" => { input: 0.10,  output: 0.20  },
+      # VoiceAnalyzer sends audio input; PromptExecution does not yet split text
+      # vs audio tokens, so use audio-token pricing to avoid undercounting.
+      "gpt-4o-mini-audio-preview" => { input: 10.00, output: 20.00 },
       "gpt-4o-audio-preview"      => { input: 2.50,  output: 10.00 }
     }.freeze
     DEFAULT_PRICING = { input: 0.40, output: 1.60 }.freeze
@@ -75,7 +83,7 @@ module Finances
           "SUM(tokens_output) AS total_output"
         )
         .map do |row|
-          pricing    = OPENAI_PRICING[row.model_used] || DEFAULT_PRICING
+          pricing    = pricing_for(row.model_used)
           tokens_in  = row.total_input.to_i
           tokens_out = row.total_output.to_i
           cost = (tokens_in / 1_000_000.0 * pricing[:input]) +
@@ -89,6 +97,16 @@ module Finances
           }
         end
         .sort_by { |r| -r[:cost] }
+    end
+
+    def pricing_for(model)
+      OPENAI_PRICING[model] ||
+        OPENAI_PRICING[base_model_name(model)] ||
+        DEFAULT_PRICING
+    end
+
+    def base_model_name(model)
+      model.to_s.sub(/-\d{4}-\d{2}-\d{2}\z/, "")
     end
   end
 end

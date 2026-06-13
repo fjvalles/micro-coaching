@@ -18,7 +18,8 @@ module Openai
         messages: messages,
         max_tokens: 1200,
         temperature: 0.3,
-        response_format: { type: "json_object" }
+        response_format: { type: "json_object" },
+        task: :prompt_critic
       )
       parsed = parse(response.content)
 

@@ -70,7 +70,7 @@ En el Hero de la página, en lugar de una captura estática, se diseñó un tel�
 
 ### B. Generador de Micro-Pasos con IA en Tiempo Real
 En la sección de pruebas, el usuario puede ingresar su propio desafío laboral en lenguaje natural.
-*   La landing page hace un request a `/preview_challenge` que utiliza `gpt-4.1-mini` en el backend para generar un primer mensaje de Día 1 real basado en el marco pedagógico de Comtraining.
+*   La landing page hace un request a `/preview_challenge` que usa el modelo configurado en `openai_model_preview_challenge` para generar un primer mensaje de Día 1 real basado en el marco pedagógico de Comtraining.
 *   El resultado se despliega en una caja estilizada de WhatsApp, abriendo paso al formulario de registro B2B que captura su **Empresa** y **Cargo / Rol**.
 
 ---

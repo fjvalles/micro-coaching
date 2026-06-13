@@ -18,7 +18,8 @@ module Openai
       response = @client.chat(
         messages: messages,
         max_tokens: Setting.fetch("openai_max_tokens_morning"),
-        temperature: Setting.fetch("openai_temperature_generative")
+        temperature: Setting.fetch("openai_temperature_generative"),
+        task: :morning_message
       )
 
       Openai::PromptLogger.record(

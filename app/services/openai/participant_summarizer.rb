@@ -23,7 +23,8 @@ module Openai
       response = @client.chat(
         messages: messages,
         max_tokens: Setting.fetch("openai_max_tokens_summary"),
-        temperature: Setting.fetch("openai_temperature_json")
+        temperature: Setting.fetch("openai_temperature_json"),
+        task: :participant_summary
       )
 
       Openai::PromptLogger.record(

@@ -35,7 +35,8 @@ class HomeController < ApplicationController
           { role: "user", content: "Meta del usuario: #{goal}. Genera el mensaje." }
         ],
         max_tokens: 300,
-        temperature: 0.75
+        temperature: 0.75,
+        task: :preview_challenge
       )
 
       render json: { challenge: result.content }

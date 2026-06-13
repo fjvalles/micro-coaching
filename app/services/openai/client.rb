@@ -4,16 +4,18 @@ module Openai
 
     Result = Struct.new(:content, :tokens_input, :tokens_output, :model, :latency_ms, keyword_init: true)
 
-    DEFAULT_MODEL = "gpt-4.1-mini".freeze
+    DEFAULT_MODEL = Openai::ModelRouter::DEFAULT_MODEL
 
     def initialize(api_key: ENV["OPENAI_API_KEY"], model: nil)
       @api_key = api_key
-      @model   = model || Setting.fetch("openai_model").presence || DEFAULT_MODEL
+      @model_override = model.presence
+      @model   = @model_override || Setting.fetch("openai_model").presence || DEFAULT_MODEL
     end
 
-    def chat(messages:, max_tokens: nil, temperature: nil, response_format: nil)
+    def chat(messages:, max_tokens: nil, temperature: nil, response_format: nil, task: nil)
       max_tokens  ||= Setting.fetch("openai_max_tokens_free")
       temperature ||= Setting.fetch("openai_temperature_generative")
+      model = model_for(task)
 
       if Setting.fetch("openai_dry_run_global")
         return Result.new(
@@ -25,11 +27,11 @@ module Openai
       raise ArgumentError, "OPENAI_API_KEY missing" if @api_key.blank?
 
       params = {
-        model: @model,
-        messages: messages,
-        max_tokens: max_tokens,
-        temperature: temperature
+        model: model,
+        messages: messages
       }
+      params[completion_token_param(model)] = max_tokens
+      params[:temperature] = temperature unless default_temperature_only?(model)
       params[:response_format] = response_format if response_format
 
       started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -43,7 +45,7 @@ module Openai
         content: content,
         tokens_input: usage["prompt_tokens"].to_i,
         tokens_output: usage["completion_tokens"].to_i,
-        model: response["model"] || @model,
+        model: response["model"] || model,
         latency_ms: latency_ms
       )
     end
@@ -52,6 +54,21 @@ module Openai
 
     def http_client
       @http_client ||= ::OpenAI::Client.new(access_token: @api_key, request_timeout: 30)
+    end
+
+    def model_for(task)
+      return @model_override if @model_override.present?
+      return Openai::ModelRouter.for(task) if task.present?
+
+      @model
+    end
+
+    def completion_token_param(model)
+      model.to_s.start_with?("gpt-5") ? :max_completion_tokens : :max_tokens
+    end
+
+    def default_temperature_only?(model)
+      model.to_s.start_with?("gpt-5")
     end
   end
 end

@@ -56,7 +56,7 @@
   <div class="stat-card" style="border-left-color: #818cf8;">
     <div class="stat-header">
       <span>Consumo OpenAI (Est.)</span>
-      <span class="badge badge-neutral">gpt-4o-mini</span>
+      <span class="badge badge-neutral">por modelo</span>
     </div>
     <div class="stat-value" style="font-size: 28px;"><%= @formatted_openai_cost %></div>
     <div class="stat-desc">Tokens: <%= number_to_human(@total_tokens) %> (I: <%= number_to_human(@total_input_tokens) %> / O: <%= number_to_human(@total_output_tokens) %>)</div>

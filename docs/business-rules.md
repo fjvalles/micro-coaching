@@ -252,8 +252,11 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 
 ## 10. Generación con IA
 
-### 10.1 Modelo fijo: `gpt-4.1-mini`
-- **Por qué.** Costo/calidad balanceado para mensajes cortos en español.
+### 10.1 Modelo mínimo por tarea
+- **Regla.** Las llamadas de texto usan `Openai::ModelRouter` con settings por tarea (`openai_model_<task>`) y fallback a `openai_model`.
+- **Defaults.** `gpt-5-nano` para preview/check-in/summary, `gpt-5.4-nano` para clasificación/tagging/clustering, `gpt-5-mini` para respuesta libre/manifiesto/PromptCritic. Audio conserva `gpt-4o-mini-transcribe` y `gpt-4o-mini-audio-preview`.
+- **Por qué.** Reducir costo en tareas simples de alto volumen sin degradar los puntos user-facing que requieren más matiz.
+- **Enforce.** `app/services/openai/model_router.rb`, `Openai::Client#chat(task:)`.
 
 ### 10.2 Temperaturas
 - `0.75` generativo (despertar, IAReto, free response, manifesto).

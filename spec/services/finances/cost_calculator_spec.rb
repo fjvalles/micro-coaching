@@ -32,5 +32,39 @@ RSpec.describe Finances::CostCalculator do
 
       expect(result.total_cost).to eq(result.ai_total + result.manual_total)
     end
+
+    it "prices executions using the routed model table" do
+      create(
+        :prompt_execution,
+        model_used: "gpt-5-nano",
+        tokens_input: 1_000_000,
+        tokens_output: 1_000_000,
+        created_at: Time.current
+      )
+
+      result = described_class.new(range).call
+
+      expect(result.ai_by_model.first).to include(
+        model: "gpt-5-nano",
+        cost: be_within(0.001).of(0.45)
+      )
+    end
+
+    it "prices snapshot model names using their base model rate" do
+      create(
+        :prompt_execution,
+        model_used: "gpt-5.4-nano-2026-03-17",
+        tokens_input: 1_000_000,
+        tokens_output: 1_000_000,
+        created_at: Time.current
+      )
+
+      result = described_class.new(range).call
+
+      expect(result.ai_by_model.first).to include(
+        model: "gpt-5.4-nano-2026-03-17",
+        cost: be_within(0.001).of(1.45)
+      )
+    end
   end
 end

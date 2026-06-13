@@ -21,7 +21,8 @@ module Openai
         messages: messages,
         max_tokens: 1500,
         temperature: 0.3,
-        response_format: { type: "json_object" }
+        response_format: { type: "json_object" },
+        task: :pattern_clusterer
       )
 
       Openai::PromptLogger.record(

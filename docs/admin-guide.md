@@ -77,7 +77,7 @@ Para trabajar los días de un programa específico:
 ### 4.1 La Ficha del Participante (Chat Visual)
 Al ingresar al detalle de cualquier participante, verás su historial de conversación en un formato de chat similar a WhatsApp. Esta interfaz te permite:
 * **Ver qué se dijo:** Diferencia visual de burbujas (Verde = Participante, Blanco = IA, Gris = Mensajes de Sistema automáticos).
-* **Auditar la IA:** Cada mensaje enviado por la IA muestra en letras pequeñas los tokens de entrada/salida y el modelo usado (`gpt-4.1-mini`).
+* **Auditar la IA:** Cada mensaje enviado por la IA muestra en letras pequeñas los tokens de entrada/salida y el modelo usado.
 * **Ver el prompt real:** Puedes hacer clic en el botón de metadatos del mensaje de la IA para revisar el prompt exacto de sistema que se le envió a OpenAI en ese instante.
 
 ```mermaid

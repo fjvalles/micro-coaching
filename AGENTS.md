@@ -105,6 +105,7 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/openai/AudioTranscriber` — transcribes audio using Whisper / gpt-4o-mini-transcribe
 - `app/services/openai/VoiceAnalyzer` — analyzes voice emotion/energy using gpt-4o-audio-preview
 - `app/services/openai/Retryable` — concern offering exponential backoff retry logic for OpenAI API calls
+- `app/services/openai/ModelRouter` — resolves per-task OpenAI models from Settings with fallback to `openai_model`
 - `app/services/openai/PromptLogger` — records LLM execution metadata and payloads to `PromptExecution` / `PromptVersion`
 - `app/services/openai/PromptCritic` — analyzes prompts and generates suggestions
 - `app/services/openai/PatternClusterer` — clusters key participant patterns using LLM
@@ -175,7 +176,8 @@ Use `travel_to` (Rails built-in), not Timecop.
 - Job idempotency: check `Conversation.where(moment: ..., day_number: ...)` before sending
 - Phone numbers stored as E.164 (`+56912345678`)
 - All AI calls return a struct with `body`, `prompt_used`, `tokens_input`, `tokens_output`, `model`
-- Model: `gpt-4.1-mini`, `temperature: 0.75` (generative), `0.3` (JSON summarizer)
+- Models are task-routed via `Openai::ModelRouter`: cheap nano models for classification/summarization, `gpt-5-mini` for user-facing free response and manifesto, audio-specific models for transcription/voice analysis. `openai_model` is only the fallback.
+- Temperature: `0.75` (generative), `0.3` (JSON summarizer/classifiers). GPT-5-family Chat Completions omit custom temperature and use `max_completion_tokens`.
 - CheckinSummarizer uses `response_format: { type: "json_object" }` with fallback if parse fails
 - Program-scoped content: `DayContent` belongs to `Program`; `Participant` belongs to `Program`
 

@@ -15,7 +15,8 @@ module Openai
         messages: messages,
         max_tokens: Setting.fetch("openai_max_tokens_checkin"),
         temperature: Setting.fetch("openai_temperature_json"),
-        response_format: { type: "json_object" }
+        response_format: { type: "json_object" },
+        task: :checkin_summarizer
       )
 
       Openai::PromptLogger.record(
