@@ -14,6 +14,7 @@ RSpec.describe Openai::Client do
     expect(fake_http).to receive(:chat) do |parameters:|
       expect(parameters[:model]).to eq("gpt-5-mini")
       expect(parameters[:max_completion_tokens]).to eq(123)
+      expect(parameters[:reasoning_effort]).to eq("minimal")
       expect(parameters).not_to have_key(:max_tokens)
       expect(parameters).not_to have_key(:temperature)
       {
@@ -42,6 +43,7 @@ RSpec.describe Openai::Client do
       expect(parameters[:max_tokens]).to eq(80)
       expect(parameters[:temperature]).to eq(0.3)
       expect(parameters).not_to have_key(:max_completion_tokens)
+      expect(parameters).not_to have_key(:reasoning_effort)
       {
         "choices" => [ { "message" => { "content" => "json" } } ],
         "usage" => { "prompt_tokens" => 5, "completion_tokens" => 2 }
@@ -56,5 +58,23 @@ RSpec.describe Openai::Client do
     )
 
     expect(result.model).to eq("gpt-4.1-mini")
+  end
+
+  it "applies the configured reasoning_effort to GPT-5 models" do
+    Setting.set("openai_reasoning_effort", "low")
+    fake_http = instance_double(::OpenAI::Client)
+    allow(::OpenAI::Client).to receive(:new).and_return(fake_http)
+
+    expect(fake_http).to receive(:chat) do |parameters:|
+      expect(parameters[:reasoning_effort]).to eq("low")
+      {
+        "choices" => [ { "message" => { "content" => "ok" } } ],
+        "usage" => { "prompt_tokens" => 1, "completion_tokens" => 1 }
+      }
+    end
+
+    described_class.new(api_key: "k", model: "gpt-5-mini").chat(
+      messages: [ { role: "user", content: "hola" } ]
+    )
   end
 end

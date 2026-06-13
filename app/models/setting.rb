@@ -99,8 +99,8 @@ class Setting < ApplicationRecord
       description: "max_tokens del mensaje matinal."
     },
     "openai_max_tokens_free" => {
-      type: :integer, category: "openai", default: 400,
-      description: "max_tokens de la respuesta libre."
+      type: :integer, category: "openai", default: 1024,
+      description: "max_tokens de la respuesta libre. Con reasoning_effort=minimal el cap es salida pura; 1024 da margen amplio para el piloto (respuestas naturales ~80-292 tokens)."
     },
     "openai_max_tokens_checkin" => {
       type: :integer, category: "openai", default: 300,
@@ -117,6 +117,11 @@ class Setting < ApplicationRecord
     "openai_max_tokens_inbound_intent" => {
       type: :integer, category: "openai", default: 220,
       description: "max_tokens del clasificador semántico de mensajes entrantes (InboundIntentClassifier, modo JSON)."
+    },
+    "openai_reasoning_effort" => {
+      type: :string, category: "openai", default: "minimal",
+      description: "reasoning_effort para modelos GPT-5. 'minimal' evita que los tokens de razonamiento consuman el cap de salida y devuelvan respuesta vacía. Opciones: minimal, low, medium, high.",
+      validate: ->(v) { %w[minimal low medium high].include?(v.to_s) || "debe ser minimal, low, medium o high" }
     },
     "inbound_intent_classification_enabled" => {
       type: :boolean, category: "openai", default: true,

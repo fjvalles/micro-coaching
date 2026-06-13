@@ -32,6 +32,7 @@ module Openai
       }
       params[completion_token_param(model)] = max_tokens if max_tokens.present?
       params[:temperature] = temperature unless default_temperature_only?(model)
+      params[:reasoning_effort] = reasoning_effort_for(model) if reasoning_model?(model)
       params[:response_format] = response_format if response_format
 
       started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -69,6 +70,15 @@ module Openai
 
     def default_temperature_only?(model)
       model.to_s.start_with?("gpt-5")
+    end
+
+    alias reasoning_model? default_temperature_only?
+
+    # GPT-5 models spend max_completion_tokens on reasoning BEFORE visible output.
+    # Without this, a small cap is fully consumed by reasoning → empty content
+    # (finish_reason "length"). "minimal" keeps reasoning ~0 so the cap funds the reply.
+    def reasoning_effort_for(_model)
+      Setting.fetch("openai_reasoning_effort").presence || "minimal"
     end
   end
 end
