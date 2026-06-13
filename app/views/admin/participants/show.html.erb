@@ -17,6 +17,16 @@
     <% end %>
   <% end %>
 
+  <% if @participant.completed? && @participant.program&.next_program.present? %>
+    <%= button_to re_enroll_admin_participant_path(@participant), method: :post, class: "btn btn-primary",
+          form: { data: { turbo_confirm: "¿Avanzar a #{@participant.program.next_program.name}? Se enviará la bienvenida y se reiniciará la memoria de coaching." } } do %>
+      <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+      </svg>
+      Avanzar a <%= @participant.program.next_program.name %>
+    <% end %>
+  <% end %>
+
   <a href="<%= edit_admin_participant_path(@participant) %>" class="btn btn-secondary">
     Editar
   </a>

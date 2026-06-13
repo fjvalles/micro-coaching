@@ -17,6 +17,7 @@ class Participant < ApplicationRecord
   has_many :daily_reports, dependent: :destroy
   has_many :pending_responses, dependent: :destroy
   has_many :skill_detections, dependent: :destroy
+  has_many :enrollments, dependent: :destroy
 
   validates :name, presence: true
   validates :phone_e164, presence: true, uniqueness: true,
@@ -24,8 +25,31 @@ class Participant < ApplicationRecord
   validates :timezone, presence: true
   validates :current_day, numericality: { greater_than_or_equal_to: 0 }
   validates :initial_pattern, length: { maximum: 500 }, allow_blank: true
+  validates :focus_hint, length: { maximum: 1000 }, allow_blank: true
+  validates :coach_notes, length: { maximum: 5000 }, allow_blank: true
 
   scope :kept, -> { undiscarded }
+
+  # The active ledger row for the program the participant is currently running.
+  # Used to mark a cycle completed / advance to the next program.
+  def current_enrollment
+    enrollments.find_by(program_id: program_id, status: :active)
+  end
+
+  # Opens a new active ledger cycle for the given program. Idempotent: a program
+  # that already has an active cycle is left untouched. cycle_number is global per
+  # participant so re-running the same program later gets a fresh, unique cycle.
+  def start_enrollment!(target_program = program)
+    return if target_program.nil?
+    return if enrollments.active.exists?(program_id: target_program.id)
+
+    enrollments.create!(
+      program: target_program,
+      cycle_number: (enrollments.maximum(:cycle_number) || 0) + 1,
+      status: :active,
+      started_at: Time.current
+    )
+  end
 
   def phase
     day_content&.phase&.to_sym || :pending

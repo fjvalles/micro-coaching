@@ -84,6 +84,22 @@ RSpec.describe "Admin::Participants", type: :request do
       expect(response.body).to include(participant.name)
       expect(response.body).to include(participant.phone_e164)
     end
+
+    it "shows the advance-to-next-program button for a completed participant with a next_program" do
+      nivel2 = create(:program, name: "Nivel 2 Avanzado")
+      nivel1 = create(:program, name: "Nivel 1 Base", next_program: nivel2)
+      done = create(:participant, program: nivel1, status: :completed, current_day: 15)
+
+      get "/admin/participants/#{done.id}"
+
+      expect(response.body).to include("Avanzar a Nivel 2 Avanzado")
+    end
+
+    it "hides the advance button when the program has no next_program" do
+      done = create(:participant, program: create(:program, next_program: nil), status: :completed)
+      get "/admin/participants/#{done.id}"
+      expect(response.body).not_to include("Avanzar a")
+    end
   end
 
   describe "GET /admin/participants/new" do
@@ -123,6 +139,36 @@ RSpec.describe "Admin::Participants", type: :request do
       expect(participant.status.to_sym).to eq(:active)
       expect(participant.current_day).to eq(1)
       expect(response).to redirect_to(admin_participant_path(participant))
+    end
+  end
+
+  describe "POST /admin/participants/:id/re_enroll" do
+    it "advances a completed participant into the program's next_program" do
+      nivel2 = create(:program, name: "Nivel 2")
+      nivel1 = create(:program, name: "Nivel 1", next_program: nivel2)
+      done = create(:participant, program: nivel1, status: :completed, current_day: 15)
+      done.enrollments.create!(program: nivel1, cycle_number: 1, status: :completed)
+
+      expect {
+        post "/admin/participants/#{done.id}/re_enroll"
+      }.to have_enqueued_job(SendWelcomeJob).with(done.id)
+
+      done.reload
+      expect(done.program).to eq(nivel2)
+      expect(done.current_day).to eq(1)
+      expect(done.status.to_sym).to eq(:active)
+      expect(response).to redirect_to(admin_participant_path(done))
+    end
+
+    it "alerts and does nothing when there is no next_program" do
+      done = create(:participant, program: create(:program, next_program: nil), status: :completed)
+
+      post "/admin/participants/#{done.id}/re_enroll"
+
+      expect(done.reload.status.to_sym).to eq(:completed)
+      expect(response).to redirect_to(admin_participant_path(done))
+      follow_redirect!
+      expect(response.body).to include("no tiene un programa siguiente")
     end
   end
 

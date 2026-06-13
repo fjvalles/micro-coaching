@@ -21,6 +21,7 @@ module Participants
         enrolled_at: @participant.enrolled_at || Time.current,
         started_at: @participant.started_at || Time.current
       )
+      @participant.start_enrollment! # opens the cycle-1 ledger row for this program
       SendWelcomeJob.perform_later(@participant.id)
       @participant
     end

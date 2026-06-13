@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_05_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_13_120002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -128,6 +128,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_05_120000) do
     t.index ["program_id"], name: "index_day_contents_on_program_id"
   end
 
+  create_table "enrollments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "participant_id", null: false
+    t.uuid "program_id", null: false
+    t.integer "cycle_number", default: 1, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["participant_id", "program_id", "cycle_number"], name: "index_enrollments_on_participant_program_cycle", unique: true
+    t.index ["participant_id", "status"], name: "index_enrollments_on_participant_id_and_status"
+    t.index ["participant_id"], name: "index_enrollments_on_participant_id"
+    t.index ["program_id"], name: "index_enrollments_on_program_id"
+  end
+
   create_table "methodology_insights", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "scope", null: false
     t.jsonb "payload", default: {}, null: false
@@ -163,6 +178,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_05_120000) do
     t.string "role"
     t.string "response_mode"
     t.uuid "company_id"
+    t.text "coach_notes"
+    t.text "focus_hint"
+    t.text "ai_summary"
+    t.datetime "ai_summary_updated_at"
     t.index ["company_id"], name: "index_participants_on_company_id"
     t.index ["discarded_at"], name: "index_participants_on_discarded_at"
     t.index ["phone_e164"], name: "index_participants_on_phone_e164", unique: true
@@ -244,7 +263,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_05_120000) do
     t.datetime "updated_at", null: false
     t.string "response_mode"
     t.uuid "company_id"
+    t.uuid "next_program_id"
     t.index ["company_id"], name: "index_programs_on_company_id"
+    t.index ["next_program_id"], name: "index_programs_on_next_program_id"
     t.index ["slug"], name: "index_programs_on_slug", unique: true
   end
 
@@ -426,6 +447,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_05_120000) do
   add_foreign_key "conversations", "participants"
   add_foreign_key "daily_reports", "participants"
   add_foreign_key "day_contents", "programs"
+  add_foreign_key "enrollments", "participants"
+  add_foreign_key "enrollments", "programs"
   add_foreign_key "methodology_insights", "programs"
   add_foreign_key "participants", "companies"
   add_foreign_key "participants", "programs"
@@ -437,6 +460,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_05_120000) do
   add_foreign_key "pending_responses", "conversations"
   add_foreign_key "pending_responses", "participants"
   add_foreign_key "programs", "companies"
+  add_foreign_key "programs", "programs", column: "next_program_id"
   add_foreign_key "prompt_analyses", "prompt_templates"
   add_foreign_key "prompt_analyses", "prompt_versions"
   add_foreign_key "prompt_executions", "conversations"

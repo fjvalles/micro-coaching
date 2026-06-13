@@ -1,8 +1,11 @@
 class Program < ApplicationRecord
   has_paper_trail meta: { source: proc { PaperTrail.request.controller_info.to_h[:source] } }
   belongs_to :company, optional: true # nil = general program (available to everyone)
+  # Self-referential chain for multi-cycle journeys (Nivel 1 → Nivel 2).
+  belongs_to :next_program, class_name: "Program", optional: true
   has_many :day_contents, dependent: :destroy
   has_many :participants, dependent: :nullify
+  has_many :enrollments, dependent: :destroy
   has_many :prompt_templates, dependent: :destroy
   has_many :methodology_insights, dependent: :destroy
 

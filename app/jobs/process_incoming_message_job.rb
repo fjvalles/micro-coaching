@@ -103,6 +103,7 @@ class ProcessIncomingMessageJob < ApplicationJob
       inbound.update!(moment: :checkin_response)
       handle_checkin(participant, text, voice_analysis: voice_analysis)
       enqueue_skill_tagging(inbound)
+      RefreshParticipantSummaryJob.perform_later(participant.id) if Setting.fetch("participant_summary_enabled")
     else
       handle_free(participant, text, voice_analysis: voice_analysis)
       enqueue_skill_tagging(inbound)

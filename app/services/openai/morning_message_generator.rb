@@ -55,12 +55,16 @@ module Openai
       ].compact_blank.join("\n\n")
     end
 
+    # NOTE: coach_notes is intentionally NEVER included. focus_hint and ai_summary
+    # are the AI-safe abstracted memory; coach_notes stays admin-only.
     def user_prompt
       <<~PROMPT
         Participante: #{@participant.name}
         Día: #{@participant.current_day} (#{@participant.phase})
         Patrón inicial: #{@participant.initial_pattern.to_s.truncate(500).presence || 'no declarado'}
+        Foco de coaching: #{@participant.focus_hint.to_s.truncate(500).presence || 'general'}
         Mapa de energía: #{(@participant.energy_map.presence || {}).to_json}
+        Memoria del participante: #{@participant.ai_summary.to_s.truncate(500).presence || 'sin memoria acumulada aún'}
         Último reporte (ayer): #{@participant.latest_report&.raw_text.to_s.truncate(500).presence || 'sin reporte previo'}
         Plantilla base (puedes reescribir manteniendo intención):
         #{@day_content.morning_template}

@@ -61,9 +61,9 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 | Model | Key fields |
 |-------|-----------|
 | `Company` | `name`, `slug`, `coach_name` (override), `covers_membership`, `active`; soft-deleted (`discard`). `has_many :participants, :programs` |
-| `Program` | `slug`, `total_days`, `manifesto`, `active`, `response_mode`, `company_id` (nil = general) |
+| `Program` | `slug`, `total_days`, `manifesto`, `active`, `response_mode`, `company_id` (nil = general), `next_program_id` (self-ref FK; cadena multi-ciclo Nivel 1→2). `has_many :enrollments` |
 | `DayContent` | `program_id`, `day_number`, `phase` (see/choose/anchor), `morning_template`, `iareto_text`, `checkin_questions`, `ai_system_prompt` |
-| `Participant` | `phone_e164`, `status` (pending/active/completed/paused/awaiting_payment), `current_day`, `timezone`, `initial_pattern`, `energy_map` (jsonb), `pending_checkin_at`, `company_id` (assoc shadows legacy `company` string), `role`, `response_mode`. `payment_required?` gates individual enroll |
+| `Participant` | `phone_e164`, `status` (pending/active/completed/paused/awaiting_payment), `current_day`, `timezone`, `initial_pattern`, `energy_map` (jsonb), `pending_checkin_at`, `company_id` (assoc shadows legacy `company` string), `role`, `response_mode`, `coach_notes` (admin-only, **nunca** a la IA), `focus_hint` (directriz abstracta, sí a la IA), `ai_summary` (memoria rodante IA, post-checkin). `payment_required?` gates individual enroll. `has_many :enrollments` |
 | `Payment` | Webpay Plus/Oneclick: `amount` (CLP, IVA-incl), `status` (pending/authorized/rejected/failed/aborted/refunded), `buy_order`, `token`, `commission_amount`, `net_amount`; `belongs_to :participant/:company/:program/:subscription` |
 | `Subscription` | Webpay Oneclick recurring: `status` (pending/active/past_due/canceled/paused), `amount_clp`, `plan`, `tbk_user`/`tbk_username` (recurring token), `billing_interval_days`, `next_billing_at`, `billing_cycle_count`, `failed_attempts`; soft-deleted (`discard`); `has_many :payments`. ⚠️ scope with `.kept` |
 | `Conversation` | `moment` (welcome/morning_wake/iareto/checkin_question/checkin_response/free_user/free_assistant/manifesto), `role` (user/assistant/system), `day_number`, delivery timestamps, `media_id`, `transcription`, `voice_analysis` (jsonb) |
@@ -79,6 +79,7 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 | `CoachSession` | `participant_id`, `scheduled_at`, `duration_minutes`, `status` (scheduled/confirmed/completed/cancelled), `notes`, `reminder_sent_at` |
 | `Skill` | Catálogo de 82 habilidades **humanas del participante** (no de la IA), importadas de `db/seeds/skills_source/*.txt`: `slug`, `name`, `position`, `definition`, `importance`, `trap`, `one_liner`, arrays jsonb `signals`/`practices`/`gestures`/`exercises`/`reflection_questions`. `has_many :skill_detections` |
 | `SkillDetection` | `participant_id`, `conversation_id`, `skill_id`, `confidence`, `source` (moment), `detected_at`. Único `[conversation_id, skill_id]` |
+| `Enrollment` | Ledger histórico de ciclos (modelo **secuencial**; estado vivo en `Participant`): `belongs_to :participant/:program`, `cycle_number` (global por participante), `status` (active/completed/canceled), `started_at`, `completed_at`. Único `[participant_id, program_id, cycle_number]`. Escrito por `Activator`/`DayAdvancer`/`ReEnroller` |
 
 All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `discard` gem for soft deletes — always scope with `.kept`.
 
@@ -103,6 +104,7 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/openai/PromptCritic` — analyzes prompts and generates suggestions
 - `app/services/openai/PatternClusterer` — clusters key participant patterns using LLM
 - `app/services/openai/ProgramManifesto` — shared constant prepended to all system prompts (promotes OpenAI prompt caching ≥1024 tokens)
+- `app/services/openai/ParticipantSummarizer` — rolling AI memory of the participant; re-run by `RefreshParticipantSummaryJob` after each check-in, writes `Participant#ai_summary` (abstracted, AI-safe). Gated by `participant_summary_enabled`
 - `app/services/methodology/InsightBuilder` — builds 6 scopes of nightly aggregated insights
 - `app/services/participants/MessageClassifier` — classifies inbound message as `initial_pattern_answer | checkin_response | free_user`
 - `app/services/participants/DayAdvancer` — advances `current_day`, sets `started_at` / `completed_at`
@@ -110,7 +112,8 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/participants/AudioProcessor` — orchestrates audio downloading, transcription, paralinguistic analysis
 - `app/services/backups/DatabaseDumper` — dumps PostgreSQL database
 - `app/services/backups/GoogleDriveUploader` — uploads backups to Google Drive
-- `app/services/participants/Activator` — single activation path (sets `status: :active`, `current_day: 1`, fires `SendWelcomeJob`); idempotent; shared by `Enroller`, admin enroll, and payment commit
+- `app/services/participants/Activator` — single activation path (sets `status: :active`, `current_day: 1`, opens cycle-1 `Enrollment`, fires `SendWelcomeJob`); idempotent; shared by `Enroller`, admin enroll, and payment commit
+- `app/services/participants/ReEnroller` — transitions a completed participant into `program.next_program` (sequential multi-cycle): repoints `program_id`/`current_day: 1`/`status: active`, opens a new `Enrollment` cycle, cancels stale active cycles, resets `ai_summary`, fires `SendWelcomeJob`. Admin button on `/admin/participants/:id`. See `business-rules.md` §26
 - `app/services/finances/CostCalculator` — single source of truth for USD operating costs over a range (OpenAI usage priced from `PromptExecution` + prorated manual fixed costs); shared by `Admin::FinancesController` and `Admin::ProfitLossController`
 - `app/services/ops/CapacitySnapshot` — read-only Sidekiq/DB-pool/Redis capacity snapshot (graceful if Redis down); shared by `Admin::HealthController` and `CapacityAlertJob`
 - `app/services/webpay/Client` — Transbank Webpay Plus wrapper (`create`/`commit`) for one-time payments; honors `webpay_enabled` + `webpay_environment`

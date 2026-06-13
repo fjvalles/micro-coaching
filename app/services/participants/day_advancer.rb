@@ -31,6 +31,7 @@ module Participants
 
     def complete!(total)
       with_ai_trail { @participant.update!(status: :completed, completed_at: Time.current, current_day: total + 1) }
+      @participant.current_enrollment&.update!(status: :completed, completed_at: Time.current)
       GenerateAndSendManifestoJob.perform_later(@participant.id)
     end
 

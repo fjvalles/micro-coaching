@@ -515,6 +515,53 @@ Catálogo de **habilidades humanas del participante** (no de la IA): 82 competen
 
 ---
 
+## 25. Memoria de coaching y privacidad del prompt
+
+Tres campos de "memoria" por participante, separados por **quién los escribe** y **si llegan a la IA**. La invariante central: el contexto sensible crudo nunca toca un prompt.
+
+### 25.1 `coach_notes` — humano, jamás a la IA
+- **Regla.** Texto libre del operador con el contexto crudo/sensible del participante. Editable solo en `/admin/participants/:id`. **Nunca** se inyecta en ningún servicio `Openai::`.
+- **Por qué.** El operador (human-in-the-loop) necesita el contexto real para revisar `PendingResponse`, elegir programa y decidir envíos manuales — sin que ese contexto pueda filtrarse en un mensaje generado.
+- **Enforce.** `app/models/participant.rb` (columna + validación de largo), permit en `Admin::ParticipantsController#participant_params`. Comentarios-guarda en `FreeResponseGenerator#system_prompt` y `MorningMessageGenerator#user_prompt`. Spec: `spec/services/openai/coaching_memory_injection_spec.rb` (verifica que `coach_notes` no aparece en los prompts).
+
+### 25.2 `focus_hint` — humano, abstracto, sí a la IA
+- **Regla.** Directriz abstracta de hacia dónde empujar (ej. "acompañar hacia activación física y autonomía"). Editable en admin. **Sí** se inyecta en los mensajes generativos.
+- **Por qué.** Personaliza hacia el objetivo sin sostener los hechos que expondrían al participante. Si la IA "filtrara" su instrucción, lo peor que sale es la directriz abstracta, no el diagnóstico.
+- **Enforce.** Inyectado en `Openai::FreeResponseGenerator#system_prompt` y `Openai::MorningMessageGenerator#user_prompt`.
+
+### 25.3 `ai_summary` — la IA, rodante, sí a la IA
+- **Regla.** Resumen evolutivo del participante que `RefreshParticipantSummaryJob` actualiza (async) tras cada `checkin_response`, vía `Openai::ParticipantSummarizer`. Abstracto (conducta + progreso, sin etiquetas clínicas). Se inyecta en los mensajes generativos. Read-only en admin.
+- **Por qué.** La memoria viva de la IA era solo las últimas 5 conversaciones + el último reporte; matices viejos se caían de la ventana. El resumen rodante los conserva → continuidad de coaching en programas largos.
+- **Kill-switch.** `participant_summary_enabled` (default true). Off = no se llama a OpenAI para resumir y no se inyecta.
+- **Enforce.** `app/jobs/refresh_participant_summary_job.rb`, `app/services/openai/participant_summarizer.rb`, hook en `app/jobs/process_incoming_message_job.rb` (rama `:checkin_response`). El campo no está en `participant_params` (lo escribe solo el job).
+
+---
+
+## 26. Ciclos y multi-programa (`Enrollment`)
+
+Modelo **secuencial**: un participante corre un programa a la vez (`Participant#program_id` + `current_day` siguen siendo la fuente viva). `Enrollment` es un **ledger histórico** de los ciclos recorridos, no la fuente de verdad del estado vivo.
+
+### 26.1 `Enrollment` registra cada ciclo
+- **Regla.** Cada vez que un participante empieza un programa se abre una fila `Enrollment` (`participant`, `program`, `cycle_number`, `status` active/completed/canceled, `started_at`, `completed_at`). `cycle_number` es global por participante (reusar el mismo programa luego → ciclo único nuevo). Índice único `[participant_id, program_id, cycle_number]`.
+- **Por qué.** Historial de qué programas corrió y cómo terminó cada uno, habilitando journeys multi-ciclo (Nivel 1 → Nivel 2) sin refactorizar el estado core ni meter un join en el hot path de los crons.
+- **Enforce.** `app/models/enrollment.rb`, `Participant#start_enrollment!` (idempotente: no duplica fila active para el mismo programa), `db/migrate/20260613120002_create_enrollments.rb`.
+
+### 26.2 Activación abre el ciclo 1
+- **Regla.** `Participants::Activator` llama `start_enrollment!` al activar → ciclo 1 active para el programa actual.
+- **Enforce.** `app/services/participants/activator.rb`.
+
+### 26.3 Completar cierra el ciclo
+- **Regla.** Al completar el día final (`DayAdvancer#complete!`), el `current_enrollment` pasa a `completed` con `completed_at`.
+- **Enforce.** `app/services/participants/day_advancer.rb`.
+
+### 26.4 Re-enrollment al programa siguiente
+- **Regla.** `Participants::ReEnroller` mueve al participante al `program.next_program` (o uno explícito): repunta `program_id`, `current_day: 1`, `status: active`, abre nuevo ciclo, cancela cualquier ciclo active del programa anterior, resetea `ai_summary` (memoria limpia para el nuevo journey) y dispara `SendWelcomeJob`. `next_program_id` es una FK self-referencial en `Program` (nil = sin siguiente).
+- **Por qué.** El multi-ciclo es secuencial; el reset de memoria evita arrastrar contexto del programa anterior.
+- **Trigger.** Botón "Avanzar a {siguiente}" en `/admin/participants/:id` (visible solo si el participante está `completed` y el programa tiene `next_program`) → `Admin::ParticipantsController#re_enroll`.
+- **Enforce.** `app/services/participants/re_enroller.rb`, `app/models/program.rb` (`belongs_to :next_program`), `app/controllers/admin/participants_controller.rb` (`#re_enroll`), `app/views/admin/participants/show.html.erb`, `db/migrate/20260613120001_add_next_program_to_programs.rb`.
+
+---
+
 ## 13. Edge cases conocidos
 
 - **Participante sin `DayContent`.** Si no existe `DayContent(program, current_day)`, `MorningWakeForParticipantJob` retorna sin enviar. Sin error.

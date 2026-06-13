@@ -87,6 +87,14 @@ class Setting < ApplicationRecord
       type: :boolean, category: "program", default: true,
       description: "Si es true, inyecta una sugerencia de coaching sobre la habilidad dominante del participante en los mensajes generativos (respuesta libre y matinal)."
     },
+    "participant_summary_enabled" => {
+      type: :boolean, category: "openai", default: true,
+      description: "Kill-switch: si es true, RefreshParticipantSummaryJob mantiene un resumen rodante del participante (Participant#ai_summary) tras cada check-in y se inyecta en los mensajes generativos. Off = no se llama a OpenAI para resumir."
+    },
+    "openai_max_tokens_summary" => {
+      type: :integer, category: "openai", default: 300,
+      description: "max_tokens del resumen rodante del participante (ParticipantSummarizer)."
+    },
     "openai_retry_max" => {
       type: :integer, category: "openai", default: 3,
       description: "Intentos máximos ante errores 429/5xx/timeouts de OpenAI.",

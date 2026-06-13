@@ -1,6 +1,6 @@
 module Admin
   class ParticipantsController < BaseController
-    before_action :set_participant, only: [ :show, :edit, :update, :destroy, :enroll, :discard, :undiscard, :send_message ]
+    before_action :set_participant, only: [ :show, :edit, :update, :destroy, :enroll, :discard, :undiscard, :send_message, :re_enroll ]
 
     def index
       # Support search
@@ -126,6 +126,26 @@ module Admin
       redirect_to admin_participant_path(@participant), notice: "#{@participant.name} inscrito. Bienvenida enviada por WhatsApp."
     end
 
+    # Custom action: advance the participant into the program's next_program
+    # (sequential multi-cycle, Nivel 1 → Nivel 2) via Participants::ReEnroller.
+    def re_enroll
+      target = @participant.program&.next_program
+      if target.nil?
+        redirect_to admin_participant_path(@participant),
+                    alert: "El programa actual no tiene un programa siguiente configurado."
+        return
+      end
+
+      result = Participants::ReEnroller.new(@participant).call
+      if result.ok
+        redirect_to admin_participant_path(@participant),
+                    notice: "#{@participant.name} pasó a #{target.name}. Bienvenida enviada por WhatsApp."
+      else
+        redirect_to admin_participant_path(@participant),
+                    alert: "No se pudo avanzar al programa siguiente."
+      end
+    end
+
     # Custom action: send a manual message (free text or curated template) now.
     def send_message
       result = Outbound::AdminMessage.new(
@@ -201,7 +221,8 @@ module Admin
       params.require(:participant).permit(
         :program_id, :company_id, :name, :phone_e164, :email, :role, :status,
         :current_day, :timezone, :initial_pattern, :energy_map,
-        :closing_manifesto, :pending_checkin_at, :response_mode
+        :closing_manifesto, :pending_checkin_at, :response_mode,
+        :focus_hint, :coach_notes
       )
     end
   end

@@ -24,6 +24,7 @@ Rails.application.routes.draw do
           post :discard
           post :undiscard
           post :send_message
+          post :re_enroll
         end
         collection do
           post :broadcast
