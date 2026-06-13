@@ -27,6 +27,16 @@
     <% end %>
   <% end %>
 
+  <% if @participant.program.present? && !@participant.completed? && @participant.current_day.to_i <= 1 %>
+    <%= button_to start_program_admin_participant_path(@participant), method: :post, class: "btn btn-primary",
+          form: { data: { turbo_confirm: "¿Empezar el programa ahora? Se enviará la bienvenida y el despertar del día 1 sin esperar el horario normal." } } do %>
+      <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.25v13.5l12-6.75-12-6.75Z" />
+      </svg>
+      Empezar programa ahora
+    <% end %>
+  <% end %>
+
   <a href="<%= edit_admin_participant_path(@participant) %>" class="btn btn-secondary">
     Editar
   </a>

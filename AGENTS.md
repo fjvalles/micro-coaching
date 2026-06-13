@@ -119,6 +119,7 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/backups/DatabaseDumper` — dumps PostgreSQL database
 - `app/services/backups/GoogleDriveUploader` — uploads backups to Google Drive
 - `app/services/participants/Activator` — single activation path (sets `status: :active`, `current_day: 1`, opens cycle-1 `Enrollment`, fires `SendWelcomeJob`); idempotent; shared by `Enroller`, admin enroll, and payment commit
+- `app/services/participants/ProgramStarter` — admin-only immediate start path for day 0/1 participants; ensures active day 1 state/enrollment, enqueues welcome when needed, and enqueues `MorningWakeForParticipantJob` without waiting for the cron hour
 - `app/services/participants/ReEnroller` — transitions a completed participant into `program.next_program` (sequential multi-cycle): repoints `program_id`/`current_day: 1`/`status: active`, opens a new `Enrollment` cycle, cancels stale active cycles, resets `ai_summary`, fires `SendWelcomeJob`. Admin button on `/admin/participants/:id`. See `business-rules.md` §26
 - `app/services/finances/CostCalculator` — single source of truth for USD operating costs over a range (OpenAI usage priced from `PromptExecution` + prorated manual fixed costs); shared by `Admin::FinancesController` and `Admin::ProfitLossController`
 - `app/services/ops/CapacitySnapshot` — read-only Sidekiq/DB-pool/Redis capacity snapshot (graceful if Redis down); shared by `Admin::HealthController` and `CapacityAlertJob`

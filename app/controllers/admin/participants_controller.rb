@@ -1,6 +1,9 @@
 module Admin
   class ParticipantsController < BaseController
-    before_action :set_participant, only: [ :show, :edit, :update, :destroy, :enroll, :discard, :undiscard, :send_message, :re_enroll ]
+    before_action :set_participant, only: [
+      :show, :edit, :update, :destroy, :enroll, :discard, :undiscard,
+      :send_message, :re_enroll, :start_program
+    ]
 
     def index
       # Support search
@@ -146,6 +149,17 @@ module Admin
       end
     end
 
+    def start_program
+      result = Participants::ProgramStarter.new(@participant).call
+      if result.ok?
+        redirect_to admin_participant_path(@participant),
+                    notice: "Programa iniciado. Se encolaron bienvenida y despertar de día 1; el IAReto se enviará después del delay configurado."
+      else
+        redirect_to admin_participant_path(@participant),
+                    alert: start_program_error(result.reason)
+      end
+    end
+
     # Custom action: send a manual message (free text or curated template) now.
     def send_message
       result = Outbound::AdminMessage.new(
@@ -214,6 +228,15 @@ module Admin
       when :outside_24h_window then "fuera de la ventana de 24h — usa una plantilla aprobada."
       when :send_failed        then "WhatsApp rechazó el envío (#{result.error})."
       else                          "motivo desconocido."
+      end
+    end
+
+    def start_program_error(reason)
+      case reason
+      when :no_program             then "Asigna un programa antes de empezarlo."
+      when :completed              then "El participante ya completó el programa."
+      when :already_past_day_one   then "El participante ya pasó del día 1; usa los envíos manuales del día actual."
+      else                              "No se pudo iniciar el programa."
       end
     end
 

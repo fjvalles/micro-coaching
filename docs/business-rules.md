@@ -476,6 +476,11 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 - **Por qué.** Antes la lógica "activar + bienvenida" estaba duplicada en `Enroller` y el admin enroll. Una sola ruta evita dobles bienvenidas y comportamiento divergente.
 - **Enforce.** `app/services/participants/activator.rb`; usado por `Enroller`, `Admin::ParticipantsController#enroll`, `PaymentsController#commit`, y `SubscriptionsController` (primer cobro).
 
+### 21.4 Inicio inmediato desde admin
+- **Regla.** El admin puede usar "Empezar programa ahora" para participantes con programa en día 0/1: asegura estado active día 1, enrollment, bienvenida si falta, y encola el despertar sin esperar el horario normal.
+- **Por qué.** Permite iniciar una inscripción manual inmediatamente sin copiar mensajes ni esperar el próximo cron, preservando jobs/idempotencia.
+- **Enforce.** `app/services/participants/program_starter.rb:14-24`, `app/controllers/admin/participants_controller.rb:152-161`, `app/views/admin/participants/show.html.erb:30-38`.
+
 ---
 
 ## 22. Suscripciones recurrentes (Webpay Oneclick)

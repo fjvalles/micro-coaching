@@ -100,6 +100,14 @@ RSpec.describe "Admin::Participants", type: :request do
       get "/admin/participants/#{done.id}"
       expect(response.body).not_to include("Avanzar a")
     end
+
+    it "shows the immediate start button for day-one participants" do
+      participant.update!(status: :active, current_day: 1)
+
+      get "/admin/participants/#{participant.id}"
+
+      expect(response.body).to include("Empezar programa ahora")
+    end
   end
 
   describe "GET /admin/participants/new" do
@@ -173,6 +181,37 @@ RSpec.describe "Admin::Participants", type: :request do
       expect(participant.status.to_sym).to eq(:active)
       expect(participant.current_day).to eq(1)
       expect(response).to redirect_to(admin_participant_path(participant))
+    end
+  end
+
+  describe "POST /admin/participants/:id/start_program" do
+    before do
+      create(:day_content, program: program, day_number: 1)
+    end
+
+    it "starts the participant and enqueues initial program messages immediately" do
+      participant.update!(status: :pending, current_day: 0, started_at: nil)
+
+      expect {
+        post "/admin/participants/#{participant.id}/start_program"
+      }.to have_enqueued_job(SendWelcomeJob).with(participant.id)
+        .and have_enqueued_job(MorningWakeForParticipantJob).with(participant.id)
+
+      expect(response).to redirect_to(admin_participant_path(participant))
+      expect(participant.reload).to be_active
+      expect(participant.current_day).to eq(1)
+      expect(flash[:notice]).to include("Programa iniciado")
+    end
+
+    it "redirects with an alert when the participant is past day one" do
+      participant.update!(status: :active, current_day: 2)
+
+      expect {
+        post "/admin/participants/#{participant.id}/start_program"
+      }.not_to have_enqueued_job(MorningWakeForParticipantJob)
+
+      expect(response).to redirect_to(admin_participant_path(participant))
+      expect(flash[:alert]).to include("ya pasó del día 1")
     end
   end
 

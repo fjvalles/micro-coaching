@@ -50,4 +50,14 @@ RSpec.describe SendWelcomeJob, type: :job do
     expect(conversation.sent_at).to be_nil
     expect(conversation.error_message).to include("allowed list")
   end
+
+  it "does not send a duplicate welcome when one was already sent" do
+    create(:conversation, participant: participant, moment: :welcome, day_number: 0, sent_at: 1.hour.ago)
+
+    expect {
+      described_class.perform_now(participant.id)
+    }.not_to have_enqueued_job(SendWelcomeQuestionJob)
+
+    expect(a_request(:post, url)).not_to have_been_made
+  end
 end
