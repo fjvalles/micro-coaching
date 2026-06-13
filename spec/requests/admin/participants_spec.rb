@@ -110,6 +110,18 @@ RSpec.describe "Admin::Participants", type: :request do
     end
   end
 
+  describe "GET /admin/participants/:id/edit" do
+    it "shows the no-company option when the participant already has a company" do
+      participant.update!(company: create(:company, name: "Empresa Actual"))
+
+      get "/admin/participants/#{participant.id}/edit"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Sin empresa (individual)")
+      expect(response.body).to include("Empresa Actual")
+    end
+  end
+
   describe "POST /admin/participants" do
     it "creates a new participant" do
       expect {
@@ -126,6 +138,28 @@ RSpec.describe "Admin::Participants", type: :request do
 
       new_participant = Participant.find_by(phone_e164: "+521999988877")
       expect(response).to redirect_to(admin_participant_path(new_participant))
+    end
+  end
+
+  describe "PATCH /admin/participants/:id" do
+    it "allows clearing the participant company" do
+      company = create(:company)
+      participant.update!(company: company)
+
+      patch "/admin/participants/#{participant.id}", params: {
+        participant: {
+          company_id: "",
+          name: participant.name,
+          phone_e164: participant.phone_e164,
+          program_id: program.id,
+          status: participant.status,
+          current_day: participant.current_day,
+          timezone: participant.timezone
+        }
+      }
+
+      expect(response).to redirect_to(admin_participant_path(participant))
+      expect(participant.reload.company).to be_nil
     end
   end
 
