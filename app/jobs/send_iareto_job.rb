@@ -14,7 +14,7 @@ class SendIaretoJob < ApplicationJob
       dispatcher.send_text(body: day_content.iareto_text)
     else
       dispatcher.send_template(
-        template_name: "iareto_dia_%02d" % day_content.day_number,
+        template_name: Whatsapp::DailyTemplateName.call(prefix: "iareto", day_number: day_content.day_number),
         variables: [ participant.name, day_content.iareto_text ],
         body_preview: day_content.iareto_text
       )

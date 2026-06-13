@@ -102,10 +102,10 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 - **Por qué.** Política Meta de ventana de servicio al cliente. Free-form fuera de ventana = baneo.
 - **Enforce.** `app/models/participant.rb:31-36`, `SendIaretoJob`.
 
-### 4.4 Check-in vespertino a las 20:00 local
-- **Regla.** `CheckinEveningJob` corre cada hora UTC; envía si hora local == 20.
-- **Por qué.** Reflexión al final del día. Hora fija (no configurable hoy).
-- **Enforce.** `config/schedule.yml:6-9`, `CheckinEveningJob`.
+### 4.4 Check-in vespertino a `checkin_hour` local
+- **Regla.** `CheckinEveningJob` corre cada hora UTC; envía si hora local == `Setting.fetch("checkin_hour")` (default 20).
+- **Por qué.** Reflexión al final del día, ajustable sin deploy para programas o cohortes que necesitan otro horario.
+- **Enforce.** `config/schedule.yml:6-9`, `app/jobs/checkin_evening_job.rb:4-13`.
 
 ### 4.5 Check-in marca `pending_checkin_at`
 - **Regla.** Al enviar check-in, set `participant.pending_checkin_at = Time.current`. Habilita clasificación posterior.
@@ -202,13 +202,9 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 - **Gap.** Free-form acks en `ProcessIncomingMessageJob#ack` (línea 90) no consultan la ventana — asumen que el participante acaba de escribir. Cierto siempre que `ack` se llama desde dentro del flujo de procesamiento de inbound. Documentar invariante si se reutiliza `ack` desde otro contexto.
 
 ### 8.2 Templates pre-aprobados, params genéricos
-- **Regla.** 4 templates cubren los 14 días vía `{{1}}`, `{{2}}`:
-  - `bienvenida`
-  - `despertar_dia_NN` (param: cuerpo generado por IA)
-  - `iareto_dia_NN`
-  - `checkin_dia_NN`
-- **Por qué.** Meta exige aprobación manual por template. 4 plantillas << 28+.
-- **Enforce.** `Whatsapp::TemplateSender`, `DayContent#template_name_whatsapp` con fallback `"despertar_dia_%02d"`.
+- **Regla.** Los programas usan templates genéricos vía `{{1}}`, `{{2}}`: `bienvenida_piloto`, `despertar_dia_NN`, `iareto_dia_NN`, `checkin_dia_NN`. Para programas de más de 14 días, `NN` cicla sobre 01..14.
+- **Por qué.** Meta exige aprobación por template; variables genéricas permiten reutilizar el set aprobado sin registrar contenido clínico o metodológico específico.
+- **Enforce.** `Whatsapp::TemplateSender`, `Whatsapp::DailyTemplateName`, `DayContent#template_name_whatsapp`, `scripts/create_whatsapp_templates.rb`.
 
 ### 8.3 Locale = `ENV["PROGRAM_LOCALE"]` (default `es_MX`)
 - **Regla.** Todos los templates usan este locale. Cambiarlo requiere registrar templates con ese locale en Meta.
@@ -305,6 +301,7 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 
 ### 12.1 Keys conocidas
 - `wake_hour` — hora local 0..23, default 7
+- `checkin_hour` — hora local 0..23, default 20
 - `iareto_delay_minutes` — entero, default 30
 - `inbound_intent_classification_enabled` — boolean, default true; habilita clasificación semántica de inbound
 - `inbound_intent_min_confidence` — float 0..1, default 0.65; umbral para consumir un inbound como check-in real

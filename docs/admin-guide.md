@@ -92,6 +92,7 @@ graph TD
 ### 4.2 Monitoreo de Configuración en Vivo (`Settings`)
 La sección **Configuración** expone variables globales de negocio almacenadas en la base de datos:
 * `wake_hour`: Por defecto `7` (envía el despertar a las 07:00 AM local del participante).
+* `checkin_hour`: Por defecto `20` (envía el check-in a las 20:00 local del participante).
 * `iareto_delay_minutes`: Por defecto `30` (espera 30 minutos desde el despertar para enviar el reto).
 
 > [!TIP]

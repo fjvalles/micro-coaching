@@ -19,7 +19,7 @@ class CheckinForParticipantJob < ApplicationJob
                dispatcher.send_text(body: body)
     else
                dispatcher.send_template(
-                 template_name: "checkin_dia_%02d" % day_content.day_number,
+                 template_name: Whatsapp::DailyTemplateName.call(prefix: "checkin", day_number: day_content.day_number),
                  variables: [ participant.name, questions.split("\n").reject(&:blank?).first(3).join("\n\n") ],
                  body_preview: body
                )

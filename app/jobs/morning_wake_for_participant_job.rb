@@ -12,7 +12,11 @@ class MorningWakeForParticipantJob < ApplicationJob
     mode = ResponseMode.for(participant)
     ai_body, ai_meta = generate_ai_body(participant, day_content, mode)
 
-    template_name = day_content.template_name_whatsapp.presence || "despertar_dia_%02d" % day_content.day_number
+    template_name = Whatsapp::DailyTemplateName.call(
+      prefix: "despertar",
+      day_number: day_content.day_number,
+      configured_name: day_content.template_name_whatsapp
+    )
     dispatch_result = Outbound::Dispatcher.new(
       participant: participant, moment: :morning_wake, day_number: day_content.day_number, mode: mode
     ).send_template(
