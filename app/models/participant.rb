@@ -27,6 +27,7 @@ class Participant < ApplicationRecord
   validates :initial_pattern, length: { maximum: 500 }, allow_blank: true
   validates :focus_hint, length: { maximum: 1000 }, allow_blank: true
   validates :coach_notes, length: { maximum: 5000 }, allow_blank: true
+  validate :current_day_within_program_range
 
   scope :kept, -> { undiscarded }
 
@@ -123,5 +124,17 @@ class Participant < ApplicationRecord
   def reset_memoization!
     @day_content = nil
     @latest_report = nil
+  end
+
+  private
+
+  def current_day_within_program_range
+    return if program.blank? || current_day.blank?
+    return unless current_day.is_a?(Integer)
+
+    max_day = completed? ? program.total_days + 1 : program.total_days
+    return if current_day <= max_day
+
+    errors.add(:current_day, "must be within the program range")
   end
 end

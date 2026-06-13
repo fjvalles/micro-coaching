@@ -13,6 +13,11 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 - **Por qué.** Modelo de cambio conductual de 14 días dividido en fases see/choose/anchor.
 - **Enforce.** `app/models/program.rb:8` (validación), `app/services/participants/day_advancer.rb:20` (lectura con fallback 14).
 
+### 1.1.b `current_day` dentro del programa
+- **Regla.** `Participant#current_day` debe estar entre 0 y `program.total_days`; solo participantes `completed` pueden quedar en `program.total_days + 1`.
+- **Por qué.** Evita estados imposibles desde el admin sin romper el día 0 de pre-inicio ni el sentinel de completado.
+- **Enforce.** `app/models/participant.rb:26-30`, `app/models/participant.rb:131-138`.
+
 ### 1.2 Fases del contenido diario
 - **Regla.** Cada `DayContent` pertenece a una fase: `see` | `choose` | `anchor`.
 - **Por qué.** Estructura pedagógica del programa.

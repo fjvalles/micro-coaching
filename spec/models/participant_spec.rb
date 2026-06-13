@@ -18,6 +18,26 @@ RSpec.describe Participant, type: :model do
     end
   end
 
+  describe "current_day validation" do
+    let(:program) { create(:program, total_days: 7) }
+
+    it "allows days within the program range" do
+      expect(build(:participant, program: program, current_day: 7)).to be_valid
+    end
+
+    it "rejects days beyond the program range" do
+      participant = build(:participant, program: program, current_day: 8)
+
+      expect(participant).not_to be_valid
+      expect(participant.errors[:current_day]).to include("must be within the program range")
+    end
+
+    it "allows the completed sentinel day only for completed participants" do
+      expect(build(:participant, program: program, status: :completed, current_day: 8)).to be_valid
+      expect(build(:participant, program: program, status: :active, current_day: 8)).not_to be_valid
+    end
+  end
+
   describe "#phase" do
     let(:program) { create(:program) }
 
