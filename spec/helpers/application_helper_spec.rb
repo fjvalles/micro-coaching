@@ -42,4 +42,22 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(helper.translate_role("user")).to eq("Usuario")
     end
   end
+
+  describe "#audit_version_changes" do
+    it "keeps only attributes with a real before/after delta" do
+      version = instance_double(
+        PaperTrail::Version,
+        object_changes: {
+          "name" => [ "Ana", "Ana" ],
+          "status" => [ "pending", "active" ],
+          "metadata" => [ { "a" => 1 }, { a: 1 } ],
+          "updated_at" => [ 1.hour.ago, Time.current ]
+        }
+      )
+
+      expect(helper.audit_version_changes(version)).to eq(
+        "status" => [ "pending", "active" ]
+      )
+    end
+  end
 end

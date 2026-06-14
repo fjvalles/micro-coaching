@@ -1,4 +1,6 @@
 module ApplicationHelper
+  AUDIT_IGNORED_CHANGE_FIELDS = %w[id created_at updated_at].freeze
+
   # Translates an ActiveRecord enum value using I18n lookup keys.
   # Falls back to humanizing the value if no translation is found.
   def translate_enum(model, enum_name, value)
@@ -54,6 +56,44 @@ module ApplicationHelper
     end
   end
 
+  def audit_version_changes(version)
+    audit_object_changes(version).each_with_object({}) do |(field, values), filtered|
+      next if AUDIT_IGNORED_CHANGE_FIELDS.include?(field.to_s)
+
+      before, after = audit_before_after(values)
+      next if audit_normalized_value(before) == audit_normalized_value(after)
+
+      filtered[field] = [ before, after ]
+    end
+  end
+
+  def translate_audit_field_name(name)
+    case name.to_s
+    when "name" then "nombre"
+    when "status" then "estado"
+    when "phone_e164" then "teléfono"
+    when "email" then "correo"
+    when "current_day", "day_number" then "día"
+    when "timezone" then "zona horaria"
+    when "company" then "empresa"
+    when "role" then "rol"
+    when "response_mode" then "modo respuesta"
+    when "started_at" then "fecha inicio"
+    when "completed_at" then "fecha término"
+    when "active" then "activo"
+    when "title" then "título"
+    when "phase" then "fase"
+    when "manifesto" then "manifiesto"
+    when "description" then "descripción"
+    when "slug" then "slug"
+    when "morning_template" then "plantilla mañana"
+    when "iareto_text" then "texto iareto"
+    when "checkin_questions" then "preguntas checkin"
+    when "ai_system_prompt" then "prompt sistema"
+    else name.to_s
+    end
+  end
+
   def translate_item_type(type)
     case type
     when "Participant" then "Participante"
@@ -63,20 +103,44 @@ module ApplicationHelper
     end
   end
 
+  def audit_object_changes(version)
+    return {} if version.object_changes.blank?
+    return version.object_changes if version.object_changes.is_a?(Hash)
+
+    PaperTrail.serializer.load(version.object_changes)
+  rescue StandardError
+    begin
+      YAML.unsafe_load(version.object_changes) || {}
+    rescue StandardError
+      {}
+    end
+  end
+
+  def audit_before_after(values)
+    values.is_a?(Array) ? values.first(2) : [ nil, values ]
+  end
+
+  def audit_normalized_value(value)
+    case value
+    when Hash
+      value.deep_stringify_keys.transform_values { |nested| audit_normalized_value(nested) }
+    when Array
+      value.map { |nested| audit_normalized_value(nested) }
+    else
+      value
+    end
+  end
+
   def audit_item_label(version)
     item = version.item
     item ||= begin
       version.reify
-    rescue
+    rescue StandardError
       nil
     end
 
     if item.nil? && version.object_changes.present?
-      changes = begin
-        PaperTrail.serializer.load(version.object_changes)
-      rescue
-        {}
-      end
+      changes = audit_object_changes(version)
       name = changes["name"]&.last || changes["title"]&.last
       day_number = changes["day_number"]&.last
       if name
@@ -97,7 +161,7 @@ module ApplicationHelper
   def audit_item_path(version)
     case version.item_type
     when "Participant"
-      Participant.exists?(version.item_id) ? admin_participant_path(version.item_id) : "#"
+      Participant.kept.exists?(version.item_id) ? admin_participant_path(version.item_id) : "#"
     when "Program"
       Program.exists?(version.item_id) ? admin_program_path(version.item_id) : "#"
     when "DayContent"

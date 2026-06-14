@@ -1,42 +1,5 @@
 <%
-  changes = begin
-    if version.object_changes.present?
-      version.object_changes.is_a?(Hash) ? version.object_changes : YAML.unsafe_load(version.object_changes)
-    else
-      {}
-    end
-  rescue
-    {}
-  end
-
-  changes = changes.except("updated_at", "created_at", "id")
-
-  def translate_field_name(name)
-    case name.to_s
-    when "name" then "nombre"
-    when "status" then "estado"
-    when "phone_e164" then "teléfono"
-    when "email" then "correo"
-    when "current_day", "day_number" then "día"
-    when "timezone" then "zona horaria"
-    when "company" then "empresa"
-    when "role" then "rol"
-    when "response_mode" then "modo respuesta"
-    when "started_at" then "fecha inicio"
-    when "completed_at" then "fecha término"
-    when "active" then "activo"
-    when "title" then "título"
-    when "phase" then "fase"
-    when "manifesto" then "manifiesto"
-    when "description" then "descripción"
-    when "slug" then "slug"
-    when "morning_template" then "plantilla mañana"
-    when "iareto_text" then "texto iareto"
-    when "checkin_questions" then "preguntas checkin"
-    when "ai_system_prompt" then "prompt sistema"
-    else name.to_s
-    end
-  end
+  changes = audit_version_changes(version)
 %>
 <% if changes.blank? %>
   <span style="color: var(--text-muted); font-style: italic;">Sin cambios en atributos</span>
@@ -45,7 +8,7 @@
     <% changes.each do |field, (before, after)| %>
       <div style="line-height: 1.4;">
         <span style="font-weight: 600; color: var(--text-main); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.02em;">
-          <%= translate_field_name(field) %>:
+          <%= translate_audit_field_name(field) %>:
         </span>
         <% if version.event == "create" %>
           <span style="color: var(--success); font-weight: 500;"><%= truncate(after.to_s, length: 60) %></span>

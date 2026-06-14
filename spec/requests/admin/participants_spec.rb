@@ -122,6 +122,33 @@ RSpec.describe "Admin::Participants", type: :request do
     end
   end
 
+  describe "GET /admin/participants/:id/versions" do
+    it "renders only fields that actually changed in the change details" do
+      PaperTrail::Version.create!(
+        item_type: "Participant",
+        item_id: participant.id,
+        event: "update",
+        whodunnit: "admin@example.com",
+        source: "admin",
+        created_at: Time.current,
+        object_changes: PaperTrail.serializer.dump(
+          "name" => [ "Mismo Nombre", "Mismo Nombre" ],
+          "status" => [ "pending", "active" ],
+          "updated_at" => [ 1.minute.ago, Time.current ]
+        )
+      )
+
+      get "/admin/participants/#{participant.id}/versions", params: { event: "update", whodunnit: "admin@example.com" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("estado:")
+      expect(response.body).to include("pending")
+      expect(response.body).to include("active")
+      expect(response.body).not_to include("nombre:")
+      expect(response.body).not_to include("updated_at")
+    end
+  end
+
   describe "GET /admin/participants/new" do
     it "renders the new form with America/Santiago default timezone" do
       get "/admin/participants/new"
