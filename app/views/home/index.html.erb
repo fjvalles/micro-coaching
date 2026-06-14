@@ -1,288 +1,295 @@
 <main>
-  <!-- Hero Section -->
+  <!-- ===== Hero ===== -->
   <section class="landing-section hero-grid">
     <div class="hero-left">
       <div class="hero-tag">
-        <img src="/icon.svg" style="width: 16px; height: 16px; margin-right: 4px;" alt="Impulso by Comtraining">
-        <span>Impulso by Comtraining · Tu coach por WhatsApp</span>
+        <img src="/icon.svg" style="width: 16px; height: 16px;" alt="Impulso by Comtraining">
+        <span>Tu coach personal por WhatsApp</span>
       </div>
       <h1 class="hero-title">
-        Un hábito nuevo<br>
-        <span class="gradient-text">en 14 días</span>
+        Logra eso que te propones,<br>
+        <span class="gradient-text">un paso a la vez</span>
       </h1>
       <p class="hero-description">
-        Un coach inteligente te escribe por WhatsApp cada mañana con un micro-reto de 15 minutos, y en la noche conversan cómo te fue. Sin apps, sin contraseñas. Solo tú, tu teléfono y un cambio real.
+        Impulso es un programa de coaching por WhatsApp. <strong>Tú eliges qué quieres mejorar</strong> —dormir mejor, moverte más, tener calma, lo que sea— y cada día recibes un micro-reto hecho a tu medida. 14 días, 15 minutos al día.
       </p>
 
-      <!-- Interactive Selector for Hero Phone Simulator -->
+      <div class="hero-buttons">
+        <div class="btn-row">
+          <a href="#empezar" class="btn-landing btn-landing-primary">Empieza gratis</a>
+          <a href="#como-funciona" class="btn-landing btn-landing-secondary">Cómo funciona</a>
+        </div>
+        <p class="cta-note"><span class="dot-ok"></span> Gratis · sin tarjeta · directo en WhatsApp</p>
+      </div>
+
+      <!-- Interactive simulator selector -->
       <div class="simulator-selector-container">
-        <p class="selector-title">Elige un tema y mira cómo funciona:</p>
+        <p class="selector-title">Elige un ejemplo y mira cómo se siente:</p>
         <div class="simulator-selector-grid">
-          <button class="selector-card active" data-case="conversaciones">
-            <span class="selector-card-icon">💬</span>
+          <button class="selector-card active" data-case="dormir">
+            <span class="selector-card-icon">😴</span>
             <div class="selector-card-text">
-              <strong>Conversaciones Difíciles</strong>
-              <span>Alinear y hablar temas complejos</span>
+              <strong>Dormir mejor</strong>
+              <span>Descansar de verdad</span>
             </div>
           </button>
-          
-          <button class="selector-card" data-case="priorizacion">
-            <span class="selector-card-icon">🎯</span>
+
+          <button class="selector-card" data-case="ejercicio">
+            <span class="selector-card-icon">🏃</span>
             <div class="selector-card-text">
-              <strong>Priorización y Foco</strong>
-              <span>Filtro diario antes del correo</span>
+              <strong>Moverte más</strong>
+              <span>Volver al ejercicio sin presión</span>
             </div>
           </button>
-          
-          <button class="selector-card" data-case="feedback">
-            <span class="selector-card-icon">⚡</span>
+
+          <button class="selector-card" data-case="calma">
+            <span class="selector-card-icon">🧘</span>
             <div class="selector-card-text">
-              <strong>Dar Feedback</strong>
-              <span>Reconocimiento específico inmediato</span>
+              <strong>Tener más calma</strong>
+              <span>Pausas para respirar</span>
             </div>
           </button>
-          
-          <button class="selector-card" data-case="cambio">
-            <span class="selector-card-icon">📣</span>
+
+          <button class="selector-card" data-case="presente">
+            <span class="selector-card-icon">💚</span>
             <div class="selector-card-text">
-              <strong>Comunicar Cambios</strong>
-              <span>Explicar el por qué antes del cómo</span>
+              <strong>Estar presente</strong>
+              <span>Tiempo real con los tuyos</span>
             </div>
           </button>
         </div>
       </div>
-
-      <div class="hero-buttons">
-        <a href="#trial" class="btn-landing btn-landing-primary">Probar gratis 14 días</a>
-        <a href="#como-funciona" class="btn-landing btn-landing-secondary">Ver Metodología</a>
-      </div>
     </div>
 
-    <!-- Phone Simulator Visual -->
+    <!-- Phone simulator -->
     <div class="hero-right">
       <div class="phone-container">
         <div class="phone-notch"></div>
         <div class="phone-screen">
           <div class="chat-header">
-            <img src="/icon.svg" class="chat-avatar-img" alt="Impulso by Comtraining">
+            <img src="/icon.svg" class="chat-avatar-img" alt="Impulso">
             <div class="chat-info">
-              <span class="chat-name">Impulso by Comtraining</span>
-              <span class="chat-status">Acompañamiento Activo</span>
+              <span class="chat-name">Impulso</span>
+              <span class="chat-status">en línea</span>
             </div>
           </div>
-          
-          <div class="chat-body" id="chat-simulation">
-            <!-- Simulated bubbles will be rendered dynamically by JavaScript -->
-          </div>
+          <div class="chat-body" id="chat-simulation"></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Trust Section -->
+  <!-- ===== Trust line ===== -->
   <section class="trust-section">
-    <p class="trust-title">Construido sobre la metodología de coaching de Comtraining, con más de una década acompañando a personas y equipos en LATAM.</p>
+    <p class="trust-title">Creado sobre la metodología de coaching de Comtraining, con más de una década acompañando a personas y equipos en Latinoamérica.</p>
   </section>
 
-  <!-- ROI Metrics Section -->
+  <!-- ===== What you can work on (possibilities + personalization) ===== -->
+  <section class="landing-section section-soft" id="que-trabajar">
+    <div class="section-header-centered">
+      <span class="section-subtitle">Para lo que tú quieras</span>
+      <h2 class="section-title">¿Qué te gustaría mejorar?</h2>
+      <p class="section-desc">Impulso se adapta a ti. Estos son algunos focos que las personas eligen — y hay espacio para el tuyo.</p>
+    </div>
+
+    <div class="topics-grid">
+      <div class="topic-chip"><span class="topic-icon">😴</span><span class="topic-label">Dormir mejor</span></div>
+      <div class="topic-chip"><span class="topic-icon">🏃</span><span class="topic-label">Hacer ejercicio</span></div>
+      <div class="topic-chip"><span class="topic-icon">🧘</span><span class="topic-label">Tener más calma</span></div>
+      <div class="topic-chip"><span class="topic-icon">⏰</span><span class="topic-label">Dejar de postergar</span></div>
+      <div class="topic-chip"><span class="topic-icon">🥗</span><span class="topic-label">Comer mejor</span></div>
+      <div class="topic-chip"><span class="topic-icon">💚</span><span class="topic-label">Estar presente en casa</span></div>
+      <div class="topic-chip"><span class="topic-icon">🗣️</span><span class="topic-label">Hablar con confianza</span></div>
+      <div class="topic-chip"><span class="topic-icon">🎯</span><span class="topic-label">Enfocarte en lo importante</span></div>
+    </div>
+
+    <p class="topics-note">¿Lo tuyo no está en la lista? <strong>También.</strong> Tú eliges el foco y tu programa se arma a tu medida.</p>
+  </section>
+
+  <!-- ===== How it works ===== -->
+  <section class="landing-section" id="como-funciona">
+    <div class="section-header-centered">
+      <span class="section-subtitle">Cómo funciona</span>
+      <h2 class="section-title">Simple, y siempre contigo</h2>
+      <p class="section-desc">Tres pasos. Sin descargas, sin complicaciones.</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>Eliges tu foco</h3>
+        <p>Nos cuentas qué quieres lograr. Con eso, tu programa se arma a tu medida para estos 14 días.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>Un micro-reto al día</h3>
+        <p>Cada mañana recibes un paso simple de 15 minutos por WhatsApp, pensado para tu día real.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>Conversan tu avance</h3>
+        <p>En la noche conversas cómo te fue. Tu coach celebra lo logrado y ajusta lo que sigue.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Why you'll like it ===== -->
+  <section class="landing-section section-soft" id="por-que">
+    <div class="section-header-centered">
+      <span class="section-subtitle">Por qué te va a gustar</span>
+      <h2 class="bento-section-title">Un acompañamiento que sí se siente cercano</h2>
+    </div>
+
+    <div class="bento-grid">
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 21l5.907-3M18 10.5c0 3.298-2.624 5.969-5.913 6.002L12 16.5c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6Z"/></svg>
+        </div>
+        <h3 class="bento-title">Hecho a tu medida</h3>
+        <p class="bento-desc">No es un curso igual para todos. Cada reto nace de lo que tú quieres lograr, y se ajusta según cómo avanzas.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/></svg>
+        </div>
+        <h3 class="bento-title">Vive en tu WhatsApp</h3>
+        <p class="bento-desc">Sin apps ni contraseñas. Conversas en el chat que ya abres cada día, cuando a ti te acomoda.</p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+        </div>
+        <h3 class="bento-title">Con un coach humano</h3>
+        <p class="bento-desc">La IA te acompaña a diario y un coach de Comtraining cuida tu proceso, para apoyarte cuando lo necesites.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 14-day journey ===== -->
+  <section class="landing-section" id="metodo">
+    <div class="section-header-centered">
+      <span class="section-subtitle">Tus 14 días</span>
+      <h2 class="bento-section-title">El camino, paso a paso</h2>
+      <p class="bento-section-desc">El cambio se construye de a poco. Cada etapa te prepara para la siguiente.</p>
+    </div>
+
+    <div class="timeline-container">
+      <div class="timeline-line"></div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <div class="timeline-phase">Días 1 a 5 · Descubre</div>
+          <h3 class="timeline-title">Conoces tu día a día</h3>
+          <p class="timeline-desc">Empiezas observando con calma cómo vives hoy tu foco. Sin exigencias: solo mirar, para saber por dónde comenzar.</p>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <div class="timeline-phase">Días 6 a 10 · Practica</div>
+          <h3 class="timeline-title">Pruebas algo nuevo</h3>
+          <p class="timeline-desc">Das pasos pequeños y concretos. Tu coach te acompaña a elegir, a tu ritmo, una forma que te haga bien.</p>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-card">
+          <div class="timeline-phase">Días 11 a 14 · Sostiene</div>
+          <h3 class="timeline-title">Lo haces tuyo</h3>
+          <p class="timeline-desc">Unes el nuevo hábito a tu rutina para que se quede contigo. Al día 14 recibes un resumen personal con todo lo que lograste.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Coach / trust ===== -->
+  <section class="landing-section section-soft" id="coach">
+    <div class="coach-card">
+      <!-- TODO: reemplazar por foto real del coach (≈400×400px) en /public, ej: /coach.jpg -->
+      <div class="coach-photo coach-photo-placeholder">👋</div>
+      <div class="coach-info">
+        <p class="coach-eyebrow">Quién te acompaña</p>
+        <p class="coach-quote">"Detrás de cada conversación hay un método probado y personas reales que quieren verte avanzar."</p>
+        <!-- TODO: reemplazar por nombre real del coach -->
+        <p class="coach-name">Tu coach de Comtraining</p>
+        <!-- TODO: completar credencial real, ej: "Coach certificado · 12 años acompañando procesos de cambio" -->
+        <p class="coach-credential">Equipo de coaching de Comtraining · más de una década acompañando procesos de cambio</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Metrics ===== -->
   <section class="metrics-section">
     <div class="metrics-grid">
       <div class="metric-card">
-        <div class="metric-value emerald-gradient">15 min</div>
+        <div class="metric-value emerald-gradient">Tú</div>
+        <div class="metric-label">Eliges el foco</div>
+        <div class="metric-detail">Tú decides qué trabajar y tu programa se arma a tu medida.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value indigo-gradient">15 min</div>
         <div class="metric-label">Al día, no más</div>
-        <div class="metric-detail">Un micro-reto por la mañana y un check-in por la noche. Nada que estudiar, nada que descargar.</div>
+        <div class="metric-detail">Un micro-reto en la mañana y un momento corto en la noche.</div>
       </div>
-
       <div class="metric-card">
-        <div class="metric-value indigo-gradient">14 días</div>
-        <div class="metric-label">Para sentir el cambio</div>
-        <div class="metric-detail">Un acompañamiento diario, paso a paso, en lugar de un curso que olvidas a la semana.</div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-value yellow-gradient">100%</div>
-        <div class="metric-label">En WhatsApp</div>
-        <div class="metric-detail">Conversas con tu coach en el chat que ya usas todos los días. Donde estés, cuando puedas.</div>
+        <div class="metric-value yellow-gradient">14 días</div>
+        <div class="metric-label">Para notar el cambio</div>
+        <div class="metric-detail">Un acompañamiento diario, contigo en todo el camino.</div>
       </div>
     </div>
   </section>
 
-  <!-- The Problem Section (B2B Dilution) -->
-  <section class="landing-section problem-section">
-    <div class="section-header-centered">
-      <span class="section-subtitle">Por qué cuesta cambiar</span>
-      <h2 class="section-title">Las buenas intenciones no bastan</h2>
-      <p class="section-desc">Tomas un curso, lees un libro, decides que esta vez sí. A la semana, la rutina te gana. No es falta de ganas: es falta de un sistema que te acompañe día a día.</p>
-    </div>
-
-    <div class="problem-grid">
-      <div class="problem-card">
-        <div class="problem-num">01</div>
-        <h3>Se olvida rápido</h3>
-        <p>Lo que aprendes en un curso se diluye en días si no lo aplicas. Sin práctica concreta, el entusiasmo del primer momento no se convierte en hábito.</p>
-      </div>
-
-      <div class="problem-card">
-        <div class="problem-num">02</div>
-        <h3>Otra app más, no</h3>
-        <p>Nadie quiere instalar una plataforma nueva ni recordar otra contraseña. Por eso Impulso vive en WhatsApp: el chat que ya abres mil veces al día.</p>
-      </div>
-
-      <div class="problem-card">
-        <div class="problem-num">03</div>
-        <h3>Solo no es fácil</h3>
-        <p>Cambiar en soledad es agotador. Tener a alguien que te escribe, te pregunta y celebra tus avances cambia por completo si sostienes o no el esfuerzo.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Bento Grid Section -->
-  <section class="landing-section" id="como-funciona" style="border-top: 1px solid var(--border);">
-    <div class="section-header-centered">
-      <span class="section-subtitle">Cómo funciona</span>
-      <h2 class="bento-section-title">Un acompañamiento que sí se sostiene</h2>
-      <p class="bento-section-desc">Diseñado sobre psicología del comportamiento y pensado para vivir en el canal que ya usas todos los días.</p>
-    </div>
-    
-    <div class="bento-grid">
-      <!-- Card 1: WhatsApp -->
-      <div class="bento-card bento-card-2col">
-        <div class="bento-icon">
-          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-          </svg>
-        </div>
-        <h3 class="bento-title">Cero fricción en WhatsApp</h3>
-        <p class="bento-desc">Sin descargas, sin contraseñas, sin aprender a usar nada nuevo. Respondes en minutos desde la misma conversación donde ya hablas con todo el mundo.</p>
-      </div>
-
-      <!-- Card 2: AI Adaptative -->
-      <div class="bento-card bento-card-2row">
-        <div class="bento-icon">
-          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21L14.907 18M18 10.5c0 3.298-2.624 5.969-5.913 6.002L12 16.5c-3.314 0-6-2.686-6-6s2.686-6 6-6s6 2.686 6 6z" />
-          </svg>
-        </div>
-        <h3 class="bento-title">Una IA que sí entiende tu proceso</h3>
-        <p class="bento-desc" style="margin-bottom: 16px;">No es un chatbot genérico. Trabaja con la metodología de coaching de Comtraining para leer cómo vas, ajustar el reto del día y llevarte hacia compromisos concretos, no a charlas vacías.</p>
-        <p class="bento-desc">Se adapta a ti: si un día te cuesta, baja el ritmo; si avanzas, te desafía un poco más.</p>
-      </div>
-
-      <!-- Card 3: Human Coaching -->
-      <div class="bento-card">
-        <div class="bento-icon">
-          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-          </svg>
-        </div>
-        <h3 class="bento-title">Un coach humano detrás</h3>
-        <p class="bento-desc">No estás hablando solo con una máquina. Un coach experto de Comtraining supervisa el proceso y entra a apoyarte de forma directa cuando hace falta.</p>
-      </div>
-
-      <!-- Card 4: Daily Reports -->
-      <div class="bento-card bento-card-2col">
-        <div class="bento-icon">
-          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25z" />
-          </svg>
-        </div>
-        <h3 class="bento-title">Ves tu propio avance</h3>
-        <p class="bento-desc">En tu portal personal sigues tu progreso día a día, tus check-ins y, al final, un manifiesto con lo que lograste. Tus respuestas son tuyas: las cuidamos con total privacidad.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Timeline Section (Pedagogical Sprints) -->
-  <section class="landing-section" style="border-top: 1px solid var(--border);">
-    <div class="section-header-centered">
-      <span class="section-subtitle">El método</span>
-      <h2 class="bento-section-title">Tus 14 días, paso a paso</h2>
-      <p class="bento-section-desc">El cambio se construye en tres etapas. Sin saltos bruscos: cada una te prepara para la siguiente.</p>
-    </div>
-    
-    <div class="timeline-container">
-      <div class="timeline-line"></div>
-      
-      <!-- Phase 1 -->
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-card">
-          <div class="timeline-phase">Fase 1: Ver (Días 1 a 5)</div>
-          <h3 class="timeline-title">Te das cuenta de tus patrones</h3>
-          <p class="timeline-desc">Empiezas a notar cuándo y cómo reaccionas en tu día a día. Todavía no te pedimos cambiar nada: primero, mirar con honestidad lo que ya haces en automático.</p>
-        </div>
-      </div>
-
-      <!-- Phase 2 -->
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-card">
-          <div class="timeline-phase">Fase 2: Elegir (Días 6 a 10)</div>
-          <h3 class="timeline-title">Eliges una respuesta distinta</h3>
-          <p class="timeline-desc">Pasas a la acción con micro-pasos concretos. La IA y el coach te ayudan a frenar el piloto automático y a elegir, a propósito, una forma mejor de responder.</p>
-        </div>
-      </div>
-
-      <!-- Phase 3 -->
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-card">
-          <div class="timeline-phase">Fase 3: Anclar (Días 11 a 14)</div>
-          <h3 class="timeline-title">Lo conviertes en hábito</h3>
-          <p class="timeline-desc">Unimos la nueva conducta a rutinas que ya tienes para que se sostenga sola. Al día 14 recibes un manifiesto personal con todo lo que lograste y cómo seguir.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Interactive AI Trial Section -->
-  <section class="landing-section" id="trial" style="border-top: 1px solid var(--border); padding-bottom: 120px;">
+  <!-- ===== Sign up ===== -->
+  <section class="landing-section" id="empezar">
     <div class="trial-card">
       <div class="trial-header">
-        <div class="hero-tag" style="margin-bottom: 12px;">
-          <span>Empieza gratis</span>
-        </div>
+        <div class="hero-tag" style="margin-bottom: 14px;"><span>Empieza gratis</span></div>
         <h2 class="trial-title">Prueba Impulso 14 días</h2>
-        <p class="trial-desc">Déjanos tu WhatsApp y mañana por la mañana recibes tu primer micro-reto. Sin tarjeta, sin compromiso.</p>
+        <p class="trial-desc">Déjanos tu WhatsApp y mañana por la mañana recibes tu primer micro-reto. Gratis, sin tarjeta.</p>
       </div>
 
       <div class="trial-form">
-        <!-- Enrollment Form -->
         <%= form_with url: enroll_path, method: :post, class: "enrollment-fields", id: "enroll-form" do |f| %>
           <%= f.hidden_field :timezone, id: "user-timezone" %>
 
           <div class="form-grid-b2b">
             <div class="input-group">
-              <label class="input-label" for="enroll-name">Nombre Completo</label>
-              <%= f.text_field :name, id: "enroll-name", class: "input-text", placeholder: "Ej. Carlos Gómez", required: true %>
+              <label class="input-label" for="enroll-name">Tu nombre</label>
+              <%= f.text_field :name, id: "enroll-name", class: "input-text", placeholder: "Ej. Carla Gómez", required: true %>
             </div>
-            
+
             <div class="input-group">
-              <label class="input-label" for="enroll-phone">WhatsApp</label>
+              <label class="input-label" for="enroll-phone">Tu WhatsApp</label>
               <%= f.telephone_field :phone, id: "enroll-phone", class: "input-text", placeholder: "Ej. +56912345678", required: true %>
-              <span class="input-help">Incluye el símbolo + y código de país (ej. +56 para Chile, +52 para México).</span>
+              <span class="input-help">Con el símbolo + y código de país (ej. +56 Chile, +52 México).</span>
             </div>
 
             <div class="input-group input-group-full">
-              <label class="input-label" for="enroll-email">Correo Electrónico</label>
+              <label class="input-label" for="enroll-email">Tu correo</label>
               <%= f.email_field :email, id: "enroll-email", class: "input-text", placeholder: "tucorreo@ejemplo.com", required: true %>
-              <span class="input-help">Lo necesitas para iniciar sesión en tu portal.</span>
+              <span class="input-help">Para entrar a tu portal y ver tu avance.</span>
             </div>
           </div>
 
-          <button type="submit" class="btn-landing btn-landing-primary" style="margin-top: 16px; width: 100%; padding: 16px;">
-            Iniciar mi prueba de 14 días
+          <button type="submit" class="btn-landing btn-landing-primary" style="width: 100%; padding: 16px;">
+            Empezar mi prueba de 14 días
           </button>
+          <p class="cta-note" style="justify-content: center;"><span class="dot-ok"></span> Gratis · sin tarjeta · sin compromiso</p>
         <% end %>
       </div>
     </div>
   </section>
 
-  <!-- FAQ Section -->
-  <section class="landing-section faq-section">
-    <div style="text-align: center; margin-bottom: 56px;">
-      <span class="section-subtitle">Preguntas Frecuentes</span>
-      <h2 class="section-title">Antes de empezar,<br><span class="gradient-text">lo que solemos preguntar</span></h2>
+  <!-- ===== FAQ ===== -->
+  <section class="landing-section faq-section section-soft">
+    <div class="section-header-centered">
+      <span class="section-subtitle">Preguntas frecuentes</span>
+      <h2 class="section-title">Antes de empezar</h2>
       <p class="section-desc">Lo esencial para que pruebes con confianza.</p>
     </div>
 
@@ -292,9 +299,15 @@
           <span>¿La prueba tiene costo?</span>
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer">
-          <p>No. Los 14 días son gratis y no te pedimos tarjeta para empezar. Te inscribes con tu WhatsApp y comienzas. Si al terminar quieres seguir con un programa más profundo, te contamos las opciones, sin compromiso.</p>
-        </div>
+        <div class="faq-answer"><p>Es gratis y no te pedimos tarjeta para empezar. Te inscribes con tu WhatsApp y comienzas. Si al terminar quieres seguir con un programa más profundo, te contamos las opciones, con toda libertad.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" aria-expanded="false">
+          <span>¿Sobre qué puedo trabajar?</span>
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-answer"><p>Lo que tú quieras mejorar: dormir mejor, moverte más, tener más calma, organizar tu tiempo, estar más presente en casa, comer mejor, hablar con confianza… Tú eliges el foco y tu programa se arma a tu medida.</p></div>
       </div>
 
       <div class="faq-item">
@@ -302,9 +315,7 @@
           <span>¿Cuánto tiempo me toma al día?</span>
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer">
-          <p>Unos 15 minutos: un micro-reto en la mañana y un check-in corto en la noche. Están pensados para entrar en tu día real, no para sumarte otra tarea pesada.</p>
-        </div>
+        <div class="faq-answer"><p>Unos 15 minutos: un micro-reto en la mañana y un momento corto en la noche. Están pensados para entrar en tu día tal como es.</p></div>
       </div>
 
       <div class="faq-item">
@@ -312,19 +323,7 @@
           <span>¿Necesito instalar una app?</span>
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer">
-          <p>No. Todo sucede en WhatsApp, el mismo que ya usas. No hay descargas ni contraseñas. Además tienes un portal web opcional para ver tu progreso, pero no es obligatorio.</p>
-        </div>
-      </div>
-
-      <div class="faq-item">
-        <button class="faq-question" aria-expanded="false">
-          <span>¿Cómo funciona exactamente?</span>
-          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="faq-answer">
-          <p>Cada mañana recibes un mensaje con un micro-reto simple. Lo aplicas en tu día. En la noche conversas con tu coach cómo te fue. Día a día, durante 14 días, vas construyendo un hábito nuevo y al final recibes un manifiesto con tus avances.</p>
-        </div>
+        <div class="faq-answer"><p>No hace falta. Todo sucede en WhatsApp, el mismo que ya usas. Además tienes un portal web opcional para ver tu progreso cuando quieras.</p></div>
       </div>
 
       <div class="faq-item">
@@ -332,9 +331,7 @@
           <span>¿Quién ve mis respuestas?</span>
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer">
-          <p>Tus conversaciones son privadas. Las usa tu coach (IA y, cuando hace falta, un coach humano de Comtraining) solo para acompañarte mejor. No las compartimos ni las publicamos. Puedes revisar el detalle en nuestra Política de Privacidad.</p>
-        </div>
+        <div class="faq-answer"><p>Tus conversaciones son privadas. Las usa tu coach —la IA y, cuando hace falta, un coach humano de Comtraining— solo para acompañarte mejor. Puedes revisar el detalle en nuestra Política de Privacidad.</p></div>
       </div>
 
       <div class="faq-item">
@@ -342,9 +339,7 @@
           <span>¿Y si un día no respondo?</span>
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer">
-          <p>No pasa nada. Esto no es una competencia ni te castiga. Retomas al día siguiente donde quedaste. La idea es sostener el hábito, no ser perfecto.</p>
-        </div>
+        <div class="faq-answer"><p>Tranquilo, retomas al día siguiente donde quedaste. La idea es acompañar tu ritmo, a tu manera.</p></div>
       </div>
 
       <div class="faq-item">
@@ -352,199 +347,150 @@
           <span>¿Funciona en mi país?</span>
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer">
-          <p>Sí, funciona en cualquier país con WhatsApp. Solo ingresa tu número en formato internacional (con el + y el código de país). Los mensajes llegan en tu horario local.</p>
-        </div>
+        <div class="faq-answer"><p>Sí, funciona en cualquier país con WhatsApp. Ingresa tu número en formato internacional (con el + y el código de país) y los mensajes llegan en tu horario local.</p></div>
       </div>
 
       <div class="faq-item">
         <button class="faq-question" aria-expanded="false">
-          <span>¿Esto reemplaza a un psicólogo o terapia?</span>
+          <span>¿Esto es lo mismo que terapia?</span>
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer">
-          <p>No. Impulso es coaching: trabaja sobre hábitos y objetivos concretos del presente, no sobre temas clínicos. Si aparece algo que requiere apoyo en salud mental, lo más sano es acudir a un especialista. Una cosa no quita la otra.</p>
-        </div>
+        <div class="faq-answer"><p>Es coaching: trabaja sobre hábitos y metas concretas del presente. Es un gran complemento al bienestar, y si en algún momento necesitas apoyo en salud mental, lo mejor es acudir también a un especialista.</p></div>
       </div>
     </div>
   </section>
 </main>
 
-<!-- JavaScript for Simulator and Dynamic Interactions -->
+<!-- Ambient sound toggle (off by default; respects "no ruido" + autoplay policy) -->
+<button class="ambient-btn" id="ambient-btn" type="button" aria-pressed="false" aria-label="Activar sonido ambiente">
+  <svg id="ambient-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>
+  <span id="ambient-label">Ambiente</span>
+</button>
+<!-- TODO: subir un loop suave (lluvia/bosque) a /public/ambient.mp3 para activar el sonido -->
+<audio id="ambient-audio" loop preload="none" src="/ambient.mp3"></audio>
+
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    // ----------------------------------------------------
-    // 1. WhatsApp Hero Phone Simulator
-    // ----------------------------------------------------
+  document.addEventListener("DOMContentLoaded", function () {
+    // ---------- 1. WhatsApp simulator ----------
     const chatContainer = document.getElementById("chat-simulation");
     const selectorCards = document.querySelectorAll(".selector-card");
-    
-    // Define scenarios for the simulator
+
     const scenarios = {
-      conversaciones: [
-        { role: "assistant", time: "07:02", text: "Hola Claudia. Hoy iniciamos tu sprint de 14 días. Tu micro-desafío de hoy: *identifica esa conversación que has estado postergando y define en una sola frase su objetivo principal*. Respóndeme cuando lo tengas claro." },
-        { role: "user", time: "08:15", text: "Es con mi diseñador senior. El objetivo es alinear las expectativas de entrega del proyecto y ver por qué se atrasa." },
-        { role: "assistant", time: "08:16", text: "Foco claro. Saber exactamente lo que quieres lograr reduce la ansiedad de iniciar la conversación. Al final de tu jornada te pediré tu check-in diario para ver cómo te fue." },
-        { role: "assistant", time: "20:00", text: "Buenas noches Claudia. Es hora del check-in del Día 1. ¿Lograste conversar con tu diseñador o dar el primer paso para agendarla? ¿Qué facilitó u obstaculizó la conversación?" },
-        { role: "user", time: "20:30", text: "Sí, logré agendarla para mañana temprano. Ayudó escribir el objetivo temprano, me dio claridad para estructurar la agenda." }
+      dormir: [
+        { role: "assistant", time: "07:02", text: "Hola Carla 🌙 Hoy empezamos con tu descanso. Tu micro-reto: *esta noche, una hora antes de dormir, deja el teléfono cargando lejos de la cama*. ¿Te animas?" },
+        { role: "user", time: "08:15", text: "Me animo. Suelo quedarme con el celu hasta tarde, así que esto me viene bien." },
+        { role: "assistant", time: "08:16", text: "Perfecto. Un pequeño gesto que tu cuerpo agradece. En la noche conversamos cómo te fue 😊" },
+        { role: "assistant", time: "22:30", text: "¿Cómo resultó dejar el teléfono lejos hoy?" },
+        { role: "user", time: "22:34", text: "Mejor de lo que pensaba. Leí un rato y me dormí más tranquila." }
       ],
-      priorizacion: [
-        { role: "assistant", time: "07:05", text: "Hola Carlos. Iniciamos. Tu micro-desafío: *antes de abrir tu bandeja de entrada de correo, anota las 2 únicas tareas que si completas hoy harían de este un día exitoso*. Cuéntame cuáles son." },
-        { role: "user", time: "08:22", text: "1. Terminar la propuesta comercial para el cliente X. 2. Revisar el roadmap de producto con el tech lead." },
-        { role: "assistant", time: "08:23", text: "Excelente filtro. Al definirlas antes del correo, previenes que las urgencias de otros manejen tu agenda. Hablamos en el check-in de la noche." },
-        { role: "assistant", time: "20:00", text: "Buenas noches Carlos. ¿Lograste completar tus 2 prioridades hoy? ¿Tuviste interrupciones o fluyó tu plan?" },
-        { role: "user", time: "20:45", text: "Completé ambas. Me costó ignorar los mensajes de Slack, pero me recordé a mí mismo que mi foco principal eran esas dos tareas." }
+      ejercicio: [
+        { role: "assistant", time: "07:05", text: "Buenos días Diego 🏃 Hoy volvemos al movimiento, suave. Tu micro-reto: *una caminata de 10 minutos después del almuerzo*. Nada más, solo salir." },
+        { role: "user", time: "13:40", text: "Hecho. Caminé alrededor de la manzana y volví con más energía." },
+        { role: "assistant", time: "13:41", text: "¡Genial! Diez minutos hoy valen más que una hora perfecta algún día. Vamos sumando 💚" },
+        { role: "assistant", time: "20:00", text: "¿Cómo te sentiste después de caminar?" },
+        { role: "user", time: "20:12", text: "Despejado. Me dieron ganas de repetirlo mañana." }
       ],
-      feedback: [
-        { role: "assistant", time: "07:00", text: "Hola Andrés. Bienvenido al sprint de Feedback. Tu micro-desafío de hoy: *observa a tu equipo y detecta una conducta específica que merezca ser reforzada. Escríbele un mensaje corto (Slack o correo) reconociéndola*. Avísame cuando lo envíes." },
-        { role: "user", time: "11:40", text: "Listo. Le agradecí al desarrollador por documentar tan bien el último API endpoint. Le ahorró horas al equipo." },
-        { role: "assistant", time: "11:41", text: "Buenísimo Andrés. El feedback de refuerzo inmediato tiene 5 veces más impacto que una revisión de desempeño anual. Nos vemos en el check-in." },
-        { role: "assistant", time: "20:00", text: "Buenas noches Andrés. ¿Cómo reaccionó tu colaborador al feedback? ¿Te resultó natural dar ese reconocimiento hoy?" },
-        { role: "user", time: "21:05", text: "Se puso muy contento, me dijo que nadie solía notar la documentación. Me tomó 1 minuto y subió el ánimo del canal." }
+      calma: [
+        { role: "assistant", time: "07:00", text: "Hola Sofía ✨ Hoy cuidamos tu calma. Tu micro-reto: *tres respiraciones lentas antes de abrir el computador en la mañana*. Un pequeño respiro para ti." },
+        { role: "user", time: "09:20", text: "Lo hice antes de empezar a trabajar. Me ayudó a arrancar con más foco." },
+        { role: "assistant", time: "09:21", text: "Qué bueno. La calma también se entrena, de a poquito. Nos vemos en la noche 🌿" },
+        { role: "assistant", time: "20:00", text: "¿Cómo estuvo tu día? ¿Encontraste algún momento de pausa?" },
+        { role: "user", time: "20:25", text: "Sí, repetí las respiraciones después de una reunión y me sirvió mucho." }
       ],
-      cambio: [
-        { role: "assistant", time: "07:10", text: "Hola Sofía. Empezamos el sprint. Tu desafío conductual de hoy: *en tu próxima reunión con tu equipo, antes de explicar el CÓMO de una nueva directriz, dedica los primeros 2 minutos a explicar el POR QUÉ del cambio*. Avísame cómo te preparas." },
-        { role: "user", time: "09:50", text: "Hoy tenemos la reunión semanal. Voy a enfocar los primeros minutos en explicar por qué estamos migrando de herramienta y cómo afecta al cliente." },
-        { role: "assistant", time: "09:51", text: "Gran práctica. Cuando los equipos entienden el origen y la necesidad detrás del cambio, la resistencia disminuye. ¡Éxito en la reunión!" },
-        { role: "assistant", time: "20:00", text: "Buenas noches Sofía. ¿Cómo percibiste la recepción del equipo al explicar el 'por qué' primero? ¿Hubo dudas o fluyó mejor?" },
-        { role: "user", time: "20:20", text: "Fluyó mucho mejor. Hicieron preguntas operativas sobre la marcha, pero no cuestionaron la decisión porque entendieron el valor de fondo." }
+      presente: [
+        { role: "assistant", time: "07:10", text: "Hola Pablo 💚 Hoy trabajamos en estar presente. Tu micro-reto: *durante la cena, dejen los teléfonos en otra habitación y conversen sin pantallas*." },
+        { role: "user", time: "14:30", text: "Me gusta la idea. A veces cenamos todos mirando el celular." },
+        { role: "assistant", time: "14:31", text: "Un gesto simple que se nota mucho. Cuéntame en la noche cómo estuvo 😊" },
+        { role: "assistant", time: "21:30", text: "¿Cómo fue la cena sin pantallas?" },
+        { role: "user", time: "21:45", text: "Conversamos un montón, hasta nos reímos. Mi hija pidió repetirlo mañana." }
       ]
     };
 
-    let activeTimeoutIds = [];
+    let timeouts = [];
+    const clearTimeouts = () => { timeouts.forEach(clearTimeout); timeouts = []; };
 
-    function clearAllSimulationTimeouts() {
-      activeTimeoutIds.forEach(id => clearTimeout(id));
-      activeTimeoutIds = [];
-    }
-
-    function runSimulation(caseKey) {
-      clearAllSimulationTimeouts();
+    function runSimulation(key) {
+      clearTimeouts();
       chatContainer.innerHTML = "";
-      
-      const bubbles = scenarios[caseKey];
-      let currentDelay = 300;
-
-      bubbles.forEach((bubble, idx) => {
-        // Enqueue a typing bubble indicator
-        const typingId = setTimeout(() => {
-          showTypingIndicator();
-        }, currentDelay);
-        activeTimeoutIds.push(typingId);
-
-        // Enqueue the real message reveal
-        currentDelay += (bubble.role === "user" ? 1200 : 1800); // simulated writing delay
-
-        const revealId = setTimeout(() => {
-          removeTypingIndicator();
-          appendBubble(bubble);
-        }, currentDelay);
-        activeTimeoutIds.push(revealId);
-
-        currentDelay += 600; // spacer between bubbles
+      let delay = 300;
+      scenarios[key].forEach((bubble) => {
+        timeouts.push(setTimeout(showTyping, delay));
+        delay += bubble.role === "user" ? 1100 : 1700;
+        timeouts.push(setTimeout(() => { removeTyping(); appendBubble(bubble); }, delay));
+        delay += 600;
       });
     }
 
-    function showTypingIndicator() {
-      removeTypingIndicator(); // ensure no duplicates
-      const typingDiv = document.createElement("div");
-      typingDiv.className = "typing-bubble-sim";
-      typingDiv.id = "sim-typing";
-      typingDiv.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
-      chatContainer.appendChild(typingDiv);
+    function showTyping() {
+      removeTyping();
+      const t = document.createElement("div");
+      t.className = "typing-bubble-sim";
+      t.id = "sim-typing";
+      t.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+      chatContainer.appendChild(t);
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
-
-    function removeTypingIndicator() {
-      const typing = document.getElementById("sim-typing");
-      if (typing) typing.remove();
-    }
+    function removeTyping() { const t = document.getElementById("sim-typing"); if (t) t.remove(); }
 
     function appendBubble(bubble) {
-      const bubbleDiv = document.createElement("div");
-      bubbleDiv.className = `bubble bubble-${bubble.role === "user" ? "right" : "left"}`;
-      
-      // Convert markdown-like *bold* to <strong>
-      let formattedText = bubble.text.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
-      
-      const isUser = bubble.role === "user";
-      const checkmarkSvg = isUser ? `
-        <span class="double-check" style="color: var(--primary); display: inline-flex; align-items: center; margin-left: 4px;">
-          <svg viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle;">
-            <path fill="currentColor" d="M12.162 16.242l-5.656-5.656-1.414 1.414 7.07 7.07 12.02-12.02-1.414-1.414zM20.12 6.636l-1.414-1.414-8.484 8.484 1.414 1.414z"/>
-          </svg>
-        </span>
-      ` : "";
-      
-      bubbleDiv.innerHTML = `
-        ${formattedText}
-        <div class="bubble-footer">
-          <span class="bubble-time">${bubble.time}</span>
-          ${checkmarkSvg}
-        </div>
-      `;
-      chatContainer.appendChild(bubbleDiv);
+      const div = document.createElement("div");
+      div.className = "bubble bubble-" + (bubble.role === "user" ? "right" : "left");
+      const text = bubble.text.replace(/\*(.*?)\*/g, "<strong>$1</strong>");
+      div.innerHTML = text + '<div class="bubble-footer"><span class="bubble-time">' + bubble.time + "</span></div>";
+      chatContainer.appendChild(div);
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    // Spotlight cursor tracking for Bento Cards (Vercel/Linear style)
-    const bentoCards = document.querySelectorAll(".bento-card");
-    bentoCards.forEach(card => {
-      card.addEventListener("mousemove", e => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        card.style.setProperty("--mouse-x", `${x}px`);
-        card.style.setProperty("--mouse-y", `${y}px`);
-      });
-    });
-
-    // Bind click events to selector cards
-    selectorCards.forEach(card => {
-      card.addEventListener("click", function() {
+    selectorCards.forEach((card) => {
+      card.addEventListener("click", function () {
         if (this.classList.contains("active")) return;
-        
-        selectorCards.forEach(c => c.classList.remove("active"));
+        selectorCards.forEach((c) => c.classList.remove("active"));
         this.classList.add("active");
-        
-        const caseKey = this.getAttribute("data-case");
-        runSimulation(caseKey);
+        runSimulation(this.getAttribute("data-case"));
       });
     });
+    runSimulation("dormir");
 
-    // Start default simulation
-    runSimulation("conversaciones");
-
-    // ----------------------------------------------------
-    // 0. FAQ Accordion
-    // ----------------------------------------------------
-    document.querySelectorAll(".faq-question").forEach(btn => {
-      btn.addEventListener("click", function() {
+    // ---------- 2. FAQ accordion ----------
+    document.querySelectorAll(".faq-question").forEach((btn) => {
+      btn.addEventListener("click", function () {
         const answer = this.nextElementSibling;
         const isOpen = this.getAttribute("aria-expanded") === "true";
-        // Collapse all
-        document.querySelectorAll(".faq-question").forEach(q => {
+        document.querySelectorAll(".faq-question").forEach((q) => {
           q.setAttribute("aria-expanded", "false");
           q.nextElementSibling.classList.remove("faq-open");
         });
-        // Toggle clicked
-        if (!isOpen) {
-          this.setAttribute("aria-expanded", "true");
-          answer.classList.add("faq-open");
-        }
+        if (!isOpen) { this.setAttribute("aria-expanded", "true"); answer.classList.add("faq-open"); }
       });
     });
 
-    // ----------------------------------------------------
-    // 2. Detect browser timezone for the enrollment form
-    // ----------------------------------------------------
-    const timezoneInput = document.getElementById("user-timezone");
-    if (timezoneInput) {
-      try {
-        timezoneInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Santiago";
-      } catch (e) {
-        timezoneInput.value = "America/Santiago";
-      }
+    // ---------- 3. Timezone for the form ----------
+    const tz = document.getElementById("user-timezone");
+    if (tz) {
+      try { tz.value = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Santiago"; }
+      catch (e) { tz.value = "America/Santiago"; }
+    }
+
+    // ---------- 4. Ambient sound (opt-in, off by default) ----------
+    const aBtn = document.getElementById("ambient-btn");
+    const aAudio = document.getElementById("ambient-audio");
+    const aLabel = document.getElementById("ambient-label");
+    if (aBtn && aAudio) {
+      aAudio.volume = 0.4;
+      aBtn.addEventListener("click", function () {
+        if (aAudio.paused) {
+          aAudio.play().then(() => {
+            aBtn.classList.add("playing");
+            aBtn.setAttribute("aria-pressed", "true");
+            aLabel.textContent = "Sonido activo";
+          }).catch(() => { aLabel.textContent = "Sonido no disponible"; });
+        } else {
+          aAudio.pause();
+          aBtn.classList.remove("playing");
+          aBtn.setAttribute("aria-pressed", "false");
+          aLabel.textContent = "Ambiente";
+        }
+      });
     }
   });
 </script>

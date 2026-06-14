@@ -7,27 +7,28 @@ Este documento consolida la identidad visual, el sistema de diseño y las decisi
 ## 1. Identidad de Marca y Posicionamiento
 
 *   **Nombre de Marca:** Impulso by Comtraining
-*   **Tagline Principal:** De la capacitación a la conducta.
-*   **Enfoque:** Capa de transferencia conductual post-talleres/intervenciones para jefaturas y líderes de proyectos. No se presenta como un "bot de IA" ni "terapia", sino como una metodología corporativa seria, con supervisión humana y reportería anonimizada.
+*   **Tagline Principal:** Logra eso que te propones, un paso a la vez.
+*   **Enfoque (landing pública, B2C):** Coaching personal por WhatsApp. La persona **elige qué quiere mejorar** (dormir mejor, moverte más, tener calma, lo que sea) y recibe un micro-reto diario hecho a su medida durante 14 días. Respaldado por la metodología de Comtraining con supervisión humana. No se presenta como "bot" ni "terapia". (El posicionamiento B2B original —transferencia conductual para líderes— se conserva para la venta corporativa, pero la landing prioriza al individuo.)
 *   **Valores de Diseño (Territorio Verbal & Visual):**
-    *   **Ejecutivo:** Sobrio, limpio, orientado a métricas y resultados empresariales.
-    *   **Humano:** Apoyado en el respaldo de Comtraining, no en la automatización fría.
-    *   **Útil:** Acción inmediata sobre conductas observables, sin sobrecargar de información.
-    *   **Claro:** Sin lenguaje técnico excesivo ni adornos futuristas/cyberpunk.
+    *   **Cálido y cercano:** Tema claro, acogedor, nunca clínico ni frío. Caras y lenguaje humano.
+    *   **Personal:** Todo gira en torno a "tú eliges el foco"; el programa se adapta a la persona.
+    *   **Positivo:** Sin palabras negativas. Se habla de lo que se gana, no de lo que falla.
+    *   **Claro y liviano:** Poco texto, mucho aire, secciones bien diferenciadas. Regla de claridad en 5 segundos.
 
 ---
 
 ## 2. Paleta de Colores y Tipografía
 
-El sistema de diseño utiliza variables CSS nativas para soportar un tema oscuro ejecutivo con acentos de alta energía.
+El sistema de diseño usa variables CSS nativas sobre un **tema claro y cálido** (definido en `app/assets/stylesheets/landing.css`). Pensado para legibilidad en todas las edades y para transmitir confianza/calidez propia del coaching.
 
 ### Colores Clave
-*   **Fondo Principal (`--bg`):** `#070a13` (Azul prusiano muy oscuro, proporciona profundidad ejecutiva).
-*   **Fondo de Tarjetas (`--bg-card`):** `#111726` (Azul marino medio, excelente contraste para bento grids).
-*   **Bordes y Líneas (`--border`):** `rgba(255, 255, 255, 0.08)` (Delicados bordes semi-transparentes para un look de vidrio pulido).
-*   **Acento Primario (`--primary`):** `#10b981` (Verde Esmeralda WhatsApp, transmite comunicación activa y cercanía).
-*   **Acento Secundario (`--secondary`):** `#6366f1` (Indigo/Violeta AI, representa la tecnología y automatización con criterio).
-*   **Color de Foco (`--border-focus`):** `#4f46e5` (Para inputs activos).
+*   **Fondo Principal (`--bg`):** `#fcf8f2` (crema cálido) con suaves blooms de luz orgánicos.
+*   **Fondo Alterno (`--bg-soft`):** `#f4eede` — para alternar secciones y darles ritmo visual.
+*   **Fondo de Tarjetas (`--bg-card`):** `#ffffff`.
+*   **Texto (`--text-main` / `--text-soft`):** `#21272f` / `#59616e` (alto contraste sobre crema).
+*   **Bordes (`--border`):** `#ece3d3` (cálido, suave).
+*   **Acento Primario (`--primary`):** `#0f9d72` (Verde esmeralda WhatsApp, legible sobre crema).
+*   **Acento Secundario (`--accent`):** `#e07a4f` (terracota cálido, para realces).
 
 ### Tipografía
 *   **Títulos:** `Outfit` (Tipografía sans-serif con personalidad geométrica y moderna).
@@ -61,28 +62,32 @@ Para "maravillar" al cliente corporativo y demostrar el producto sin fricción, 
 
 ### A. El Simulador Interactivo de Conversación (WhatsApp)
 En el Hero de la página, en lugar de una captura estática, se diseñó un teléfono interactivo que simula una conversación de WhatsApp en tiempo real.
-*   **Selector de Desafíos:** Los usuarios (managers, RRHH) pueden seleccionar entre 4 problemáticas típicas:
-    1.  *Conversaciones difíciles* (Alineación con colaboradores).
-    2.  *Priorización y Foco* (Evitar urgencias diarias).
-    3.  *Dar Feedback* (Refuerzo inmediato).
-    4.  *Comunicar Cambios* (Alinear equipos).
-*   **Animación de Escritura (Typing Effect):** El chat se borra y escribe dinámicamente los globos usando un indicador de carga (`typing-bubble`) simulando las respuestas de la IA y el usuario real.
+*   **Selector de Ejemplos (cotidianos, B2C):** La persona elige entre 4 focos de la vida diaria:
+    1.  *Dormir mejor*.
+    2.  *Moverte más* (volver al ejercicio sin presión).
+    3.  *Tener más calma*.
+    4.  *Estar presente* (tiempo real con los tuyos).
+*   **Animación de Escritura (Typing Effect):** El chat se borra y escribe dinámicamente los globos usando un indicador de carga (`typing-bubble-sim`) simulando las respuestas de la IA y el usuario real.
 
-### B. Generador de Micro-Pasos con IA en Tiempo Real
-En la sección de pruebas, el usuario puede ingresar su propio desafío laboral en lenguaje natural.
-*   La landing page hace un request a `/preview_challenge` que usa el modelo configurado en `openai_model_preview_challenge` para generar un primer mensaje de Día 1 real basado en el marco pedagógico de Comtraining.
-*   El resultado se despliega en una caja estilizada de WhatsApp, abriendo paso al formulario de registro B2B que captura su **Empresa** y **Cargo / Rol**.
+### B. Otras secciones clave
+*   **"¿Qué te gustaría mejorar?"** — grilla de focos cotidianos (chips) + nota "tú eliges el foco y tu programa se arma a tu medida". Comunica **personalización + abanico de posibilidades**.
+*   **"Cómo funciona"** — 3 pasos simples y positivos.
+*   **Coach / confianza** — foto + nombre + credencial del coach de Comtraining (placeholders marcados con `TODO` en `index.html.erb` hasta tener los datos reales).
+*   **Sonido ambiente opcional** — botón flotante (`.ambient-btn`), apagado por defecto; reproduce `/public/ambient.mp3` (archivo a proveer) sin autoplay.
 
----
-
-## 5. Alineación del Embudo de Conversión (B2B)
-
-El formulario de inscripción ha sido rediseñado para capturar la estructura organizativa y permitir la venta corporativa:
-1.  **Nombre:** Del líder que probará el piloto.
-2.  **WhatsApp Corporativo:** Normalizado al formato E.164.
-3.  **Empresa:** Permite segmentar empresas medianas/grandes.
-4.  **Cargo / Rol:** Identifica si el prospecto es un tomador de decisiones (PMO, RRHH, Gerencia de Transformación).
+> El endpoint `/preview_challenge` sigue existiendo pero **ya no se usa en la landing** (se retiró el generador IA duplicado).
 
 ---
 
-*Última Actualización: 24 de Mayo de 2026*
+## 5. Embudo de Conversión (B2C)
+
+Formulario de inscripción reducido a 3 campos para máxima conversión individual:
+1.  **Nombre.**
+2.  **WhatsApp** (normalizado a E.164).
+3.  **Correo** (para acceso al portal).
+
+> El controlador sigue aceptando `company`/`role` por si un flujo B2B futuro los envía, pero la landing pública no los pide. CTA único, gratis y sin tarjeta.
+
+---
+
+*Última Actualización: 14 de Junio de 2026 — rediseño a tema claro/cálido y posicionamiento B2C personalizado.*

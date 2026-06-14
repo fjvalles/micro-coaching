@@ -41,7 +41,7 @@
       <% end %>
       <div class="nav-actions">
         <%= link_to "Iniciar sesión", portal_login_path, class: "nav-login" %>
-        <a href="#trial" class="nav-cta">Probar gratis</a>
+        <a href="#empezar" class="nav-cta">Probar gratis</a>
       </div>
     </nav>
 
@@ -49,8 +49,8 @@
     <%= yield %>
 
     <!-- Footer -->
-    <footer style="padding: 40px 8%; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 14px;">
-      <p>&copy; 2026 Impulso by <%= link_to "Comtraining", "https://comtraining.cl", target: "_blank", rel: "noopener", style: "color: var(--text-muted); text-decoration: none; border-bottom: 1px dashed rgba(255,255,255,0.2); transition: all 0.2s;", onmouseover: "this.style.color='var(--text-main)'; this.style.borderBottomColor='var(--primary)'", onmouseout: "this.style.color='var(--text-muted)'; this.style.borderBottomColor='rgba(255,255,255,0.2)'" %>. Todos los derechos reservados. · <%= link_to "Política de Privacidad", privacidad_path, style: "color: var(--text-muted); text-decoration: none; border-bottom: 1px dashed rgba(255,255,255,0.2); transition: all 0.2s;", onmouseover: "this.style.color='var(--text-main)'; this.style.borderBottomColor='var(--primary)'", onmouseout: "this.style.color='var(--text-muted)'; this.style.borderBottomColor='rgba(255,255,255,0.2)'" %></p>
+    <footer class="landing-footer">
+      <p>&copy; 2026 Impulso by <%= link_to "Comtraining", "https://comtraining.cl", target: "_blank", rel: "noopener" %>. Todos los derechos reservados. · <%= link_to "Política de Privacidad", privacidad_path %></p>
     </footer>
   </body>
 </html>

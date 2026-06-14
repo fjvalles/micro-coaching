@@ -8,7 +8,7 @@ RSpec.describe "Home", type: :request do
       get root_path
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Impulso by Comtraining")
-      expect(response.body).to include("Un hábito nuevo")
+      expect(response.body).to include("un paso a la vez")
     end
   end
 

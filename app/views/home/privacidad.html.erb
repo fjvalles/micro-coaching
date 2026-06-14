@@ -4,77 +4,21 @@
   <meta name="description" content="Política de Privacidad de Impulso by Comtraining. Información sobre la recopilación, almacenamiento y protección de datos personales para participantes del programa de micro-coaching por WhatsApp.">
 <% end %>
 
-<main class="privacy-main" style="padding: 120px 8% 80px; max-width: 900px; margin: 0 auto;">
-  <div style="margin-bottom: 40px;">
-    <a href="/" style="display: inline-flex; align-items: center; gap: 8px; color: var(--secondary); text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 24px; transition: color 0.2s;" onmouseover="this.style.color='var(--secondary-hover)'" onmouseout="this.style.color='var(--secondary)'">
+<main class="privacy-main">
+  <div class="privacy-content">
+    <a href="/" style="display: inline-flex; align-items: center; gap: 8px; color: var(--primary-deep); text-decoration: none; font-size: 14px; font-weight: 600; margin-bottom: 22px;">
       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 19l-7-7 7-7" />
       </svg>
       Volver al inicio
     </a>
-    
-    <h1 class="gradient-text" style="font-size: 44px; font-weight: 800; line-height: 1.2; margin-bottom: 12px; letter-spacing: -0.03em;">
+
+    <h1 class="gradient-text" style="font-size: clamp(32px, 5vw, 44px); font-weight: 800; line-height: 1.2; margin-bottom: 8px;">
       Política de Privacidad
     </h1>
-    <p style="color: var(--text-muted); font-size: 14px;">
+    <p style="color: var(--text-soft); font-size: 14px; margin-bottom: 28px;">
       Última actualización: Mayo de 2026
     </p>
-  </div>
-
-  <div class="privacy-content" style="background-color: rgba(10, 14, 26, 0.45); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 48px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); line-height: 1.7; color: #e2e8f0; font-size: 15.5px;">
-    
-    <style>
-      .privacy-markdown-body h1, 
-      .privacy-markdown-body h2, 
-      .privacy-markdown-body h3, 
-      .privacy-markdown-body h4 {
-        margin-top: 32px;
-        margin-bottom: 16px;
-        font-weight: 700;
-        letter-spacing: -0.01em;
-        color: var(--text-main);
-      }
-      .privacy-markdown-body h4 {
-        font-size: 18px;
-        color: var(--secondary);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        padding-bottom: 8px;
-      }
-      .privacy-markdown-body p {
-        margin-bottom: 18px;
-      }
-      .privacy-markdown-body ul, 
-      .privacy-markdown-body ol {
-        margin-bottom: 20px;
-        padding-left: 24px;
-      }
-      .privacy-markdown-body li {
-        margin-bottom: 8px;
-      }
-      .privacy-markdown-body li strong {
-        color: var(--text-main);
-      }
-      .privacy-markdown-body a {
-        color: var(--primary);
-        text-decoration: underline;
-        transition: color 0.2s;
-      }
-      .privacy-markdown-body a:hover {
-        color: var(--primary-hover);
-      }
-      .privacy-markdown-body strong {
-        color: var(--text-main);
-        font-weight: 600;
-      }
-      @media (max-width: 640px) {
-        .privacy-content {
-          padding: 24px !important;
-        }
-        .privacy-main {
-          padding: 80px 5% 40px !important;
-        }
-      }
-    </style>
 
     <div class="privacy-markdown-body">
       <%= render_markdown(@privacy_policy) %>
