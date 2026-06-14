@@ -196,8 +196,8 @@ class Setting < ApplicationRecord
     },
     "program_intake_building_text" => {
       type: :text, category: "program",
-      default: "¡Listo! Con eso ya puedo armar tu programa personalizado. Dame un momento y te aviso por aquí cuando esté.",
-      description: "Mensaje que recibe el participante al terminar el cuestionario de intake, mientras se genera su programa."
+      default: "¡Gracias! Con tus respuestas voy a preparar tu programa personalizado. Una persona del equipo lo revisa antes de activarlo para asegurar que sea el mejor para ti, así que puede tomar un poco. Te aviso por aquí en cuanto esté listo para empezar. 🙌",
+      description: "Mensaje que recibe el participante al terminar el cuestionario de intake. Asume revisión humana (program_intake_review_required ON); si la desactivas, ajusta este texto."
     },
     "program_intake_failed_text" => {
       type: :text, category: "program",

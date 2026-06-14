@@ -4,7 +4,9 @@ module Admin
     before_action -> { @companies = Company.kept.ordered }, only: %i[new edit create update]
 
     def index
-      @programs = Program.all.order(:name)
+      # Generated templates are reviewed from the participant's approval banner, not
+      # edited here — exclude them so they aren't toggled active by mistake.
+      @programs = Program.live.order(:name)
     end
 
     def show

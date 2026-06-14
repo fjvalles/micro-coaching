@@ -45,5 +45,20 @@ RSpec.describe Program, type: :model do
       expect(Program.default).to be_present
       expect(Program.default.general?).to be true
     end
+
+    it "never returns a generated template even if it is the oldest active general program" do
+      create(:program, company: nil, active: true, template: true, generated: true, created_at: 100.years.ago)
+      expect(Program.default).to be_present
+      expect(Program.default.template).to be(false)
+    end
+  end
+
+  describe ".available_to" do
+    it "excludes generated templates even when active" do
+      create(:program, company: nil, active: true, template: true, generated: true)
+      live = create(:program, company: nil, active: true)
+      expect(Program.available_to(nil)).to include(live)
+      expect(Program.available_to(nil).where(template: true)).to be_empty
+    end
   end
 end

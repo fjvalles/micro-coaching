@@ -22,16 +22,19 @@ class Program < ApplicationRecord
   scope :live, -> { where(template: false) }
 
   # Programs a participant may be enrolled in: general programs plus any owned by
-  # the participant's company.
+  # the participant's company. Generated templates (reviewable artifacts) are never
+  # directly enrollable, even if a template is toggled active.
   scope :available_to, ->(company) {
-    company ? where(company_id: [ nil, company.try(:id) || company ]) : general
+    base = company ? where(company_id: [ nil, company.try(:id) || company ]) : general
+    base.live
   }
 
   def general?
     company_id.nil?
   end
 
+  # Never returns a template — a template toggled active must not become the default.
   def self.default
-    general.active.order(:created_at).first || active.order(:created_at).first
+    general.live.active.order(:created_at).first || live.active.order(:created_at).first
   end
 end
