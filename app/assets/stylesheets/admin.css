@@ -3631,3 +3631,120 @@ body {
 
 
 
+
+/* ============================================================
+   Program AI Assistant — modal + embedded chat
+   Reuses .copilot-* classes for the message list and input.
+   ============================================================ */
+
+.pa-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.pa-modal[hidden] { display: none; }
+
+.pa-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.pa-modal-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 880px;
+  height: min(86vh, 760px);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg, 0 20px 50px rgba(0,0,0,0.25));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pa-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+.pa-modal-title { font-weight: 600; font-size: 15px; }
+
+.pa-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0 6px;
+}
+.pa-modal-close:hover { color: var(--text); }
+
+.pa-modal-body { flex: 1; min-height: 0; display: flex; }
+
+.pa-modal-body turbo-frame { flex: 1; min-height: 0; display: flex; }
+
+.pa-modal-loading {
+  margin: auto;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.pa-chat {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+}
+
+.pa-chat .copilot-chat-container.pa-chat-scroll {
+  flex: 1;
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  padding: 20px 24px;
+  gap: 24px;
+}
+
+.pa-chat .copilot-input-container { flex: 0 0 auto; }
+
+.pa-pending {
+  border-bottom: 1px solid var(--border);
+  background: #fffbeb;
+  padding: 12px 24px;
+  flex: 0 0 auto;
+}
+
+.pa-pending-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #b45309;
+  margin-bottom: 8px;
+}
+
+.pa-pending-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.pa-pending-info strong { font-size: 14px; }
+.pa-pending-detail { font-size: 12px; color: var(--text-muted); }
+.pa-pending-actions { display: flex; gap: 6px; }
+.pa-pending-actions form { margin: 0; }

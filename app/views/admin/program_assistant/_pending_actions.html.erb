@@ -1,0 +1,28 @@
+<div id="program_assistant_pending">
+  <% actions = session.program_assistant_pending_actions.awaiting %>
+  <% if actions.any? %>
+    <div class="pa-pending">
+      <div class="pa-pending-title">Propuestas por aprobar</div>
+      <% actions.each do |a| %>
+        <% args = a.args || {} %>
+        <div class="pa-pending-item">
+          <div class="pa-pending-info">
+            <strong>
+              <%= a.tool_name == "create_program" ? "Crear programa" : "Editar programa" %>
+            </strong>
+            <div class="pa-pending-detail">
+              <%= args["name"].presence || args["slug"].presence || args["program_id"].presence || "—" %>
+              <% days = Array(args["days"]).size %>
+              <% if days.positive? %>· <%= days %> día(s)<% end %>
+              <% if args["total_days"].present? %>· <%= args["total_days"] %> días totales<% end %>
+            </div>
+          </div>
+          <div class="pa-pending-actions">
+            <%= button_to "Aprobar", admin_program_assistant_approve_action_path(a), method: :post, class: "btn btn-primary btn-sm" %>
+            <%= button_to "Rechazar", admin_program_assistant_reject_action_path(a), method: :post, class: "btn btn-sm" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

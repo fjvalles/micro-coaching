@@ -1,0 +1,72 @@
+<%= turbo_frame_tag "program_assistant_frame" do %>
+  <%= turbo_stream_from session, :messages %>
+  <%= turbo_stream_from session, :pending %>
+
+  <div class="pa-chat">
+    <%= render "admin/program_assistant/pending_actions", session: session %>
+
+    <div class="copilot-chat-container pa-chat-scroll" id="program_assistant_messages">
+      <% if messages.empty? %>
+        <div class="copilot-empty-state">
+          <div class="copilot-empty-icon">✨</div>
+          <h3>Asistente de programas</h3>
+          <p>Cuéntame qué programa quieres crear (objetivo, público, duración) y te haré
+          algunas preguntas para diseñarlo. También puedo leer o editar programas existentes.</p>
+        </div>
+      <% else %>
+        <%= render partial: "admin/program_assistant/message", collection: messages, as: :message %>
+      <% end %>
+    </div>
+
+    <div class="copilot-input-container">
+      <%= form_with url: admin_program_assistant_message_path, method: :post, class: "copilot-form", id: "pa_form" do |f| %>
+        <div class="copilot-input-wrapper">
+          <%= f.text_area :content, rows: 1, class: "copilot-textarea", placeholder: "Describe el programa o pide leer/editar uno...", id: "pa_input" %>
+          <button type="submit" class="copilot-submit-btn" aria-label="Enviar mensaje">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+            </svg>
+          </button>
+        </div>
+        <div class="copilot-input-footer" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>El asistente puede equivocarse. Las creaciones y ediciones requieren tu aprobación.</span>
+          <%= button_to "Nueva conversación", admin_program_assistant_reset_path, method: :post, class: "btn btn-sm", form: { style: "margin:0;" } %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const textarea = document.getElementById('pa_input');
+      const form = document.getElementById('pa_form');
+      if (textarea) {
+        textarea.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = (this.scrollHeight) + 'px';
+          this.style.overflowY = this.scrollHeight > 160 ? 'auto' : 'hidden';
+        });
+        textarea.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (this.value.trim() !== '') form.requestSubmit();
+          }
+        });
+        setTimeout(() => textarea.focus(), 150);
+      }
+      if (form) {
+        form.addEventListener('turbo:submit-end', function() {
+          textarea.value = '';
+          textarea.style.height = 'auto';
+        });
+      }
+      // Keep the transcript pinned to the bottom as new turns stream in.
+      const scroll = document.getElementById('program_assistant_messages');
+      if (scroll) {
+        const pin = () => { scroll.scrollTop = scroll.scrollHeight; };
+        pin();
+        new MutationObserver(pin).observe(scroll, { childList: true, subtree: true });
+      }
+    })();
+  </script>
+<% end %>

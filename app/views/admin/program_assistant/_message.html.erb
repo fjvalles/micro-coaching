@@ -1,0 +1,41 @@
+<div id="<%= dom_id(message) %>" class="copilot-message-wrapper <%= message.role == 'user' ? 'is-user' : 'is-assistant' %>">
+  <div class="copilot-message-avatar">
+    <% if message.role == 'user' %>
+      <div class="avatar-circle user-avatar">U</div>
+    <% else %>
+      <div class="avatar-circle assistant-avatar">✨</div>
+    <% end %>
+  </div>
+
+  <div class="copilot-message-content-wrapper">
+    <div class="copilot-message-header">
+      <span class="copilot-message-author"><%= message.role == 'user' ? 'Tú' : 'Asistente' %></span>
+    </div>
+
+    <div class="copilot-message-body">
+      <% if message.role == "tool" %>
+        <div class="copilot-tool-result">
+          <div class="tool-result-header">
+            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <span>Resultado de <strong><%= message.tool_name %></strong></span>
+          </div>
+          <pre class="tool-result-data"><%= message.content %></pre>
+        </div>
+      <% elsif message.role == "assistant" && message.tool_args.present? %>
+        <div class="copilot-tool-calls">
+          <% Array(message.tool_args["calls"]).each do |c| %>
+            <div class="copilot-tool-call">
+              <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span>Usando <strong><%= c.dig("function", "name") %></strong>...</span>
+            </div>
+          <% end %>
+        </div>
+        <% if message.content.present? %>
+          <div class="copilot-message-text"><%= simple_format(message.content) %></div>
+        <% end %>
+      <% else %>
+        <div class="copilot-message-text"><%= simple_format(message.content) %></div>
+      <% end %>
+    </div>
+  </div>
+</div>

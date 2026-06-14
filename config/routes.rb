@@ -77,6 +77,13 @@ Rails.application.routes.draw do
       post "copilot/actions/:id/approve",   to: "copilot#approve_action", as: :copilot_approve_action
       post "copilot/actions/:id/reject",    to: "copilot#reject_action",  as: :copilot_reject_action
 
+      # Asistente IA de programas (modal en /admin/programs; gated por program_assistant_enabled)
+      get  "program_assistant",                     to: "program_assistant#show",           as: :program_assistant
+      post "program_assistant/message",             to: "program_assistant#message",        as: :program_assistant_message
+      post "program_assistant/reset",               to: "program_assistant#reset",          as: :program_assistant_reset
+      post "program_assistant/actions/:id/approve", to: "program_assistant#approve_action", as: :program_assistant_approve_action
+      post "program_assistant/actions/:id/reject",  to: "program_assistant#reject_action",  as: :program_assistant_reject_action
+
       get "health",    to: "health#show",        as: :health
       get "audit_log", to: "audit_logs#index", as: :audit_log
       get "finances",  to: "finances#index",   as: :finances
