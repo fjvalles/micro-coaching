@@ -184,7 +184,7 @@ Use `travel_to` (Rails built-in), not Timecop.
 - Job idempotency: check `Conversation.where(moment: ..., day_number: ...)` before sending
 - Phone numbers stored as E.164 (`+56912345678`)
 - All AI calls return a struct with `body`, `prompt_used`, `tokens_input`, `tokens_output`, `model`
-- Models are task-routed via `Openai::ModelRouter`: cheap nano models for classification/summarization, `gpt-5-mini` for user-facing free response and manifesto, audio-specific models for transcription/voice analysis. `openai_model` is only the fallback.
+- Models are task-routed via `Openai::ModelRouter`: `gpt-5-nano` for classification/summarization/tagging/clustering, `gpt-5-mini` for user-facing morning/free response and manifesto, audio-specific models for transcription/voice analysis. `openai_model` is only the fallback. Do not use `gpt-5.4-nano`; production rejects it with 400.
 - Temperature: `0.75` (generative), `0.3` (JSON summarizer/classifiers). GPT-5-family Chat Completions omit custom temperature and use `max_completion_tokens`.
 - CheckinSummarizer uses `response_format: { type: "json_object" }` with fallback if parse fails
 - Program-scoped content: `DayContent` belongs to `Program`; `Participant` belongs to `Program`

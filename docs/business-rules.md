@@ -57,6 +57,11 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 - **Por qué.** Operación admin típica = un solo programa vivo.
 - **Enforce.** `app/services/participants/enroller.rb:6`, `app/models/program.rb:13-15`.
 
+### 2.5 Pregunta de patrón inicial no se envía si ya fue respondida
+- **Regla.** `SendWelcomeQuestionJob` no envía la pregunta de patrón inicial si `Participant#initial_pattern` ya está presente, si ya existe una conversación `welcome` de usuario, o si la misma pregunta ya fue enviada.
+- **Por qué.** El job se agenda con delay; si Sidekiq drena jobs atrasados o el participante responde rápido, la pregunta se vuelve obsoleta y confunde el flujo.
+- **Enforce.** `app/jobs/send_welcome_question_job.rb`.
+
 ---
 
 ## 3. Estados del participante
@@ -250,7 +255,7 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 
 ### 10.1 Modelo mínimo por tarea
 - **Regla.** Las llamadas de texto usan `Openai::ModelRouter` con settings por tarea (`openai_model_<task>`) y fallback a `openai_model`.
-- **Defaults.** `gpt-5-nano` para preview/check-in/summary, `gpt-5.4-nano` para clasificación/tagging/clustering, `gpt-5-mini` para respuesta libre/manifiesto/PromptCritic. Audio conserva `gpt-4o-mini-transcribe` y `gpt-4o-mini-audio-preview`.
+- **Defaults.** `gpt-5-nano` para preview/check-in/summary/clasificación/tagging/clustering, `gpt-5-mini` para respuesta libre/matinal/manifiesto/PromptCritic. Audio conserva `gpt-4o-mini-transcribe` y `gpt-4o-mini-audio-preview`.
 - **Por qué.** Reducir costo en tareas simples de alto volumen sin degradar los puntos user-facing que requieren más matiz.
 - **Enforce.** `app/services/openai/model_router.rb`, `Openai::Client#chat(task:)`.
 
@@ -531,6 +536,7 @@ Catálogo de **habilidades humanas del participante** (no de la IA): 82 competen
 - **Regla.** Tras cada mensaje entrante de **check-in** o **chat libre**, `TagConversationSkillsJob` (async) corre `Openai::SkillTagger`: el modelo clasifica el texto contra el catálogo (slug + señales, modo JSON) y devuelve 0–3 habilidades con confianza. Cada una sobre `skill_tagging_min_confidence` se persiste como `SkillDetection` (participante + conversación + skill + origen).
 - **Por qué.** Las "señales de que te falta X" de cada habilidad son cues etiquetados; el catálogo va como prefijo estable del system prompt para aprovechar prompt caching (patrón `ProgramManifesto`). Async para no añadir latencia a la respuesta.
 - **Idempotencia.** Si la conversación ya tiene detecciones, se omite; índice único `[conversation_id, skill_id]` ante re-entrega de webhook.
+- **Fallback.** Errores OpenAI no retryables `400 Bad Request` degradan a cero tags para no llenar la retry queue; 429/5xx/timeouts siguen el retry estándar.
 - **Kill-switch.** `skill_tagging_enabled` (default true). Sin catálogo sembrado, el tagger no llama a OpenAI.
 - **Enforce.** `app/jobs/tag_conversation_skills_job.rb`, `app/services/openai/skill_tagger.rb`, `app/services/openai/skill_catalog.rb`, hook en `app/jobs/process_incoming_message_job.rb` (`enqueue_skill_tagging`).
 

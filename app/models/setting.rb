@@ -49,7 +49,7 @@ class Setting < ApplicationRecord
       description: "Modelo para la demo pública de reto en la landing."
     },
     "openai_model_morning_message" => {
-      type: :string, category: "openai", default: "gpt-5.4-nano",
+      type: :string, category: "openai", default: "gpt-5-mini",
       description: "Modelo para generar el mensaje matinal personalizado."
     },
     "openai_model_free_response" => {
@@ -57,7 +57,7 @@ class Setting < ApplicationRecord
       description: "Modelo para respuestas libres al participante por WhatsApp."
     },
     "openai_model_inbound_intent_classifier" => {
-      type: :string, category: "openai", default: "gpt-5.4-nano",
+      type: :string, category: "openai", default: "gpt-5-nano",
       description: "Modelo para clasificar semánticamente mensajes entrantes."
     },
     "openai_model_checkin_summarizer" => {
@@ -69,7 +69,7 @@ class Setting < ApplicationRecord
       description: "Modelo para mantener el resumen rodante del participante."
     },
     "openai_model_skill_tagger" => {
-      type: :string, category: "openai", default: "gpt-5.4-nano",
+      type: :string, category: "openai", default: "gpt-5-nano",
       description: "Modelo para etiquetar habilidades humanas detectadas en mensajes."
     },
     "openai_model_manifesto" => {
@@ -77,7 +77,7 @@ class Setting < ApplicationRecord
       description: "Modelo para generar el manifiesto de cierre."
     },
     "openai_model_pattern_clusterer" => {
-      type: :string, category: "openai", default: "gpt-5.4-nano",
+      type: :string, category: "openai", default: "gpt-5-nano",
       description: "Modelo para agrupar patrones recurrentes en metodología."
     },
     "openai_model_prompt_critic" => {

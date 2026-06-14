@@ -58,28 +58,28 @@ RSpec.describe "Admin::DayContents", type: :request do
     end
 
     it "filters by program" do
-      get "/admin/day_contents", params: { program_id: program.id }
+      get "/admin/day_contents", params: { program_id: program.id, per_page: 100 }
 
       expect(listed_titles).to include(matching_content.title, inactive_content.title)
       expect(listed_titles).not_to include(other_program_content.title)
     end
 
     it "filters by day number" do
-      get "/admin/day_contents", params: { day_number: 4 }
+      get "/admin/day_contents", params: { day_number: 4, per_page: 100 }
 
       expect(listed_titles).to include(inactive_content.title)
       expect(listed_titles).not_to include(matching_content.title)
     end
 
     it "filters by phase" do
-      get "/admin/day_contents", params: { phase: "choose" }
+      get "/admin/day_contents", params: { phase: "choose", per_page: 100 }
 
       expect(listed_titles).to include(matching_content.title, other_program_content.title)
       expect(listed_titles).not_to include(inactive_content.title)
     end
 
     it "filters by status" do
-      get "/admin/day_contents", params: { status: "inactive" }
+      get "/admin/day_contents", params: { status: "inactive", per_page: 100 }
 
       expect(listed_titles).to eq([ inactive_content.title ])
     end

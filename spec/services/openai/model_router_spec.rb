@@ -6,6 +6,12 @@ RSpec.describe Openai::ModelRouter do
   it "returns the task-specific default model" do
     expect(described_class.for(:checkin_summarizer)).to eq("gpt-5-nano")
     expect(described_class.for(:free_response)).to eq("gpt-5-mini")
+    expect(described_class.for(:inbound_intent_classifier)).to eq("gpt-5-nano")
+    expect(described_class.for(:skill_tagger)).to eq("gpt-5-nano")
+  end
+
+  it "does not default to unavailable gpt-5.4 models" do
+    expect(described_class::TASK_DEFAULTS.values).not_to include(a_string_matching(/\Agpt-5\.4/))
   end
 
   it "allows task-specific settings to override defaults" do

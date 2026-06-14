@@ -228,7 +228,7 @@ Decisiones que tomé durante la implementación, separadas de lo que el plan ya 
 
 ## Modelos OpenAI por tarea (13-jun-2026)
 
-- **`Openai::ModelRouter` reemplaza el modelo fijo para texto.** `openai_model` queda como fallback, pero cada tarea tiene su propio Setting (`openai_model_free_response`, `openai_model_checkin_summarizer`, etc.). Así bajamos costo en clasificación/resumen (`gpt-5-nano`/`gpt-5.4-nano`) y reservamos `gpt-5-mini` para respuestas user-facing o análisis de prompts. Si un modelo nuevo se comporta peor en producción, se revierte desde Settings sin deploy.
+- **`Openai::ModelRouter` reemplaza el modelo fijo para texto.** `openai_model` queda como fallback, pero cada tarea tiene su propio Setting (`openai_model_free_response`, `openai_model_checkin_summarizer`, etc.). Así bajamos costo en clasificación/resumen (`gpt-5-nano`) y reservamos `gpt-5-mini` para respuestas user-facing o análisis de prompts. Si un modelo nuevo se comporta peor en producción, se revierte desde Settings sin deploy.
 - **Compatibilidad GPT-5 en Chat Completions centralizada.** `Openai::Client` usa `max_completion_tokens` y omite temperatura custom para modelos `gpt-5*`; los modelos anteriores siguen usando `max_tokens` y temperatura explícita. La decisión evita duplicar excepciones por servicio mientras el repo siga en Chat Completions.
 
 ## Costos directos por participante/programa (13-jun-2026)
@@ -258,3 +258,7 @@ Decisiones que tomé durante la implementación, separadas de lo que el plan ya 
 ## Compatibilidad Sidekiq scheduler / connection_pool (13-jun-2026)
 
 - **`connection_pool` queda fijado a 2.x mientras usemos Sidekiq 7.3.** En producción `connection_pool 3.0.2` cambió `ConnectionPool::TimedStack#pop` a timeout keyword-only; Sidekiq 7.3.9 llama `pop(total)` en `Sidekiq::Scheduled::Poller#initial_wait`, matando el thread `sidekiq.scheduler` con `ArgumentError` al arrancar. Sin ese thread, `schedule`/`retry` no se promueven y `sidekiq-cron` no encola `MorningWakeJob`/`CheckinEveningJob`. El pin `gem "connection_pool", "~> 2.5"` conserva la API esperada. Re-evaluar al subir Sidekiq a una versión compatible con connection_pool 3.x.
+
+## Modelos OpenAI no disponibles en producción (13-jun-2026)
+
+- **Se elimina `gpt-5.4-nano` de defaults y Settings.** Producción devolvía `400 Bad Request` para `gpt-5.4-nano`, afectando `InboundIntentClassifier`, `SkillTagger`, `PatternClusterer` y el mensaje matinal. Se verificó con una llamada mínima que `gpt-5-mini` y `gpt-5-nano` están disponibles y `gpt-5.4-nano` no. Defaults nuevos: `gpt-5-nano` para clasificación/tagging/clustering y `gpt-5-mini` para matinal.

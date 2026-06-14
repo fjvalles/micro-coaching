@@ -45,6 +45,9 @@ module Openai
         tokens_output: response.tokens_output,
         model: response.model
       )
+    rescue Faraday::BadRequestError => e
+      Rails.logger.warn("SkillTagger OpenAI bad request: #{e.message}")
+      empty
     end
 
     private

@@ -4,14 +4,14 @@ module Openai
 
     TASK_DEFAULTS = {
       preview_challenge: "gpt-5-nano",
-      morning_message: "gpt-5.4-nano",
+      morning_message: "gpt-5-mini",
       free_response: "gpt-5-mini",
-      inbound_intent_classifier: "gpt-5.4-nano",
+      inbound_intent_classifier: "gpt-5-nano",
       checkin_summarizer: "gpt-5-nano",
       participant_summary: "gpt-5-nano",
-      skill_tagger: "gpt-5.4-nano",
+      skill_tagger: "gpt-5-nano",
       manifesto: "gpt-5-mini",
-      pattern_clusterer: "gpt-5.4-nano",
+      pattern_clusterer: "gpt-5-nano",
       prompt_critic: "gpt-5-mini",
       copilot: "gpt-5-mini"
     }.freeze

@@ -49,4 +49,12 @@ RSpec.describe Openai::SkillTagger do
     result = described_class.new(participant: participant, text: "algo", client: fake_client).call
     expect(result.tags).to be_empty
   end
+
+  it "falls back to empty on non-retryable OpenAI bad requests" do
+    allow(fake_client).to receive(:chat).and_raise(Faraday::BadRequestError.new("bad request"))
+
+    result = described_class.new(participant: participant, text: "algo", client: fake_client).call
+
+    expect(result.tags).to be_empty
+  end
 end
