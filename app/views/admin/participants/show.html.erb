@@ -501,20 +501,35 @@
         <h3 class="card-title" style="margin: 0;">Historial de Conversación (Últimos 200 mensajes)</h3>
         
         <div style="display: flex; gap: 8px; align-items: center;">
-          <select id="chat-program-filter" class="form-control" style="font-size: 13px; padding: 4px 8px; width: auto; min-width: 150px;" onchange="applyChatFilters()">
-            <option value="">Todos los programas</option>
+          <%= render layout: "shared/filter_dropdown", locals: { label: "Programa" } do %>
+            <label class="filter-option">
+              <input type="radio" name="chat_program" value="" checked onchange="applyChatFilters(this, 'Programa', 'Todos los programas')">
+              <span>Todos los programas</span>
+            </label>
             <% @participant.enrollments.includes(:program).map(&:program).compact.uniq.each do |prog| %>
-              <option value="<%= prog.id %>"><%= prog.name %></option>
+              <label class="filter-option">
+                <input type="radio" name="chat_program" value="<%= prog.id %>" onchange="applyChatFilters(this, 'Programa', '<%= escape_javascript(prog.name) %>')">
+                <span><%= prog.name %></span>
+              </label>
             <% end %>
-            <option value="none">Sin programa</option>
-          </select>
+            <label class="filter-option">
+              <input type="radio" name="chat_program" value="none" onchange="applyChatFilters(this, 'Programa', 'Sin programa')">
+              <span>Sin programa</span>
+            </label>
+          <% end %>
 
-          <select id="chat-day-filter" class="form-control" style="font-size: 13px; padding: 4px 8px; width: auto; min-width: 120px;" onchange="applyChatFilters()">
-            <option value="">Todos los días</option>
+          <%= render layout: "shared/filter_dropdown", locals: { label: "Día" } do %>
+            <label class="filter-option">
+              <input type="radio" name="chat_day" value="" checked onchange="applyChatFilters(this, 'Día', 'Todos los días')">
+              <span>Todos los días</span>
+            </label>
             <% @participant.conversations.kept.select(:day_number).distinct.pluck(:day_number).compact.sort.each do |day| %>
-              <option value="<%= day %>">Día <%= day %></option>
+              <label class="filter-option">
+                <input type="radio" name="chat_day" value="<%= day %>" onchange="applyChatFilters(this, 'Día', 'Día <%= day %>')">
+                <span>Día <%= day %></span>
+              </label>
             <% end %>
-          </select>
+          <% end %>
         </div>
       </div>
       <div class="card-body">
@@ -524,9 +539,29 @@
     </div>
     
     <script>
-      function applyChatFilters() {
-        const programFilter = document.getElementById('chat-program-filter').value;
-        const dayFilter = document.getElementById('chat-day-filter').value;
+      function applyChatFilters(element = null, dropdownName = null, selectedText = null) {
+        const programInput = document.querySelector('input[name="chat_program"]:checked');
+        const programFilter = programInput ? programInput.value : "";
+
+        const dayInput = document.querySelector('input[name="chat_day"]:checked');
+        const dayFilter = dayInput ? dayInput.value : "";
+
+        if (element && dropdownName && selectedText) {
+          const details = element.closest('details');
+          if (details) {
+            const isAll = element.value === "";
+            const span = details.querySelector('summary span');
+            if (span) {
+              span.textContent = isAll ? dropdownName : `${dropdownName}: ${selectedText}`;
+            }
+            if (isAll) {
+              details.classList.remove('is-active');
+            } else {
+              details.classList.add('is-active');
+            }
+            details.removeAttribute('open');
+          }
+        }
 
         const chatContainer = document.querySelector('#participant_conversations');
         if (!chatContainer) return;
