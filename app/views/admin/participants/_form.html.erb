@@ -39,7 +39,16 @@
             </div>
             <div class="form-group" style="margin-bottom: 0;">
               <%= f.label :program_id, "Programa Asignado", class: "form-label" %>
-              <%= f.collection_select :program_id, @programs, :id, :name, { prompt: "Selecciona un programa" }, { class: "form-select", required: true } %>
+              <%
+                program_options = @programs.map { |p| [ p.name, p.id ] }
+                if Setting.fetch("program_intake_enabled")
+                  program_options << [ "✨ Programa personalizado (intake por WhatsApp)", Admin::ParticipantsController::INTAKE_PROGRAM_VALUE ]
+                end
+              %>
+              <%= f.select :program_id, options_for_select(program_options, f.object.program_id), { prompt: "Selecciona un programa" }, { class: "form-select", required: true } %>
+              <% if Setting.fetch("program_intake_enabled") %>
+                <small class="form-hint">Elige «Programa personalizado» para armar un programa a medida con un cuestionario por WhatsApp en vez de asignar uno existente.</small>
+              <% end %>
             </div>
           </div>
 

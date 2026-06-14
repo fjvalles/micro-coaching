@@ -1,5 +1,9 @@
 module Admin
   class ParticipantsController < BaseController
+    # Sentinel program_id meaning "no pre-authored program — start the personalized
+    # intake instead". Offered in the program dropdown when program_intake_enabled.
+    INTAKE_PROGRAM_VALUE = "__intake__".freeze
+
     before_action :set_participant, only: [
       :show, :edit, :update, :destroy, :enroll, :discard, :undiscard,
       :send_message, :re_enroll, :start_program, :versions,
@@ -119,20 +123,20 @@ module Admin
 
     def new
       @participant = Participant.new(program_id: params[:program_id], status: :pending, current_day: 0, timezone: (Setting.fetch("default_timezone") || "America/Santiago"))
-      @programs = Program.all.order(:name)
-      @companies = Company.kept.ordered
+      load_form_collections
     end
 
     def edit
-      @programs = Program.all.order(:name)
-      @companies = Company.kept.ordered
+      load_form_collections
     end
 
     def create
+      @intake_requested = intake_requested?
       @participant = Participant.new(participant_params)
-      @programs = Program.all.order(:name)
-      @companies = Company.kept.ordered
+      load_form_collections
       if @participant.save
+        return start_intake_after_save("Participante creado.") if @intake_requested
+
         redirect_to admin_participant_path(@participant), notice: "Participante creado exitosamente."
       else
         render :new, status: :unprocessable_entity
@@ -140,9 +144,11 @@ module Admin
     end
 
     def update
-      @programs = Program.all.order(:name)
-      @companies = Company.kept.ordered
+      @intake_requested = intake_requested?
+      load_form_collections
       if @participant.update(participant_params)
+        return start_intake_after_save("Participante actualizado.") if @intake_requested
+
         redirect_to admin_participant_path(@participant), notice: "Participante actualizado exitosamente."
       else
         render :edit, status: :unprocessable_entity
@@ -317,12 +323,39 @@ module Admin
     end
 
     def participant_params
-      params.require(:participant).permit(
+      permitted = params.require(:participant).permit(
         :program_id, :company_id, :name, :phone_e164, :email, :role, :status,
         :current_day, :timezone, :initial_pattern, :energy_map,
         :closing_manifesto, :pending_checkin_at, :response_mode,
         :focus_hint, :coach_notes
       )
+      # The intake sentinel is not a real program_id — drop it so the participant
+      # saves with no program; start_intake_after_save kicks off the questionnaire.
+      permitted.delete(:program_id) if permitted[:program_id] == INTAKE_PROGRAM_VALUE
+      permitted
+    end
+
+    # Assignable programs exclude AI-generated templates (those are reviewable
+    # artifacts, never picked directly from the dropdown).
+    def load_form_collections
+      @programs = Program.where(template: false).order(:name)
+      @companies = Company.kept.ordered
+    end
+
+    def intake_requested?
+      params.dig(:participant, :program_id) == INTAKE_PROGRAM_VALUE &&
+        Setting.fetch("program_intake_enabled")
+    end
+
+    def start_intake_after_save(prefix)
+      result = Participants::IntakeStarter.new(@participant).call
+      if result.ok?
+        redirect_to admin_participant_path(@participant),
+                    notice: "#{prefix} Intake personalizado iniciado; se envió la primera pregunta por WhatsApp."
+      else
+        redirect_to admin_participant_path(@participant),
+                    alert: "#{prefix} No se pudo iniciar el intake: #{start_intake_error(result.reason)}"
+      end
     end
   end
 end

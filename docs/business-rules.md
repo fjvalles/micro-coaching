@@ -676,8 +676,9 @@ Un participante puede recibir un **programa generado a medida** a partir de un c
 - **Enforce.** `app/services/participants/intake_starter.rb`, `app/jobs/program_generation_job.rb`.
 
 ### 29.5 Acciones de admin
-- **Regla.** Desde `/admin/participants/:id`: botón **"Armar programa personalizado"** (`#start_intake` → `IntakeStarter`, visible si `program_intake_enabled` y el participante está `pending`/`intake`) y, cuando hay plantilla esperando revisión, un banner con link a la plantilla generada + botón **"Aprobar programa generado"** (`#approve_program` → `Programs::Approver`). El botón de intake se reusa como "Reenviar pregunta" mientras está en `:intake`.
-- **Enforce.** `app/controllers/admin/participants_controller.rb` (`#start_intake`, `#approve_program`), `app/views/admin/participants/show.html.erb`, `config/routes.rb`.
+- **Regla (alta).** En el form de alta/edición, el dropdown **Programa Asignado** ofrece la opción **"✨ Programa personalizado (intake por WhatsApp)"** (valor centinela `INTAKE_PROGRAM_VALUE`) cuando `program_intake_enabled`. Elegirla guarda al participante **sin programa** y dispara `IntakeStarter` (`#create`/`#update` → `start_intake_after_save`). El dropdown **excluye las plantillas generadas** (`Program.where(template: false)`).
+- **Regla (existentes).** Desde `/admin/participants/:id`: botón **"Armar programa personalizado"** (`#start_intake` → `IntakeStarter`, visible si `program_intake_enabled` y el participante está `pending`/`intake`; se reusa como "Reenviar pregunta" en `:intake`). Cuando hay plantilla esperando revisión, banner con link a la plantilla + botón **"Aprobar programa generado"** (`#approve_program` → `Programs::Approver`).
+- **Enforce.** `app/controllers/admin/participants_controller.rb` (`INTAKE_PROGRAM_VALUE`, `#create`/`#update`/`#start_intake`/`#approve_program`), `app/views/admin/participants/_form.html.erb`, `app/views/admin/participants/show.html.erb`, `config/routes.rb`.
 
 > **Gaps conscientes.** No hay timeout de abandono mid-intake (el step persiste; reanuda al próximo inbound). La generación es one-shot (no skeleton+fill). Las plantillas generadas inactivas viven en `/admin/programs` sin un índice dedicado de "pendientes de revisión".
 

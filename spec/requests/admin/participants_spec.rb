@@ -159,6 +159,26 @@ RSpec.describe "Admin::Participants", type: :request do
       new_participant = Participant.find_by(phone_e164: "+521999988877")
       expect(response).to redirect_to(admin_participant_path(new_participant))
     end
+
+    it "starts the personalized intake when the intake program option is chosen" do
+      allow(Setting).to receive(:fetch).and_call_original
+      allow(Setting).to receive(:fetch).with("program_intake_enabled").and_return(true)
+
+      expect {
+        post "/admin/participants", params: {
+          participant: {
+            program_id: Admin::ParticipantsController::INTAKE_PROGRAM_VALUE,
+            name: "Intake Test", phone_e164: "+521999900011",
+            status: "pending", timezone: "America/Santiago"
+          }
+        }
+      }.to have_enqueued_job(SendIntakeQuestionJob)
+
+      created = Participant.find_by(phone_e164: "+521999900011")
+      expect(created.program).to be_nil
+      expect(created).to be_intake
+      expect(flash[:notice]).to include("Intake personalizado iniciado")
+    end
   end
 
   describe "PATCH /admin/participants/:id" do
