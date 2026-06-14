@@ -8,11 +8,12 @@ module Participants
       return :skipped unless @participant.active?
 
       today_local = @participant.local_time.to_date
+      yesterday_local = today_local - 1.day
       last_checkin = @participant.conversations.kept
                        .where(moment: :checkin_response, day_number: @participant.current_day)
                        .order(created_at: :desc).first
 
-      unless last_checkin && last_checkin.created_at.in_time_zone(@participant.timezone).to_date == today_local
+      unless last_checkin && [today_local, yesterday_local].include?(last_checkin.created_at.in_time_zone(@participant.timezone).to_date)
         Rails.logger.info("DayAdvancer: no check-in today for participant=#{@participant.id}")
         return :no_checkin
       end
