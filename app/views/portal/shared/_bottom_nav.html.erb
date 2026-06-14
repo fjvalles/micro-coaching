@@ -1,0 +1,8 @@
+<nav class="bottom-nav" aria-label="Secciones">
+  <% portal_tabs.each do |label, path, icon, controllers| %>
+    <%= link_to path, class: ("active" if portal_tab_active?(controllers)), aria: { label: label } do %>
+      <%= portal_icon(icon) %>
+      <span><%= label %></span>
+    <% end %>
+  <% end %>
+</nav>
