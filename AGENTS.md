@@ -56,7 +56,7 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 - `CheckinEveningJob` — hourly, same pattern at 20:00 local
 - `AdvanceDayJob` — daily at 06:00 UTC, calls `Participants::DayAdvancer`
 - `RefreshMethodologyInsightsJob` — daily at 03:30 UTC, materializes methodology insights for the admin dashboard
-- `DailyBackupJob` — daily at 03:00 UTC, runs `pg_dump` and uploads the encrypted custom database backup to Google Drive
+- `DailyBackupJob` — daily at 03:00 UTC, runs `pg_dump` and uploads the encrypted custom database backup to Backblaze B2 (S3)
 - `PauseInactiveParticipantsJob` — daily at 05:00 UTC, pauses `active` participants with no inbound in `inactivity_pause_days`
 - `SubscriptionBillingJob` — daily at 08:00 UTC, charges due Webpay Oneclick subscriptions; dunning to `past_due` after `subscription_max_retries`
 - `CapacityAlertJob` — every 15 min, warns Sentry past `capacity_queue_latency_alert_seconds` / `capacity_backlog_alert_threshold` (0 = off)
@@ -150,7 +150,7 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/participants/Enroller` — creates participant; activates immediately via `Activator` unless individual payment is required (`payment_required?`), in which case leaves `:awaiting_payment`
 - `app/services/participants/AudioProcessor` — orchestrates audio downloading, transcription, paralinguistic analysis
 - `app/services/backups/DatabaseDumper` — dumps PostgreSQL database
-- `app/services/backups/GoogleDriveUploader` — uploads backups to Google Drive
+- `app/services/backups/S3Uploader` — uploads backups to S3/B2
 - `app/services/participants/Activator` — single activation path (sets `status: :active`, `current_day: 1`, opens cycle-1 `Enrollment`, fires `SendWelcomeJob`); idempotent; shared by `Enroller`, admin enroll, and payment commit
 - `app/services/participants/ProgramStarter` — admin-only immediate start path for day 0/1 participants; ensures active day 1 state/enrollment, enqueues welcome when needed, and enqueues `MorningWakeForParticipantJob` without waiting for the cron hour
 - `app/services/participants/ReEnroller` — transitions a completed participant into `program.next_program` (sequential multi-cycle): repoints `program_id`/`current_day: 1`/`status: active`, opens a new `Enrollment` cycle, cancels stale active cycles, resets `ai_summary`, fires `SendWelcomeJob`. Admin button on `/admin/participants/:id`. See `business-rules.md` §26

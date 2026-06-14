@@ -27,7 +27,7 @@ gem "httparty"
 gem "faraday-retry"
 gem "kramdown", "~> 2.4"
 gem "kramdown-parser-gfm", "~> 1.1"
-gem "google-apis-drive_v3", "~> 0.50"
+gem "aws-sdk-s3", "~> 1.144"
 gem "paper_trail", "~> 16.0"
 gem "rack-attack"
 

@@ -3,7 +3,7 @@ class DailyBackupJob < ApplicationJob
 
   def perform
     dump = Backups::DatabaseDumper.new.call
-    uploader = Backups::GoogleDriveUploader.new
+    uploader = Backups::S3Uploader.new
     uploader.upload(path: dump.path, filename: dump.filename)
     uploader.prune_old
   ensure
