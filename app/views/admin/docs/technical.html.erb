@@ -1117,7 +1117,7 @@ UNIQUE INDEX idx_prompt_templates_unique(key, program_id, day_number)</pre>
           <tr><td><code>MorningWakeJob</code></td><td><code>0 * * * *</code> (hourly)</td><td>Fan-out a participantes cuya hora local == <code>wake_hour</code>.</td></tr>
           <tr><td><code>CheckinEveningJob</code></td><td><code>0 * * * *</code> (hourly)</td><td>Fan-out a participantes cuya hora local == <code>checkin_hour</code> (20).</td></tr>
           <tr><td><code>AdvanceDayJob</code></td><td><code>0 6 * * *</code> (06:00 UTC daily)</td><td>Avanza <code>current_day</code> a participantes con check-in de hoy.</td></tr>
-          <tr><td><code>DailyBackupJob</code></td><td><code>0 3 * * *</code> (03:00 UTC daily)</td><td><code>pg_dump</code> → Backblaze B2 (S3) → purga backups &gt;7 días.</td></tr>
+          <tr><td><code>DailyBackupJob</code></td><td><code>0 6 * * * America/Santiago</code> (06:00 local)</td><td><code>pg_dump</code> → Backblaze B2 (S3) → purga backups &gt;7 días.</td></tr>
           <tr><td><code>RefreshMethodologyInsightsJob</code></td><td><code>30 3 * * *</code> (03:30 UTC daily)</td><td>Materializa insights metodológicos (KPIs, clusters) en la base de datos.</td></tr>
         </tbody>
       </table>

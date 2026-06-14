@@ -14,9 +14,9 @@ advance_day:
   description: "Advance current_day for participants who completed yesterday's check-in"
 
 daily_backup:
-  cron: "0 3 * * *"
+  cron: "0 6 * * * America/Santiago"
   class: DailyBackupJob
-  description: "pg_dump database, upload to Google Drive, prune backups older than 7 days"
+  description: "pg_dump database, upload to Backblaze B2 (S3), prune backups older than 7 days"
 
 refresh_methodology_insights:
   cron: "30 3 * * *"

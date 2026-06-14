@@ -110,7 +110,7 @@ Defined in `config/schedule.yml`, loaded by `sidekiq-cron`:
 | `MorningWakeJob` | Hourly | Fans out to `MorningWakeForParticipantJob` for participants whose local hour == `Setting.get("wake_hour")` |
 | `CheckinEveningJob` | Hourly | Same pattern at 20:00 participant-local time |
 | `AdvanceDayJob` | Daily 06:00 UTC | Calls `Participants::DayAdvancer` |
-| `DailyBackupJob` | Daily 03:00 UTC | `pg_dump` → uploads to Backblaze B2 (S3), prunes backups > 7 days |
+| `DailyBackupJob` | Daily 06:00 local | `pg_dump` → uploads to Backblaze B2 (S3), prunes backups > 7 days |
 
 ## Voice messages
 

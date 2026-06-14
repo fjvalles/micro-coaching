@@ -56,7 +56,7 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 - `CheckinEveningJob` — hourly, same pattern at 20:00 local
 - `AdvanceDayJob` — daily at 06:00 UTC, calls `Participants::DayAdvancer`
 - `RefreshMethodologyInsightsJob` — daily at 03:30 UTC, materializes methodology insights for the admin dashboard
-- `DailyBackupJob` — daily at 03:00 UTC, runs `pg_dump` and uploads the encrypted custom database backup to Backblaze B2 (S3)
+- `DailyBackupJob` — daily at 06:00 local time, runs `pg_dump` and uploads the encrypted custom database backup to Backblaze B2 (S3)
 - `PauseInactiveParticipantsJob` — daily at 05:00 UTC, pauses `active` participants with no inbound in `inactivity_pause_days`
 - `SubscriptionBillingJob` — daily at 08:00 UTC, charges due Webpay Oneclick subscriptions; dunning to `past_due` after `subscription_max_retries`
 - `CapacityAlertJob` — every 15 min, warns Sentry past `capacity_queue_latency_alert_seconds` / `capacity_backlog_alert_threshold` (0 = off)
