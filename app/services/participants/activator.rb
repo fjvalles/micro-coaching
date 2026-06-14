@@ -23,6 +23,10 @@ module Participants
       )
       @participant.start_enrollment! # opens the cycle-1 ledger row for this program
       SendWelcomeJob.perform_later(@participant.id)
+      # "What to expect" overview. Self-gates on the 24h window: lands immediately for
+      # warm starts (approved personalized program) and after the first reply for cold
+      # enrolls (re-enqueued by ProcessIncomingMessageJob).
+      SendProgramOverviewJob.perform_later(@participant.id)
       @participant
     end
   end

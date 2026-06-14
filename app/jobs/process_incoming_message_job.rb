@@ -33,6 +33,7 @@ class ProcessIncomingMessageJob < ApplicationJob
     end
 
     reactivate_if_paused(participant)
+    maybe_send_program_overview(participant)
 
     if AUDIO_TYPES.include?(message.type)
       process_audio_message(participant, message)
@@ -158,6 +159,16 @@ class ProcessIncomingMessageJob < ApplicationJob
     else
       ack(participant, result.next_question, moment: :program_intake)
     end
+  end
+
+  # Cold-enroll path for the "what to expect" overview: the inbound just opened the
+  # 24h window, so (re)enqueue the overview. Cheap pre-filter to program start; the
+  # job re-validates window, recency, and idempotency, so old/re-engaged participants
+  # never get back-filled.
+  def maybe_send_program_overview(participant)
+    return unless participant.active? && participant.program_id.present? && participant.current_day.to_i <= 1
+
+    SendProgramOverviewJob.perform_later(participant.id)
   end
 
   # Async detection of the participant's human skills in this inbound. Gated +

@@ -123,6 +123,7 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/programs/Builder` — persists a generated spec as a `Program` **template** (`template: true`, `active: false`) + `DayContent`s in a transaction (unique, format-valid slug)
 - `app/services/programs/Cloner` — deep-copies a template `Program` (+`DayContent`s) into a live copy (`template: false`, `active: true`) for one participant
 - `app/services/programs/Approver` — promotes a reviewed template: clone → assign → seed `initial_pattern` from intake → `Activator`. Shared by the auto path and admin approval
+- `app/services/programs/OverviewMessage` — deterministic "what to expect" message (scope, duration, daily cadence, see→choose→anchor arc) built from the participant's program; sets expectations to reduce uncertainty/improve completion. Never reveals future-day challenge content. Sent by `SendProgramOverviewJob` (enqueued from `Activator`, gated on the 24h window)
 - `app/services/participants/InboundIntentClassifier` — semantic JSON classifier for inbound WhatsApp text/audio transcripts; prevents non-check-in messages from consuming pending check-ins, blocks restricted data/methodology/future-content requests, and routes support/sensitive/pause intents
 - `app/services/participants/DayAdvancer` — advances `current_day`, sets `started_at` / `completed_at`
 - `app/services/participants/Enroller` — creates participant; activates immediately via `Activator` unless individual payment is required (`payment_required?`), in which case leaves `:awaiting_payment`

@@ -682,6 +682,11 @@ Un participante puede recibir un **programa generado a medida** a partir de un c
 
 > **Gaps conscientes.** No hay timeout de abandono mid-intake (el step persiste; reanuda al próximo inbound). La generación es one-shot (no skeleton+fill). Las plantillas generadas inactivas viven en `/admin/programs` sin un índice dedicado de "pendientes de revisión".
 
+### 29.6 Mensaje de expectativas al iniciar (overview)
+- **Regla.** Al activarse un participante (alta en programa ya armado **o** aprobación de programa personalizado — ambos pasan por `Participants::Activator`), se le envía un mensaje **determinístico** de "qué esperar": nombre del programa, duración, cadencia diaria (mensaje matinal + reto + check-in nocturno), el arco de fases `ver → elegir → anclar` en general, y qué se espera de él. Reduce incertidumbre para subir la tasa de finalización. **Nunca revela retos específicos de días futuros** (regla de contenidos futuros). Texto construido por `Programs::OverviewMessage` desde los datos del propio programa.
+- **Ventana 24h.** WhatsApp solo permite texto libre dentro de la ventana de 24h. `SendProgramOverviewJob` se auto-gatea en `in_24h_window?`: en arranque cálido (programa personalizado recién aprobado, venían chateando) llega de inmediato; en alta en frío (sin inbound previo) se omite y `ProcessIncomingMessageJob#maybe_send_program_overview` lo re-encola cuando la primera respuesta del participante abre la ventana. Idempotente y acotado al arranque (`current_day <= 1`, `started_at` < 3 días) para no hacer back-fill a participantes antiguos o reenganchados.
+- **Enforce.** `app/services/programs/overview_message.rb`, `app/jobs/send_program_overview_job.rb`, `app/services/participants/activator.rb`, `app/jobs/process_incoming_message_job.rb#maybe_send_program_overview`.
+
 ---
 
 ## 13. Edge cases conocidos
