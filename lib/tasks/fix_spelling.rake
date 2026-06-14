@@ -95,7 +95,7 @@ namespace :data do
     end
 
     puts "Corrección completada:"
-    puts "- \#{changed_day_contents} Días (DayContent) corregidos."
-    puts "- \#{changed_programs} Programas corregidos."
+    puts "- #{changed_day_contents} Días (DayContent) corregidos."
+    puts "- #{changed_programs} Programas corregidos."
   end
 end
