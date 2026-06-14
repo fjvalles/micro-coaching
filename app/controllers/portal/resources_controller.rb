@@ -3,13 +3,7 @@ module Portal
   # Deduplicado por recurso (queda la entrega más reciente), solo recursos vigentes.
   class ResourcesController < BaseController
     def index
-      deliveries = current_participant.resource_deliveries
-                                      .includes(:resource)
-                                      .order(created_at: :desc)
-
-      @resources = deliveries
-                   .select { |d| d.resource&.kept? }
-                   .uniq { |d| d.resource_id }
+      @resources = current_participant.shared_resources
     end
   end
 end

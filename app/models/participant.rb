@@ -82,6 +82,17 @@ class Participant < ApplicationRecord
     @latest_report ||= daily_reports.order(reported_at: :desc).first
   end
 
+  # Resources delivered to this participant (via WhatsApp), most recent first,
+  # deduped per resource and filtered to still-kept records. Drives the portal
+  # Recursos tab and the dashboard preview.
+  def shared_resources(limit: nil)
+    result = resource_deliveries.includes(:resource)
+                                .order(created_at: :desc)
+                                .select { |d| d.resource&.kept? }
+                                .uniq(&:resource_id)
+    limit ? result.first(limit) : result
+  end
+
   # Human skills most frequently detected for this participant in a recent window,
   # ordered by detection frequency. Drives the admin skill profile.
   def dominant_skills(limit: 5, since: 30.days.ago)

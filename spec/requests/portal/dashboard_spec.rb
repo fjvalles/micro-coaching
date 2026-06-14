@@ -27,4 +27,20 @@ RSpec.describe "Portal::Dashboard", type: :request do
     get portal_root_path
     expect(response).to redirect_to(portal_login_path)
   end
+
+  it "previews recent shared resources with a link to all" do
+    r = create(:resource, title: "Recurso destacado")
+    create(:resource_delivery, participant: participant, resource: r)
+    login!(participant)
+    get portal_root_path
+    expect(response.body).to include("Recurso destacado")
+    expect(response.body).to include("Ver todos")
+  end
+
+  it "shows the final-report banner when completed with a closing manifesto" do
+    participant.update!(status: :completed, closing_manifesto: "Cierre.")
+    login!(participant)
+    get portal_root_path
+    expect(response.body).to include("Tu reporte final está listo")
+  end
 end

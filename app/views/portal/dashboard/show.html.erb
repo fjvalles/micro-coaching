@@ -1,53 +1,104 @@
 <% content_for :title, "Mi progreso — Impulso" %>
 
-<% pct = @total_days.positive? ? [ (@participant.current_day.to_f / @total_days * 100).round, 100 ].min : 0 %>
-
 <div class="card">
-  <div style="font-size: 13px; color: var(--text-muted);">Hola</div>
-  <h1 class="gradient-text" style="font-size: 28px; font-weight: 800; margin: 2px 0 16px; font-family: var(--font-title); letter-spacing: -0.02em;"><%= @participant.name %></h1>
+  <p class="eyebrow">Hola</p>
+  <h1 class="gradient-text" style="font-size: 28px; font-weight: 800; margin: 2px 0 18px; font-family: var(--font-title); letter-spacing: -0.02em;"><%= @participant.name %></h1>
 
-  <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">
-    <span>Día <%= @participant.current_day %> de <%= @total_days %></span>
-    <span><%= pct %>%</span>
-  </div>
-  <div style="height: 10px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden; border: 1px solid var(--border);">
-    <div style="height: 100%; width: <%= pct %>%; background: linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%); border-radius: 999px;"></div>
+  <div style="display: flex; align-items: center; gap: 18px;">
+    <div class="ring-wrap">
+      <svg viewBox="0 0 36 36" width="96" height="96" aria-hidden="true">
+        <circle cx="18" cy="18" r="15.9155" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"></circle>
+        <circle cx="18" cy="18" r="15.9155" fill="none" stroke="var(--primary)" stroke-width="3"
+                stroke-dasharray="<%= @pct %> 100" stroke-linecap="round" transform="rotate(-90 18 18)"></circle>
+      </svg>
+      <span class="ring-label"><%= @pct %>%</span>
+    </div>
+    <div style="flex: 1;">
+      <p style="font-size: 15px; margin: 0 0 8px;">Día <%= @participant.current_day %> de <%= @total_days %></p>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <span class="pill pill-info">Etapa: <%= portal_phase_label(@participant.phase) %></span>
+        <% if @participant.completed? %>
+          <span class="pill pill-ok">Completado</span>
+        <% end %>
+      </div>
+    </div>
   </div>
 
-  <div style="margin-top: 20px; display: flex; gap: 8px; flex-wrap: wrap;">
-    <span style="font-size: 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); color: var(--text-main); padding: 5px 12px; border-radius: 999px;">Estado: <%= @participant.status %></span>
-    <span style="font-size: 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); color: var(--text-main); padding: 5px 12px; border-radius: 999px;">Fase: <%= @participant.phase %></span>
+  <div class="stat-grid" style="margin-top: 18px;">
+    <div class="stat-card">
+      <p class="k">Programa</p>
+      <p class="v"><%= @participant.program&.name || "—" %></p>
+    </div>
+    <div class="stat-card">
+      <p class="k">Estado</p>
+      <p class="v"><%= @participant.status.humanize %></p>
+    </div>
     <% if @participant.company %>
-      <span style="font-size: 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); color: var(--text-main); padding: 5px 12px; border-radius: 999px;"><%= @participant.company.name %></span>
+      <div class="stat-card">
+        <p class="k">Empresa</p>
+        <p class="v"><%= @participant.company.name %></p>
+      </div>
     <% end %>
   </div>
 </div>
+
+<% if @participant.completed? && @participant.closing_manifesto.present? %>
+  <%= link_to portal_program_path, style: "text-decoration: none;" do %>
+    <div class="card" style="border-color: var(--secondary); box-shadow: 0 0 24px rgba(129, 140, 248, 0.15);">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div>
+          <h2 class="section-title" style="margin: 0;">Tu reporte final está listo</h2>
+          <p class="eyebrow" style="margin-top: 4px;">Lee el manifiesto de cierre de tu programa.</p>
+        </div>
+        <span class="ico-md" style="color: var(--secondary);"><%= portal_icon(:check) %></span>
+      </div>
+    </div>
+  <% end %>
+<% end %>
 
 <% if @can_pay %>
   <div class="card" style="border-color: var(--primary); box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);">
-    <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 6px; font-family: var(--font-title);">Activa tu membresía</h2>
-    <p style="color: var(--text-muted); margin: 0 0 16px; font-size: 14px;">Completa el pago para continuar tu programa.</p>
-    <%= link_to "Pagar $#{number_with_delimiter(@price, delimiter: '.')} CLP", pagos_path(participant_id: @participant.id), class: "btn btn-primary" %>
+    <h2 class="section-title" style="margin-bottom: 6px;">Activa tu membresía</h2>
+    <p class="eyebrow" style="margin-bottom: 16px;">Completa el pago para continuar tu programa.</p>
+    <%= link_to "Pagar #{portal_clp(@price)}", pagos_path(participant_id: @participant.id), class: "btn btn-primary" %>
   </div>
 <% end %>
 
-<div class="card">
-  <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 16px; font-family: var(--font-title);">Tus reportes diarios</h2>
-  <% if @reports.any? %>
-    <% @reports.each do |r| %>
-      <div style="padding: 16px 0; border-top: 1px solid var(--border);">
-        <div style="font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px;">Día <%= r.day_number %> · <%= r.reported_at&.strftime("%d/%m/%Y") %></div>
-        <% if r.ai_summary.present? %><div style="font-size: 14.5px; color: var(--text-main); line-height: 1.5; margin-bottom: 6px;"><%= r.ai_summary %></div><% end %>
-        <% if r.ai_key_pattern.present? %><div style="font-size: 13px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px; background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.15); padding: 4px 10px; border-radius: 6px;">Patrón: <%= r.ai_key_pattern %></div><% end %>
-      </div>
+<% if @recent_resources.any? %>
+  <div class="card card-tight">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+      <h2 class="section-title" style="margin: 0;">Recursos para ti</h2>
+      <%= link_to "Ver todos", portal_resources_path, class: "eyebrow", style: "text-decoration: none; color: var(--secondary);" %>
+    </div>
+    <% @recent_resources.each do |d| %>
+      <% r = d.resource %>
+      <a href="<%= r.url %>" target="_blank" rel="noopener noreferrer" class="resource-item">
+        <span class="ri-icon"><%= portal_resource_icon(r.kind) %></span>
+        <span class="ri-body">
+          <p class="ri-title"><%= r.title %></p>
+          <p class="ri-meta"><%= portal_resource_label(r.kind) %></p>
+        </span>
+        <span class="ico-sm" style="color: var(--text-muted); flex-shrink: 0;"><%= portal_icon(:external) %></span>
+      </a>
     <% end %>
-  <% else %>
-    <p style="color: var(--text-muted); font-size: 14px; margin: 0;">Aún no tienes reportes. Aparecerán a medida que avances en el programa.</p>
-  <% end %>
-</div>
-
-<% if @participant.company %>
-  <p style="font-size: 12px; color: var(--text-muted); text-align: center;">Tu membresía es gestionada por <%= @participant.company.name %>.</p>
+  </div>
 <% end %>
 
-<p style="font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 12px; opacity: 0.8;">Puedes instalar esta página como app desde el menú de tu navegador.</p>
+<% if @latest_report %>
+  <%= link_to portal_program_path, style: "text-decoration: none;" do %>
+    <div class="card card-tight">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <h2 class="section-title" style="margin: 0;">Último reporte</h2>
+        <span class="eyebrow">Día <%= @latest_report.day_number %></span>
+      </div>
+      <% if @latest_report.ai_summary.present? %>
+        <p style="font-size: 14.5px; line-height: 1.5; margin: 0;"><%= truncate(@latest_report.ai_summary, length: 160) %></p>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
+
+<% if @participant.company %>
+  <p class="muted-note">Tu membresía es gestionada por <%= @participant.company.name %>.</p>
+<% end %>
+<p class="muted-note">Puedes instalar esta página como app desde el menú de tu navegador.</p>
