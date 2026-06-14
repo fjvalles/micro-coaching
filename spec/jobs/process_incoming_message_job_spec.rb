@@ -336,5 +336,45 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
       expect(intake_participant.intake_step).to eq(1)
       expect(intake_participant.intake_answers["goal"]).to eq("dejar de postergar")
     end
+
+    it "acks completion once and ignores follow-up messages while generation is already requested" do
+      last_step = Participants::IntakeQuestions.count - 1
+      intake_participant.update!(
+        intake_state: { "step" => last_step, "answers" => {}, "awaiting_open" => false }
+      )
+
+      expect {
+        described_class.new.perform(text_payload(text: "14"))
+      }.to have_enqueued_job(ProgramGenerationJob).with(intake_participant.id)
+
+      intake_participant.reload
+      building_text = Setting.fetch("program_intake_building_text")
+      expect(intake_participant.intake_generation_requested?).to be(true)
+      expect(intake_participant.conversations.where(moment: :program_intake, role: :assistant, body: building_text).count).to eq(1)
+
+      expect {
+        described_class.new.perform(text_payload(text: "Ok"))
+      }.not_to have_enqueued_job(ProgramGenerationJob)
+
+      expect(intake_participant.conversations.where(moment: :program_intake, role: :assistant, body: building_text).count).to eq(1)
+    end
+
+    it "does not repeat the completion ack while a generated program awaits review" do
+      intake_participant.update!(
+        intake_state: {
+          "step" => Participants::IntakeQuestions.count,
+          "answers" => {},
+          "awaiting_review" => true,
+          "template_program_id" => SecureRandom.uuid
+        }
+      )
+
+      expect {
+        described_class.new.perform(text_payload(text: "Ok"))
+      }.not_to have_enqueued_job(ProgramGenerationJob)
+
+      building_text = Setting.fetch("program_intake_building_text")
+      expect(intake_participant.conversations.where(moment: :program_intake, role: :assistant, body: building_text)).to be_empty
+    end
   end
 end

@@ -109,7 +109,7 @@ class Participant < ApplicationRecord
 
   # Intake state machine helpers. intake_state jsonb shape:
   #   { "step" => Integer (next unanswered question index), "answers" => { key => text },
-  #     "awaiting_review" => Boolean }
+  #     "generation_requested_at" => String, "awaiting_review" => Boolean }
   def intake_step
     intake_state.fetch("step", 0).to_i
   end
@@ -120,6 +120,10 @@ class Participant < ApplicationRecord
 
   def intake_awaiting_review?
     intake_state["awaiting_review"] == true
+  end
+
+  def intake_generation_requested?
+    intake_state["generation_requested_at"].present?
   end
 
   # The reviewed personalized-program TEMPLATE this participant generated (if any),

@@ -158,6 +158,27 @@ class ProcessIncomingMessageJob < ApplicationJob
   def handle_program_intake(participant, inbound, text)
     inbound.update!(moment: :program_intake)
 
+    next_reply = nil
+    enqueue_generation = false
+
+    participant.with_lock do
+      participant.reload
+
+      # Once generation has been requested, extra "ok"/follow-up messages while
+      # the participant remains in intake must not repeat the completion ack or
+      # enqueue duplicate program-generation jobs.
+      break if participant.intake_awaiting_review? || participant.intake_generation_requested?
+
+      intake_result = advance_intake(participant, text)
+      next_reply = intake_result[:reply]
+      enqueue_generation = intake_result[:enqueue_generation]
+    end
+
+    ack(participant, next_reply, moment: :program_intake) if next_reply.present?
+    ProgramGenerationJob.perform_later(participant.id) if enqueue_generation
+  end
+
+  def advance_intake(participant, text)
     # First reply after the opener template: this message only opens the 24h window
     # (the participant hasn't seen any question yet). Don't record it as an answer —
     # send the first question now that free text is allowed.
@@ -166,17 +187,20 @@ class ProcessIncomingMessageJob < ApplicationJob
         participant.update!(intake_state: participant.intake_state.merge("awaiting_open" => false))
       end
       first_question = Participants::IntakeQuestions.at(participant.intake_step)
-      ack(participant, first_question[:text], moment: :program_intake) if first_question
-      return
+      return { reply: first_question&.fetch(:text), enqueue_generation: false }
     end
 
     result = Participants::IntakeHandler.new(participant: participant, answer_text: text).call
 
     if result.complete?
-      ack(participant, Setting.fetch("program_intake_building_text"), moment: :program_intake)
-      ProgramGenerationJob.perform_later(participant.id)
+      PaperTrail.request(whodunnit: "ai:ProcessIncomingMessage", controller_info: { source: "ai" }) do
+        participant.update!(
+          intake_state: participant.intake_state.merge("generation_requested_at" => Time.current.iso8601)
+        )
+      end
+      { reply: Setting.fetch("program_intake_building_text"), enqueue_generation: true }
     else
-      ack(participant, result.next_question, moment: :program_intake)
+      { reply: result.next_question, enqueue_generation: false }
     end
   end
 
