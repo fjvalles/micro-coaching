@@ -734,6 +734,32 @@ La app puede anexar links públicos aprobados a respuestas generativas de WhatsA
 
 ---
 
+## 31. Asistente IA de programas (chat en `/admin/programs`)
+
+Un admin puede crear, editar y leer programas conversando con una IA desde un modal ("Asistente IA") en el listado de programas, en vez de escribir cada `DayContent` a mano. Mismo patrón de seguridad que el Copiloto (§27): las escrituras quedan como **propuesta** y solo se aplican con aprobación humana.
+
+### 31.1 Loop con herramientas y gate humano
+- **Regla.** `ProgramAssistant::AgentRunner` corre un loop de function-calling de OpenAI. Las tools de lectura (`list_programs`, `get_program`) ejecutan inline; las tools de escritura (`create_program`, `update_program`) **nunca** ejecutan en el loop: registran un `ProgramAssistantPendingAction(pending)` y detienen el turno. Solo al aprobar (botón en el modal) corre `ProgramAssistant::ActExecutor`.
+- **Por qué.** El contenido devuelto por tools es dato no confiable; aunque una inyección logre proponer una escritura, un humano debe aprobarla. Backstop primario = aprobación.
+- **Enforce.** `app/services/program_assistant/agent_runner.rb:54-90`, `app/services/program_assistant/tool_registry.rb`, `app/services/program_assistant/act_executor.rb`, `app/controllers/admin/program_assistant_controller.rb:38-49`.
+
+### 31.2 Creación = programa live, inactivo
+- **Regla.** `create_program` aprobado crea un `Program` `template: false, generated: true, active: false` con sus `DayContent`s, en una transacción, con slug único. El admin lo activa después desde el listado.
+- **Por qué.** No se publica un programa autogenerado sin una revisión final del admin; `active: false` evita que entre al pool enrollable hasta que el admin lo prenda.
+- **Enforce.** `app/services/program_assistant/act_executor.rb:54-82`.
+
+### 31.3 Edición = upsert de días por `day_number`
+- **Regla.** `update_program` aprobado actualiza metadatos presentes y hace upsert de los días enviados por `day_number` (`find_or_initialize_by`); omite los días que no cambian. Valida `day_number` positivo/único y `phase` válida antes de escribir, en transacción.
+- **Por qué.** Permite ediciones parciales sin reescribir el programa completo y rechaza specs malformadas sin dejar el programa a medias.
+- **Enforce.** `app/services/program_assistant/act_executor.rb:84-130`.
+
+### 31.4 Límites y kill-switch
+- **Regla.** Gated por `program_assistant_enabled` (default ON). Tope de tokens por sesión (`program_assistant_token_budget_per_session`) y de acciones propuestas por sesión (`program_assistant_action_cap_per_session`). Una sesión activa por admin (se reusa o se crea); "Nueva conversación" archiva la abierta.
+- **Por qué.** Frena loops, abuso por inyección y costo descontrolado; aísla el historial por admin.
+- **Enforce.** `app/models/program_assistant_session.rb:11-18`, `app/controllers/admin/program_assistant_controller.rb:51-66`, `app/models/setting.rb`.
+
+---
+
 ## 13. Edge cases conocidos
 
 - **Participante sin `DayContent`.** Si no existe `DayContent(program, current_day)`, `MorningWakeForParticipantJob` retorna sin enviar. Sin error.
