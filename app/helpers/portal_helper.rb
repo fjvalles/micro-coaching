@@ -7,7 +7,8 @@ module PortalHelper
       [ "Inicio",   portal_root_path,      :home,     %w[dashboard] ],
       [ "Programa", portal_program_path,   :map,      %w[programs] ],
       [ "Recursos", portal_resources_path, :bookmark, %w[resources] ],
-      [ "Pagos",    portal_billing_path,   :receipt,  %w[billings] ]
+      [ "Pagos",    portal_billing_path,   :receipt,  %w[billings] ],
+      [ "Perfil",   portal_profile_path,   :user,     %w[profiles] ]
     ]
   end
 

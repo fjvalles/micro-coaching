@@ -1,0 +1,38 @@
+<% content_for :title, "Perfil — Impulso" %>
+
+<div class="card">
+  <h1 class="section-title">Tu perfil</h1>
+
+  <%= form_with model: @participant, url: portal_profile_path, method: :patch, local: true do |f| %>
+    <div style="margin-bottom: 18px;">
+      <%= f.label :name, "Nombre", class: "label" %>
+      <%= f.text_field :name, class: "input", autocomplete: "name" %>
+    </div>
+
+    <div style="margin-bottom: 18px;">
+      <%= f.label :timezone, "Zona horaria", class: "label" %>
+      <%= f.select :timezone, options_for_select(@zones, @participant.timezone), {}, class: "input" %>
+    </div>
+
+    <div style="margin-bottom: 18px;">
+      <span class="label">Email</span>
+      <input class="input" value="<%= @participant.email %>" disabled>
+    </div>
+
+    <div style="margin-bottom: 18px;">
+      <span class="label">Teléfono (WhatsApp)</span>
+      <input class="input" value="<%= @participant.phone_e164 %>" disabled>
+    </div>
+
+    <% if @participant.company %>
+      <div style="margin-bottom: 22px;">
+        <span class="label">Empresa</span>
+        <input class="input" value="<%= @participant.company.name %>" disabled>
+      </div>
+    <% end %>
+
+    <%= f.submit "Guardar cambios", class: "btn btn-primary" %>
+  <% end %>
+</div>
+
+<p class="muted-note">El email y el teléfono no se pueden editar aquí. Escríbenos por WhatsApp si necesitas cambiarlos.</p>
