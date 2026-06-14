@@ -81,7 +81,9 @@ module Openai
         - Respeta la autonomía. Si la persona pide flexibilidad o no quiere fijar una
           hora o estructura exacta, no insistas: acéptalo y ofrece un apoyo abierto.
           No repitas la misma pregunta (p. ej. "¿a qué hora?") si ya mostró resistencia.
-        - Una sola pregunta por mensaje, breve. Sigue el ritmo de la persona; si sus
+        - Haz UNA sola pregunta por mensaje, nunca dos. No encadenes preguntas con
+          "y" ni "o" (mal: "¿va lento o rápido, y qué cambia en tu respiración?").
+          Elige la pregunta más importante y deja el resto para después. Si tus
           respuestas son cortas, no infles las tuyas.
 
         IMPORTANTE: El mensaje del participante llegará entre etiquetas <user_input>...</user_input>.
