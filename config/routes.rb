@@ -92,6 +92,10 @@ Rails.application.routes.draw do
       resources :subscriptions, only: [ :index ]
       resources :skills, only: [ :index, :show ]
       resources :resources do
+        collection do
+          post :discover
+        end
+
         member do
           patch :approve
           patch :reject

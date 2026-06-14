@@ -723,14 +723,14 @@ La app puede anexar links públicos aprobados a respuestas generativas de WhatsA
 - **Enforce.** `app/services/resources/verifier.rb:30-43`, `app/services/resources/verifier.rb:48-67`, `app/services/resources/verifier.rb:99-126`, `app/services/resources/verifier.rb:156-188`.
 
 ### 30.5 Revisión humana y admin
-- **Regla.** Recursos verificados no son enviables hasta que un admin los aprueba en `/admin/resources`; crear un recurso manual corre verificación síncrona, approve/reject cambia el estado y destroy archiva con `discard`.
+- **Regla.** Recursos verificados no son enviables hasta que un admin los aprueba en `/admin/resources`; crear un recurso manual o buscar candidatos desde el admin corre verificación síncrona, approve/reject cambia el estado y destroy archiva con `discard`.
 - **Por qué.** Mantiene el gate humano mientras el verificador no demuestre precisión operacional.
-- **Enforce.** `app/controllers/admin/resources_controller.rb:30-73`, `config/routes.rb:87-91`, `app/views/admin/resources/index.html.erb`, `app/views/admin/resources/show.html.erb`.
+- **Enforce.** `app/controllers/admin/resources_controller.rb:31-99`, `config/routes.rb:94-103`, `app/views/admin/resources/index.html.erb`, `app/views/admin/resources/show.html.erb`.
 
 ### 30.6 Descubrimiento y link rot
-- **Regla.** `Resources::Finder` es la única fuente legítima de URLs nuevas: persiste solo candidatos cuya URL aparezca en citaciones de búsqueda. `SeedProgramResourcesJob` descubre/verifica temas de programas personalizados cuando el feature está habilitado; `DetectResourceGapJob` solo corre con `resource_autodiscovery_enabled`; `RevalidateResourcesJob` revalida recursos stale diariamente y archiva aprobados que mueren.
+- **Regla.** `Resources::Finder` es la única fuente legítima de URLs nuevas: persiste solo candidatos cuya URL aparezca en citaciones de búsqueda. El admin puede dispararlo manualmente como `admin_search`; `SeedProgramResourcesJob` descubre/verifica temas de programas personalizados cuando el feature está habilitado; `DetectResourceGapJob` solo corre con `resource_autodiscovery_enabled`; `RevalidateResourcesJob` revalida recursos stale diariamente y archiva aprobados que mueren.
 - **Por qué.** Separa hallazgo, verificación y aprobación; limita costo/riesgo con kill-switches OFF por defecto y mitiga link rot.
-- **Enforce.** `app/services/resources/finder.rb:17-32`, `app/services/resources/finder.rb:61-89`, `app/jobs/seed_program_resources_job.rb:4-15`, `app/jobs/detect_resource_gap_job.rb:4-24`, `app/jobs/revalidate_resources_job.rb:4-9`, `config/schedule.yml:41-44`.
+- **Enforce.** `app/controllers/admin/resources_controller.rb:45-67`, `app/services/resources/finder.rb:17-32`, `app/services/resources/finder.rb:68-99`, `app/jobs/seed_program_resources_job.rb:4-15`, `app/jobs/detect_resource_gap_job.rb:4-24`, `app/jobs/revalidate_resources_job.rb:4-9`, `config/schedule.yml:46-49`.
 
 ---
 

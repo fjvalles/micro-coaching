@@ -28,6 +28,32 @@
   </div>
 </div>
 
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header">
+    <h2 class="card-title">Buscar candidatos para revisar</h2>
+    <span style="color: var(--text-muted); font-size: 13px;">Quedan verificados, no aprobados</span>
+  </div>
+  <div class="card-body">
+    <%= form_with url: discover_admin_resources_path, method: :post, local: true do %>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end;">
+        <div>
+          <%= label_tag "resource_search_topic", "Tema", style: "display:block; font-weight:600; margin-bottom:6px;" %>
+          <%= text_field_tag "resource_search[topic]", @discover_topic, id: "resource_search_topic", class: "form-control", placeholder: "ej. foco, ansiedad, sueño", required: true %>
+        </div>
+        <div>
+          <%= label_tag "resource_search_kind", "Tipo", style: "display:block; font-weight:600; margin-bottom:6px;" %>
+          <%= select_tag "resource_search[kind]", options_for_select(Resource.kinds.keys.map { |kind| [ kind.humanize, kind ] }, "article"), id: "resource_search_kind", class: "form-control" %>
+        </div>
+        <div>
+          <%= label_tag "resource_search_program_id", "Programa", style: "display:block; font-weight:600; margin-bottom:6px;" %>
+          <%= select_tag "resource_search[program_id]", options_from_collection_for_select(@programs, :id, :name, params[:program_id]), include_blank: "General", id: "resource_search_program_id", class: "form-control" %>
+        </div>
+        <%= submit_tag "Buscar", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
 <%= form_with url: admin_resources_path, method: :get, local: true, html: { id: "resources-filters-form", class: "filter-toolbar", style: "margin-bottom: 24px;" } do %>
   <div style="display:flex; gap: 8px; flex-wrap: wrap; align-items: center;">
     <%= hidden_field_tag :q, params[:q] if params[:q].present? %>

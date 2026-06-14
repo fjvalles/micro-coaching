@@ -17,6 +17,7 @@ module Admin
       @verified_count = Resource.kept.verified.count
       @dead_count = Resource.kept.dead.count
       @programs = Program.order(:name)
+      @discover_topic = params[:topic].presence || params[:q].presence
     end
 
     def show
@@ -38,6 +39,31 @@ module Admin
         redirect_to admin_resource_path(@resource), notice: "Recurso creado y verificado."
       else
         render :new, status: :unprocessable_entity
+      end
+    end
+
+    def discover
+      topic = discover_params[:topic].to_s.strip
+      kind = discover_params[:kind].presence || "article"
+      program = Program.find_by(id: discover_params[:program_id].presence)
+
+      if topic.blank?
+        redirect_to admin_resources_path, alert: "Indica un tema para buscar recursos."
+        return
+      end
+
+      unless Resource.kinds.key?(kind)
+        redirect_to admin_resources_path, alert: "Tipo de recurso inválido."
+        return
+      end
+
+      result = Resources::Finder.new(topic: topic, kind: kind, program: program, source: :admin_search).call
+
+      if result.ok?
+        verification_counts = verify_found_resources(result.resources, topic)
+        redirect_to admin_resources_path(status: "verified", topic: topic), notice: discover_notice(result.resources.size, verification_counts)
+      else
+        redirect_to admin_resources_path, alert: "No se pudo buscar recursos: #{result.error}"
       end
     end
 
@@ -83,8 +109,31 @@ module Admin
       params.require(:resource).permit(:title, :url, :kind, :status, :description, :program_id)
     end
 
+    def discover_params
+      params.fetch(:resource_search, ActionController::Parameters.new).permit(:topic, :kind, :program_id)
+    end
+
     def topics_from_params
       params.dig(:resource, :topics_text).to_s.split(",").map(&:strip).reject(&:blank?)
+    end
+
+    def verify_found_resources(resources, topic)
+      resources.each_with_object(Hash.new(0)) do |resource, counts|
+        Resources::Verifier.new(resource: resource, topic: topic).call
+        counts[resource.reload.status] += 1
+      end
+    end
+
+    def discover_notice(total, counts)
+      return "No se encontraron candidatos citados para revisar." if total.zero?
+
+      parts = []
+      parts << "#{counts['verified']} pendiente(s) de revisión" if counts["verified"].positive?
+      parts << "#{counts['approved']} ya aprobado(s)" if counts["approved"].positive?
+      parts << "#{counts['rejected']} rechazado(s)" if counts["rejected"].positive?
+      parts << "#{counts['dead']} muerto(s)" if counts["dead"].positive?
+
+      "Búsqueda lista: #{total} candidato(s). #{parts.join(', ')}."
     end
   end
 end

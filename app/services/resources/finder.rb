@@ -51,7 +51,14 @@ module Resources
     end
 
     def kind_label
-      @kind == "video" ? "en video" : "en artículo"
+      case @kind
+      when "video"
+        "en video"
+      when "audio_ref"
+        "en audio"
+      else
+        "en artículo"
+      end
     end
 
     def max_candidates

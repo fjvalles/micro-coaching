@@ -22,6 +22,7 @@ class Resource < ApplicationRecord
 
   enum :source, {
     manual: "manual",
+    admin_search: "admin_search",
     program_seed: "program_seed",
     gap_detection: "gap_detection"
   }
