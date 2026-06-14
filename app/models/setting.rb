@@ -188,7 +188,7 @@ class Setting < ApplicationRecord
       description: "Kill-switch: si es true, ningún servicio llama a OpenAI (devuelve stub)."
     },
     "max_free_messages_per_day" => {
-      type: :integer, category: "openai", default: 20,
+      type: :integer, category: "openai", default: 40,
       description: "Tope de mensajes libres (no-checkin) por participante por día. 0 = sin límite. Al superarlo, se envía free_messages_cap_reply_text una vez y se deja de responder hasta el día siguiente.",
       validate: ->(v) { (0..200).cover?(v) || "debe estar entre 0 y 200" }
     },
