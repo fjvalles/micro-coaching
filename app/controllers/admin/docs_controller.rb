@@ -86,8 +86,17 @@ module Admin
       architecture decisions business-rules pedagogy learning-system
     ].freeze
 
+    # Slugs that count as "technical documentation" for access control.
+    # Only superadmins may read these (the technical tab + the technical guide).
+    GATED_TECHNICAL_SLUGS = (TECHNICAL_SLUGS + %w[claude]).freeze
+
+    # Only superadmins may reach the technical docs tab or open a technical doc.
+    before_action :require_superadmin, only: [ :technical ]
+    before_action :restrict_technical_show, only: [ :show ]
+
     def index
-      @docs = DOCS.map do |slug, meta|
+      visible = DOCS.reject { |slug, _| technical_slug?(slug) && !current_admin_user&.superadmin? }
+      @docs = visible.map do |slug, meta|
         full = Rails.root.join(meta[:path])
         meta.merge(slug: slug, exists: full.exist?, mtime: (File.mtime(full) if full.exist?))
       end
@@ -114,6 +123,16 @@ module Admin
     end
 
     private
+
+    def technical_slug?(slug)
+      GATED_TECHNICAL_SLUGS.include?(slug)
+    end
+
+    def restrict_technical_show
+      return unless technical_slug?(params[:id])
+
+      require_superadmin
+    end
 
     def render_doc_sections(slugs)
       slugs.filter_map do |slug|

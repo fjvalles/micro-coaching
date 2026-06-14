@@ -10,6 +10,8 @@ module Admin
       "finances" => "Finanzas"
     }.freeze
 
+    # Settings are a privileged surface — only superadmins may view or change them.
+    before_action :require_superadmin
     before_action :set_setting, only: [ :edit, :update ]
 
     def index

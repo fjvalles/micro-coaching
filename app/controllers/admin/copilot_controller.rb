@@ -55,10 +55,6 @@ module Admin
       head :forbidden unless @action.copilot_session.admin_user_id == current_admin_user.id
     end
 
-    def require_superadmin
-      head :forbidden unless current_admin_user&.superadmin?
-    end
-
     def require_copilot_enabled
       return if Setting.fetch("copilot_enabled")
 

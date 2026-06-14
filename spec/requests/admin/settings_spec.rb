@@ -3,13 +3,35 @@ require "rails_helper"
 RSpec.describe "Admin::Settings", type: :request do
   include Warden::Test::Helpers
 
-  let(:admin) { create(:admin_user) }
+  let(:admin) { create(:admin_user, superadmin: true) }
+  let(:regular) { create(:admin_user, email: "regular@example.com") }
   let!(:setting) { Setting.create!(key: "test_key", value: "test_value", category: "general", value_type: "string", description: "Test Description") }
 
   describe "without login" do
     it "redirects to sign in" do
       get "/admin/settings"
       expect(response).to redirect_to(new_admin_user_session_path)
+    end
+  end
+
+  describe "as a non-superadmin" do
+    before { login_as(regular, scope: :admin_user) }
+    after  { Warden.test_reset! }
+
+    it "forbids viewing the settings index" do
+      get "/admin/settings"
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "forbids editing a setting" do
+      get "/admin/settings/#{setting.id}/edit"
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "forbids updating a setting" do
+      patch "/admin/settings/#{setting.id}", params: { setting: { value: "hacked" } }
+      expect(response).to have_http_status(:forbidden)
+      expect(setting.reload.value).to eq("test_value")
     end
   end
 

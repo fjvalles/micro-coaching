@@ -627,6 +627,31 @@ Chat interno en `/admin/copilot` que lee la base de datos y **propone** acciones
 
 ---
 
+## 28. Roles de administración: admin vs superadmin
+
+Hay dos clases de `AdminUser`. Todo `AdminUser` (autenticado por Devise) accede al panel; `superadmin = true` desbloquea la **superficie privilegiada**. El campo `superadmin` ya existía para el copiloto (§27); aquí se extiende a configuración, documentación técnica y gestión de superadmins.
+
+### 28.1 Solo superadmins gestionan superadmins
+- **Regla.** Un admin **no** puede crear ni promover a otro `superadmin`, ni editar/eliminar una cuenta que ya sea superadmin. El flag `superadmin` se permite en strong params **solo** si el usuario actual es superadmin (se descarta para el resto, aunque venga en el request). Editar/actualizar/eliminar un target superadmin desde un admin regular responde 403.
+- **Por qué.** Evita escalada de privilegios: un admin no puede otorgarse a sí mismo (vía otra cuenta) ni a terceros la superficie sensible, ni tocar cuentas de máxima confianza.
+- **Enforce.** `app/controllers/admin/admin_users_controller.rb` (`#admin_user_params` condicional, `#require_superadmin_to_manage_superadmin`); checkbox oculto en `app/views/admin/admin_users/_form.html.erb`; acciones ocultas en `app/views/admin/admin_users/index.html.erb`.
+
+### 28.2 Configuración es superadmin-only
+- **Regla.** `/admin/settings` (index, edit, update) requiere superadmin. Un admin regular recibe 403 y no ve el link en la nav.
+- **Por qué.** Los `Setting` son kill-switches y parámetros operativos (envío WhatsApp, dry-run OpenAI, caps); cambiarlos es acción de alto impacto.
+- **Enforce.** `app/controllers/admin/settings_controller.rb` (`before_action :require_superadmin`); link gateado en `app/views/layouts/admin.html.erb`.
+
+### 28.3 Documentación técnica es superadmin-only
+- **Regla.** La pestaña Técnico (`docs#technical`) y los docs técnicos (`architecture`, `decisions`, `business-rules`, `pedagogy`, `learning-system`, `claude`) requieren superadmin. El índice de docs filtra esos slugs para admins regulares; abrirlos directo responde 403. Los docs de estrategia/comerciales siguen abiertos a todo admin.
+- **Por qué.** La doc técnica expone arquitectura interna y decisiones; se reserva al rol de máxima confianza.
+- **Enforce.** `app/controllers/admin/docs_controller.rb` (`GATED_TECHNICAL_SLUGS`, `before_action :require_superadmin` en `technical`, `#restrict_technical_show`, filtro en `#index`); link gateado en `app/views/layouts/admin.html.erb`.
+
+### 28.4 Gate compartido
+- **Regla.** `#require_superadmin` vive en `Admin::BaseController` (responde 403 si `current_admin_user` no es superadmin) y lo reutilizan copilot, settings, docs y admin_users.
+- **Enforce.** `app/controllers/admin/base_controller.rb`.
+
+---
+
 ## 13. Edge cases conocidos
 
 - **Participante sin `DayContent`.** Si no existe `DayContent(program, current_day)`, `MorningWakeForParticipantJob` retorna sin enviar. Sin error.

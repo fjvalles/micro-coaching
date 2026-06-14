@@ -181,6 +181,7 @@
                 </a>
               </li>
               <% end %>
+              <% if current_admin_user&.superadmin? %>
               <li>
                 <a href="<%= admin_settings_path %>" class="nav-link <%= 'active' if controller_name == 'settings' %>">
                   <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -190,6 +191,7 @@
                   <span>Configuración</span>
                 </a>
               </li>
+              <% end %>
               <li>
                 <a href="<%= admin_admin_users_path %>" class="nav-link <%= 'active' if controller_name == 'admin_users' %>">
                   <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -254,6 +256,7 @@
                   <span>Estrategia</span>
                 </a>
               </li>
+              <% if current_admin_user&.superadmin? %>
               <li>
                 <a href="<%= admin_docs_technical_path %>" class="nav-link <%= 'active' if controller_name == 'docs' && action_name == 'technical' %>">
                   <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -262,6 +265,7 @@
                   <span>Técnico</span>
                 </a>
               </li>
+              <% end %>
 
             </ul>
           </div>

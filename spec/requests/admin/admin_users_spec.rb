@@ -92,4 +92,74 @@ RSpec.describe "Admin::AdminUsers", type: :request do
       expect(response.body).to include("No puedes eliminarte a ti mismo.")
     end
   end
+
+  describe "superadmin privilege escalation" do
+    # `admin` (logged in via the top-level before) is a regular admin.
+    let!(:existing_superadmin) { create(:admin_user, name: "Boss", email: "boss@example.com", superadmin: true) }
+
+    it "ignores the superadmin param when a regular admin creates a user" do
+      post "/admin/admin_users", params: {
+        admin_user: {
+          name: "Sneaky", email: "sneaky@example.com",
+          password: "password123", password_confirmation: "password123",
+          superadmin: "1"
+        }
+      }
+      expect(AdminUser.find_by(email: "sneaky@example.com").superadmin?).to be(false)
+    end
+
+    it "ignores the superadmin param when a regular admin updates a non-superadmin" do
+      patch "/admin/admin_users/#{other_admin.id}", params: {
+        admin_user: { name: "Regular Admin", superadmin: "1" }
+      }
+      expect(other_admin.reload.superadmin?).to be(false)
+    end
+
+    it "forbids a regular admin from editing a superadmin" do
+      get "/admin/admin_users/#{existing_superadmin.id}/edit"
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "forbids a regular admin from updating a superadmin" do
+      patch "/admin/admin_users/#{existing_superadmin.id}", params: {
+        admin_user: { name: "Hacked" }
+      }
+      expect(response).to have_http_status(:forbidden)
+      expect(existing_superadmin.reload.name).to eq("Boss")
+    end
+
+    it "forbids a regular admin from destroying a superadmin" do
+      expect {
+        delete "/admin/admin_users/#{existing_superadmin.id}"
+      }.not_to change(AdminUser, :count)
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
+
+  describe "as a superadmin" do
+    let(:super_admin) { create(:admin_user, name: "Super", email: "super@example.com", superadmin: true) }
+
+    before do
+      Warden.test_reset!
+      login_as(super_admin, scope: :admin_user)
+    end
+
+    it "can grant the superadmin flag on create" do
+      post "/admin/admin_users", params: {
+        admin_user: {
+          name: "New Super", email: "newsuper@example.com",
+          password: "password123", password_confirmation: "password123",
+          superadmin: "1"
+        }
+      }
+      expect(AdminUser.find_by(email: "newsuper@example.com").superadmin?).to be(true)
+    end
+
+    it "can edit an existing superadmin" do
+      patch "/admin/admin_users/#{super_admin.id}", params: {
+        admin_user: { name: "Renamed Super" }
+      }
+      expect(super_admin.reload.name).to eq("Renamed Super")
+    end
+  end
 end

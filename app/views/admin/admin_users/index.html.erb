@@ -31,9 +31,14 @@
                 <% end %>
               </td>
               <td class="table-actions">
-                <%= render "shared/table_action_edit", path: edit_admin_admin_user_path(user), title: "Editar administrador" %>
-                <% if AdminUser.count > 1 && user != current_admin_user %>
-                  <%= render "shared/table_action_delete", path: admin_admin_user_path(user), confirm: "¿Estás seguro de eliminar a este administrador?", title: "Eliminar administrador" %>
+                <% can_manage = current_admin_user&.superadmin? || !user.superadmin? %>
+                <% if can_manage %>
+                  <%= render "shared/table_action_edit", path: edit_admin_admin_user_path(user), title: "Editar administrador" %>
+                  <% if AdminUser.count > 1 && user != current_admin_user %>
+                    <%= render "shared/table_action_delete", path: admin_admin_user_path(user), confirm: "¿Estás seguro de eliminar a este administrador?", title: "Eliminar administrador" %>
+                  <% end %>
+                <% else %>
+                  <span class="badge badge-neutral" title="Solo un superadmin puede gestionar a otro superadmin">Superadmin</span>
                 <% end %>
               </td>
             </tr>
