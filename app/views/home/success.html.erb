@@ -22,18 +22,22 @@
         <strong>3. Confirma tu foco:</strong> El asistente te responderá y te pedirá confirmar el hábito o cambio que quieres trabajar para configurar tu programa.
       </div>
       <div class="success-step">
-        <strong>4. Comienza mañana:</strong> Tu primer micro-desafío personalizado se enviará a las 7:00 AM hora local (<strong><%= @participant.timezone %></strong>).
+        <strong>4. Comienza mañana:</strong> Tu primer micro-desafío personalizado se enviará a las <strong><%= format("%02d:00", @wake_hour) %> hrs</strong> hora local (<strong><%= @participant.timezone %></strong>).
       </div>
     </div>
 
-    <a href="<%= @wa_url %>" target="_blank" class="btn-landing btn-landing-primary" style="width: 100%; padding: 16px; font-size: 18px;">
+    <a href="<%= @wa_url %>" target="_blank" rel="noopener" class="btn-landing btn-landing-primary" style="width: 100%; padding: 16px; font-size: 18px;">
       <svg style="width: 24px; height: 24px;" fill="currentColor" viewBox="0 0 24 24">
         <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.993L2 22l5.13-1.343a9.94 9.94 0 0 0 4.881 1.28h.005c5.507 0 9.99-4.478 9.99-9.985A9.97 9.97 0 0 0 12.012 2zm5.727 14.18c-.248.694-1.442 1.352-1.996 1.411-.5.053-1.157.086-1.854-.139a11.1 11.1 0 0 1-5.111-3.238 12.186 12.186 0 0 1-2.457-3.953c-.356-.6-.723-1.583-.34-2.22.18-.3.39-.63.582-.87.19-.24.32-.44.44-.69.12-.24.06-.46-.03-.66-.09-.2-.8-1.92-1.09-2.63-.29-.7-.58-.6-.8-.61h-.69c-.24 0-.63.09-.96.44s-1.26 1.23-1.26 2.99a5.19 5.19 0 0 0 1.1 2.82c.13.18 2.16 3.3 5.23 4.62.73.31 1.3.5 1.74.64.74.23 1.4.2 1.93.12.59-.09 1.83-.75 2.09-1.47.26-.73.26-1.35.18-1.47-.08-.12-.29-.19-.61-.35z"/>
       </svg>
       Abrir WhatsApp y empezar
     </a>
 
-    <p style="margin-top: 24px;">
+    <p style="margin-top: 16px;">
+      <%= link_to "Ver mi progreso en mi portal →", portal_root_path, class: "btn-landing btn-landing-secondary", style: "width: 100%; padding: 14px; display: inline-flex; justify-content: center;" %>
+    </p>
+
+    <p style="margin-top: 16px;">
       <a href="<%= root_path %>" style="color: var(--secondary); text-decoration: none; font-size: 14px; font-weight: 500;">&larr; Volver a la página de inicio</a>
     </p>
   </div>

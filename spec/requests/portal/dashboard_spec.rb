@@ -21,6 +21,19 @@ RSpec.describe "Portal::Dashboard", type: :request do
     expect(response.body).to include("Resumen de prueba")
   end
 
+  it "shows the onboarding 'what happens now' card when there are no check-ins yet" do
+    login!(participant) # no daily reports created
+    get portal_root_path
+    expect(response.body).to include("Qué sigue ahora")
+  end
+
+  it "hides the onboarding card once the first check-in lands" do
+    create(:daily_report, participant: participant, day_number: 4, reported_at: Time.current)
+    login!(participant)
+    get portal_root_path
+    expect(response.body).not_to include("Qué sigue ahora")
+  end
+
   it "does not load a discarded participant's session" do
     login!(participant)
     participant.discard

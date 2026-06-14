@@ -8,7 +8,7 @@ RSpec.describe "Home", type: :request do
       get root_path
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Impulso by Comtraining")
-      expect(response.body).to include("De la capacitación")
+      expect(response.body).to include("Un hábito nuevo")
     end
   end
 
@@ -113,6 +113,20 @@ RSpec.describe "Home", type: :request do
         expect(participant[:company]).to eq("Comtraining S.A.") # public enroll stores the legacy string column
         expect(participant.role).to eq("Gerente RRHH")
         expect(participant.email).to eq("carlos@comtraining.com")
+      end
+
+      it "renders a dialable wa.me link, not the Meta phone-number-id" do
+        post enroll_path, params: { name: "Carlos", phone: phone, email: "carlos@example.com" }
+
+        expect(response.body).to include("https://wa.me/56957463136")
+      end
+
+      it "logs the new sign-up into their portal session" do
+        post enroll_path, params: { name: "Carlos", phone: phone, email: "carlos@example.com" }
+
+        # Auto-login: the just-created participant can reach their portal without a magic link.
+        get portal_root_path
+        expect(response).to have_http_status(:ok)
       end
 
       it "automatically cleans phone formatting spacing and prepends + if missing" do

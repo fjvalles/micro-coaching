@@ -10,7 +10,7 @@
   --border-focus: #818cf8;
   
   --text-main: #f9fafb;
-  --text-muted: #8e9aab;
+  --text-muted: #a8b3c4;
   
   --primary: #10b981; /* WhatsApp Emerald */
   --primary-hover: #0d9668;
@@ -174,7 +174,7 @@ h1, h2, h3, h4 {
 }
 
 .landing-section {
-  padding: 100px 8%;
+  padding: 80px 8%;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -647,9 +647,9 @@ h1, h2, h3, h4 {
 }
 
 .bento-desc {
-  font-size: 14.5px;
+  font-size: 15.5px;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.6;
   z-index: 2;
 }
 
@@ -746,9 +746,9 @@ h1, h2, h3, h4 {
 }
 
 .timeline-desc {
-  font-size: 14.5px;
+  font-size: 15.5px;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* Trial / Coach Widget */
@@ -867,12 +867,10 @@ h1, h2, h3, h4 {
 }
 
 .enrollment-fields {
-  display: flex; /* Visible by default; the AI demo is an optional hook above it */
+  display: flex;
   flex-direction: column;
   gap: 24px;
-  margin-top: 32px;
-  padding-top: 32px;
-  border-top: 1px dashed var(--border);
+  margin-top: 8px;
   animation: fadeIn 0.5s ease forwards;
 }
 
@@ -1392,9 +1390,9 @@ h1, h2, h3, h4 {
 }
 
 .metric-detail {
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 /* FAQ Section */

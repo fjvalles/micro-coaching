@@ -42,6 +42,19 @@
   </div>
 </div>
 
+<% if @show_onboarding %>
+  <div class="card" style="border-color: var(--secondary); box-shadow: 0 0 20px rgba(129, 140, 248, 0.12);">
+    <h2 class="section-title" style="margin-bottom: 6px;">Qué sigue ahora</h2>
+    <p class="eyebrow" style="margin-bottom: 16px;">Tu programa de 14 días está listo. Así empieza:</p>
+    <ol style="margin: 0; padding-left: 18px; font-size: 14.5px; line-height: 1.7;">
+      <li><strong>Abre WhatsApp</strong> y envía el mensaje inicial para activar el acompañamiento.</li>
+      <li><strong>Confirma tu foco:</strong> el asistente te preguntará qué conducta quieres trabajar.</li>
+      <li><strong>Recibe tu primer micro-desafío</strong> a las <strong><%= format("%02d:00", @wake_hour) %> hrs</strong> (<%= @participant.timezone %>).</li>
+      <li>Cada noche harás un <strong>check-in</strong> de 1 minuto. Aquí verás tu avance.</li>
+    </ol>
+  </div>
+<% end %>
+
 <% if @participant.completed? && @participant.closing_manifesto.present? %>
   <%= link_to portal_program_path, style: "text-decoration: none;" do %>
     <div class="card" style="border-color: var(--secondary); box-shadow: 0 0 24px rgba(129, 140, 248, 0.15);">

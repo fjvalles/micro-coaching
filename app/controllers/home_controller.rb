@@ -96,14 +96,18 @@ class HomeController < ApplicationController
         redirect_to pagos_path(participant_id: participant.id) and return
       end
 
-      # Get wa.me link with custom text to facilitate immediate interaction
-      # Use either Meta configuration or fallback to a dummy/real number if configured.
-      # Meta Business Phone is generally not suitable for direct user messaging wa.me links,
-      # but let's fetch it from config or use a generic WhatsApp link if unavailable.
-      phone_id = ENV["META_PHONE_NUMBER_ID"].presence || "56937667468"
+      # Log the fresh sign-up into their portal session so they can see their
+      # account immediately (passwordless; we trust the data they just submitted).
+      reset_session
+      session[:portal_participant_id] = participant.id
+
+      # wa.me needs the business's DIALABLE display number, NOT META_PHONE_NUMBER_ID
+      # (that is Meta's internal phone-number-id and produces a dead link).
+      wa_number = ENV["WHATSAPP_DISPLAY_NUMBER"].presence || "56957463136"
       welcome_text = "Hola. Acabo de inscribirme en Impulso by Comtraining y quiero comenzar."
-      @wa_url = "https://wa.me/#{phone_id}?text=#{CGI.escape(welcome_text)}"
+      @wa_url = "https://wa.me/#{wa_number.gsub(/\D/, '')}?text=#{CGI.escape(welcome_text)}"
       @participant = participant
+      @wake_hour = participant.wake_hour || Setting.fetch("wake_hour").to_i
 
       render :success
     rescue => e

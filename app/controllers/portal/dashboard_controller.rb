@@ -6,6 +6,12 @@ module Portal
       @pct = @total_days.positive? ? [ (@participant.current_day.to_f / @total_days * 100).round, 100 ].min : 0
       @latest_report = @participant.latest_report
       @recent_resources = @participant.shared_resources(limit: 3)
+
+      # Fresh sign-up onboarding: no check-ins yet and program not finished →
+      # show "what happens now" guidance so a brand-new portal isn't empty.
+      @show_onboarding = @latest_report.nil? && !@participant.completed?
+      @wake_hour = @participant.wake_hour || Setting.fetch("wake_hour").to_i
+
       @price = Setting.fetch("membership_price_clp").to_i
       @can_pay = @participant.pays_individually? && Setting.fetch("webpay_enabled") && @price.positive?
 
