@@ -7,12 +7,36 @@
 
 <% sk = @snapshot.sidekiq %>
 
-<% if @snapshot.redis_error.present? %>
-  <div class="card" style="margin-bottom:24px; border-left:4px solid #ef4444;">
-    <div class="card-body">
-      <strong style="color:#ef4444;">Redis/Sidekiq no disponible.</strong>
-      <span style="color:var(--text-muted); font-size:13px;"><%= @snapshot.redis_error %></span>
-      <p style="margin:6px 0 0; font-size:12px; color:var(--text-muted);">El worker o Redis puede estar caído. Las métricas de colas no se pueden leer.</p>
+<% if @snapshot.sidekiq_down? %>
+  <%# Hard failure: core Sidekiq stats unreadable → Redis/worker genuinely down. %>
+  <div class="card" style="margin-bottom:24px; border-left:4px solid var(--danger); background:var(--danger-bg);">
+    <div class="card-body" style="display:flex; gap:12px; align-items:flex-start;">
+      <span style="font-size:20px; line-height:1;">🔴</span>
+      <div>
+        <strong style="color:var(--danger);">Redis/Sidekiq no disponible.</strong>
+        <code style="font-size:12px; color:var(--text-muted);"><%= @snapshot.redis_error %></code>
+        <p style="margin:6px 0 0; font-size:12px; color:var(--text-muted);">El worker o Redis puede estar caído. Las métricas de colas no se pueden leer.</p>
+      </div>
+    </div>
+  </div>
+<% elsif @snapshot.redis_error.present? %>
+  <%# Sidekiq answered fine; only the optional Redis-memory probe failed. Soft note, not an outage. %>
+  <div class="card" style="margin-bottom:24px; border-left:4px solid var(--warning); background:var(--warning-bg);">
+    <div class="card-body" style="display:flex; gap:12px; align-items:flex-start;">
+      <span style="font-size:20px; line-height:1;">⚠️</span>
+      <div>
+        <strong style="color:var(--warning);">Sidekiq operativo · métrica de memoria Redis no disponible.</strong>
+        <code style="font-size:12px; color:var(--text-muted);"><%= @snapshot.redis_error %></code>
+        <p style="margin:6px 0 0; font-size:12px; color:var(--text-muted);">Las colas se leen correctamente; solo el uso de memoria Redis no pudo obtenerse.</p>
+      </div>
+    </div>
+  </div>
+<% else %>
+  <div class="card" style="margin-bottom:24px; border-left:4px solid var(--success); background:var(--success-bg);">
+    <div class="card-body" style="display:flex; gap:10px; align-items:center;">
+      <span style="font-size:18px; line-height:1;">🟢</span>
+      <strong style="color:var(--success);">Sistema operativo.</strong>
+      <span style="color:var(--text-muted); font-size:13px;">Redis y Sidekiq responden con normalidad.</span>
     </div>
   </div>
 <% end %>
@@ -54,8 +78,31 @@
   </div>
 </div>
 
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px;">
-  <!-- Sidekiq queues -->
+<%# ── Trabajos en cola: estado actual del backlog, desglosado por tipo ── %>
+<% retry_n = sk[:retry].to_i %>
+<% dead_n  = sk[:dead].to_i %>
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header"><h2 class="card-title">Trabajos en cola</h2></div>
+  <div class="card-body">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px;">
+      <% [
+        ["Encolados",   sk[:enqueued],  "var(--info)",    "Esperando ejecución ahora"],
+        ["Programados", sk[:scheduled], "var(--brand)",   "Diferidos a futuro (cron, retry-at)"],
+        ["Reintentos",  sk[:retry],     retry_n.positive? ? "var(--warning)" : "var(--border)", "Fallaron, reintentando"],
+        ["Muertos",     sk[:dead],      dead_n.positive?  ? "var(--danger)"  : "var(--border)", "Agotaron reintentos"]
+      ].each do |label, value, accent, desc| %>
+        <div style="border:1px solid var(--border); border-left:3px solid <%= accent %>; border-radius:var(--radius-md); padding:14px 16px;">
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); font-weight:600;"><%= label %></div>
+          <div style="font-size:1.7rem; font-weight:700; color:var(--text-main); line-height:1.2;"><%= number_with_delimiter(value || 0) %></div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:2px;"><%= desc %></div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
+  <%# ── Colas Sidekiq: latencia por cola con pill de estado ── %>
   <div class="card">
     <div class="card-header">
       <h2 class="card-title">Colas Sidekiq</h2>
@@ -66,13 +113,17 @@
         <p style="padding:16px; color:var(--text-muted); font-size:13px;">Sin colas activas (o Redis no disponible).</p>
       <% else %>
         <table class="data-table">
-          <thead><tr><th>Cola</th><th style="text-align:right;">Tamaño</th><th style="text-align:right;">Latencia</th></tr></thead>
+          <thead><tr><th>Cola</th><th style="text-align:right;">Tamaño</th><th style="text-align:right;">Latencia</th><th style="text-align:right;">Estado</th></tr></thead>
           <tbody>
             <% @snapshot.queues.sort_by { |q| -q[:latency].to_f }.each do |q| %>
+              <% breached = @latency_threshold.positive? && q[:latency].to_f > @latency_threshold %>
               <tr>
                 <td><code style="font-size:12px;"><%= q[:name] %></code></td>
                 <td style="text-align:right;"><%= number_with_delimiter(q[:size]) %></td>
-                <td style="text-align:right; <%= 'color:#ef4444; font-weight:600;' if @latency_threshold.positive? && q[:latency].to_f > @latency_threshold %>"><%= q[:latency].round(1) %>s</td>
+                <td style="text-align:right; <%= 'color:var(--danger); font-weight:600;' if breached %>"><%= q[:latency].round(1) %>s</td>
+                <td style="text-align:right;">
+                  <span class="badge <%= breached ? 'badge-danger' : 'badge-success' %>"><%= breached ? 'lenta' : 'ok' %></span>
+                </td>
               </tr>
             <% end %>
           </tbody>
@@ -81,24 +132,51 @@
     </div>
   </div>
 
-  <!-- Sidekiq totals + DB pool -->
+  <%# ── Histórico + Pool ActiveRecord: tasa de éxito y saturación del pool ── %>
+  <% processed = sk[:processed].to_i %>
+  <% failed    = sk[:failed].to_i %>
+  <% success_rate = processed.positive? ? ((processed - failed).to_f / processed * 100) : nil %>
+  <% pool = @snapshot.db_pool %>
+  <% pool_size = pool[:size].to_i %>
+  <% pool_busy = pool[:busy].to_i %>
+  <% pool_wait = pool[:waiting].to_i %>
+  <% pool_pct  = pool_size.positive? ? (pool_busy.to_f / pool_size * 100) : 0 %>
   <div class="card">
-    <div class="card-header"><h2 class="card-title">Cola y base de datos</h2></div>
-    <div class="card-body" style="padding:0;">
-      <table class="data-table">
-        <tbody>
-          <tr><td>Encolados</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:enqueued] || 0) %></td></tr>
-          <tr><td>Programados</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:scheduled] || 0) %></td></tr>
-          <tr><td>Reintentos</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:retry] || 0) %></td></tr>
-          <tr><td>Muertos (dead)</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:dead] || 0) %></td></tr>
-          <tr><td>Procesados (histórico)</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:processed] || 0) %></td></tr>
-          <tr><td>Fallidos (histórico)</td><td style="text-align:right; font-family:monospace;"><%= number_with_delimiter(sk[:failed] || 0) %></td></tr>
-          <% pool = @snapshot.db_pool %>
-          <tr style="border-top:2px solid var(--border);"><td>Pool AR — tamaño</td><td style="text-align:right; font-family:monospace;"><%= pool[:size] || "—" %></td></tr>
-          <tr><td>Pool AR — en uso</td><td style="text-align:right; font-family:monospace;"><%= pool[:busy] || "—" %></td></tr>
-          <tr><td>Pool AR — esperando</td><td style="text-align:right; font-family:monospace; <%= 'color:#ef4444; font-weight:600;' if pool[:waiting].to_i.positive? %>"><%= pool[:waiting] || "—" %></td></tr>
-        </tbody>
-      </table>
+    <div class="card-header"><h2 class="card-title">Histórico y base de datos</h2></div>
+    <div class="card-body">
+      <%# Tasa de éxito histórica %>
+      <div style="margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+          <span style="font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); font-weight:600;">Tasa de éxito (histórico)</span>
+          <strong style="font-size:1.2rem; color:<%= success_rate.nil? ? 'var(--text-muted)' : (success_rate >= 95 ? 'var(--success)' : (success_rate >= 80 ? 'var(--warning)' : 'var(--danger)')) %>;">
+            <%= success_rate.nil? ? "—" : "#{success_rate.round(1)}%" %>
+          </strong>
+        </div>
+        <div style="height:8px; background:var(--bg-app); border-radius:999px; overflow:hidden;">
+          <div style="height:100%; width:<%= success_rate&.round(1) || 0 %>%; background:<%= success_rate && success_rate < 80 ? 'var(--danger)' : (success_rate && success_rate < 95 ? 'var(--warning)' : 'var(--success)') %>;"></div>
+        </div>
+        <div style="display:flex; gap:20px; margin-top:8px; font-size:12px; color:var(--text-muted);">
+          <span>Procesados <strong style="color:var(--text-main);"><%= number_with_delimiter(processed) %></strong></span>
+          <span>Fallidos <strong style="color:<%= failed.positive? ? 'var(--danger)' : 'var(--text-main)' %>;"><%= number_with_delimiter(failed) %></strong></span>
+        </div>
+      </div>
+
+      <%# Saturación del pool de conexiones ActiveRecord %>
+      <div style="border-top:1px solid var(--border); padding-top:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+          <span style="font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); font-weight:600;">Pool ActiveRecord</span>
+          <strong style="font-size:1.2rem; color:<%= pool_pct >= 90 ? 'var(--danger)' : (pool_pct >= 70 ? 'var(--warning)' : 'var(--text-main)') %>;">
+            <%= pool_size.positive? ? "#{pool_busy} / #{pool_size}" : "—" %>
+          </strong>
+        </div>
+        <div style="height:8px; background:var(--bg-app); border-radius:999px; overflow:hidden;">
+          <div style="height:100%; width:<%= pool_pct.round %>%; background:<%= pool_pct >= 90 ? 'var(--danger)' : (pool_pct >= 70 ? 'var(--warning)' : 'var(--brand)') %>;"></div>
+        </div>
+        <div style="display:flex; gap:20px; margin-top:8px; font-size:12px; color:var(--text-muted);">
+          <span>En uso <strong style="color:var(--text-main);"><%= pool_size.positive? ? pool_busy : "—" %></strong></span>
+          <span>Esperando <strong style="color:<%= pool_wait.positive? ? 'var(--danger)' : 'var(--text-main)' %>;"><%= pool_size.positive? ? pool_wait : "—" %></strong></span>
+        </div>
+      </div>
     </div>
   </div>
 </div>

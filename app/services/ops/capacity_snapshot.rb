@@ -19,6 +19,14 @@ module Ops
       def max_latency
         queues.map { |q| q[:latency].to_f }.max || 0.0
       end
+
+      # True only when the core Sidekiq stats could not be read — i.e. Redis is
+      # genuinely unreachable. A failure isolated to the Redis-memory probe does
+      # NOT count as down (Sidekiq still answered), so the dashboard doesn't cry
+      # wolf when only the optional memory metric is missing.
+      def sidekiq_down?
+        sidekiq.blank?
+      end
     end
 
     def call
@@ -67,9 +75,14 @@ module Ops
       {}
     end
 
-    # Parses `redis INFO memory` into a small hash. nil if Redis is unreachable.
+    # Pulls Redis memory figures out of `INFO`. nil if Redis is unreachable.
+    #
+    # NOTE: Sidekiq 7 yields a redis-client connection wrapped in its compat
+    # layer, whose `#info` takes NO arguments and returns the full INFO already
+    # parsed into a string-keyed Hash. Passing a section (e.g. `c.info("memory")`)
+    # raises ArgumentError — the bug that previously masqueraded as "Redis down".
     def redis_info
-      raw = Sidekiq.redis { |c| c.info("memory") }
+      raw = Sidekiq.redis(&:info)
       {
         used_memory_human:      raw["used_memory_human"],
         used_memory_peak_human: raw["used_memory_peak_human"],
