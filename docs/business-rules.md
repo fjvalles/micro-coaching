@@ -760,6 +760,59 @@ Un admin puede crear, editar y leer programas conversando con una IA desde un mo
 
 ---
 
+## 32. Prueba gratis 14 días → Nivel 2 personalizado pagado (upsell día 14)
+
+Modelo de embudo invertido: el momento de pago se mueve de la **puerta** (§21) al
+final del programa gratis. Todos viven los 14 días de Nivel 1 gratis; al completar,
+se ofrece diseñar y pagar un **Nivel 2 personalizado** (no hay catálogo pre-armado;
+el intake actúa como sensor de demanda). Pago único Webpay Plus (no suscripción).
+
+### 32.1 Precio por programa
+- **Regla.** `Program#price_clp` (0 = gratis, p. ej. el Nivel 1 de prueba) y
+  `Program#founder_price_clp` (precio fundador, solo dentro de la ventana). `paid?`
+  = `price_clp > 0`. `effective_price_clp(within_founder_window:)` decide el monto.
+  `Programs::Cloner` copia ambos al clon, así el programa generado conserva su precio.
+- **Enforce.** `app/models/program.rb`, `app/services/programs/cloner.rb`.
+
+### 32.2 Oferta de día 14 + ventana fundadora
+- **Regla.** Al completar (`DayAdvancer#complete!`) se encola
+  `SendNivel2OfferJob` tras el manifiesto. Gated por `nivel2_offer_enabled` (default
+  OFF), idempotente (un solo `Conversation moment: :nivel2_offer`). El mensaje lo
+  genera `Openai::Nivel2OfferGenerator` (contraste día 1→14, marco "desbloquea lo
+  que construiste"); el job agrega de forma determinista los términos (precio/plazo/
+  garantía vía `nivel2_offer_cta_text`) y estampa `Participant#nivel2_offer_sent_at`,
+  que abre la ventana fundadora (`nivel2_offer_window_hours`, default 48). El modelo
+  nunca inventa precios ni enlaces.
+- **Enforce.** `app/jobs/send_nivel2_offer_job.rb`, `app/services/openai/nivel2_offer_generator.rb`, `app/services/participants/day_advancer.rb`.
+
+### 32.3 Intake-first, pagar para desbloquear
+- **Regla.** El participante completado entra al intake (`IntakeStarter` ahora
+  permite `completed → intake`, reseteando `current_day: 0`) → `ProgramGenerator` →
+  `Builder` (template) → revisión humana. Para un template **pagado**, el admin
+  "aprueba y ofrece" (`approve_program` marca `intake_state.offered_at`, NO activa);
+  el portal muestra el CTA "Desbloquea tu Nivel 2". El pago (`Payment.purpose =
+  personalized`) en el commit corre `Programs::Approver`, que para un participante
+  con ciclos previos re-inscribe vía `ReEnroller` (ciclo nuevo, resetea `ai_summary`).
+  Template **gratis** se activa de inmediato al aprobar (comportamiento previo).
+- **Enforce.** `app/services/participants/intake_starter.rb`, `app/services/programs/approver.rb`, `app/controllers/payments_controller.rb` (`#fulfill`/`#reenroll_personalized`), `app/controllers/admin/participants_controller.rb#approve_program`.
+
+### 32.4 Garantía condicional (ciclo extra gratis)
+- **Regla.** Quien completa un programa **pagado** puede reclamar UN ciclo extra sin
+  costo dentro de `guarantee_claim_window_days` (default 30). `founder_bonus` se
+  marca en el `Payment` si se pagó dentro de la ventana fundadora. v1 = honrado por
+  admin (`#grant_guarantee` → `ReEnroller`, estampa `guarantee_claimed_at`).
+- **Enforce.** `Participant#guarantee_eligible?`, `app/controllers/admin/participants_controller.rb#grant_guarantee`.
+
+### 32.5 Hardening del path personalizado (es el único producto pagado)
+- **Regla.** `program_intake_review_required` ON (ningún programa IA se vende sin
+  revisión). Cola de revisión en `/admin/program_reviews`
+  (`Participant.awaiting_program_review`). `ExpireAbandonedIntakesJob` (cron 05:30
+  UTC) saca a los intakes estancados (`intake_abandonment_days`, default 3) de
+  `:intake`. Embudo de conversión en `/admin/funnel`.
+- **Enforce.** `app/controllers/admin/program_reviews_controller.rb`, `app/jobs/expire_abandoned_intakes_job.rb`, `app/controllers/admin/funnel_controller.rb`.
+
+---
+
 ## 13. Edge cases conocidos
 
 - **Participante sin `DayContent`.** Si no existe `DayContent(program, current_day)`, `MorningWakeForParticipantJob` retorna sin enviar. Sin error.

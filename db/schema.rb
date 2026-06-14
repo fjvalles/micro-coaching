@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_14_130002) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_14_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -247,6 +247,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_14_130002) do
     t.text "ai_summary"
     t.datetime "ai_summary_updated_at"
     t.jsonb "intake_state", default: {}, null: false
+    t.datetime "nivel2_offer_sent_at"
+    t.datetime "guarantee_claimed_at"
     t.index ["company_id"], name: "index_participants_on_company_id"
     t.index ["discarded_at"], name: "index_participants_on_discarded_at"
     t.index ["phone_e164"], name: "index_participants_on_phone_e164", unique: true
@@ -277,11 +279,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_14_130002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.uuid "subscription_id"
+    t.integer "purpose", default: 0, null: false
+    t.boolean "founder_bonus", default: false, null: false
     t.index ["buy_order"], name: "index_payments_on_buy_order", unique: true
     t.index ["company_id"], name: "index_payments_on_company_id"
     t.index ["paid_at"], name: "index_payments_on_paid_at"
     t.index ["participant_id"], name: "index_payments_on_participant_id"
     t.index ["program_id"], name: "index_payments_on_program_id"
+    t.index ["purpose"], name: "index_payments_on_purpose"
     t.index ["status"], name: "index_payments_on_status"
     t.index ["subscription_id"], name: "index_payments_on_subscription_id"
     t.index ["token"], name: "index_payments_on_token"
@@ -376,6 +381,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_14_130002) do
     t.uuid "next_program_id"
     t.boolean "template", default: false, null: false
     t.boolean "generated", default: false, null: false
+    t.integer "price_clp", default: 0, null: false
+    t.integer "founder_price_clp", default: 0, null: false
     t.index ["company_id"], name: "index_programs_on_company_id"
     t.index ["next_program_id"], name: "index_programs_on_next_program_id"
     t.index ["slug"], name: "index_programs_on_slug", unique: true

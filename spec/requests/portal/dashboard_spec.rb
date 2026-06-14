@@ -43,4 +43,17 @@ RSpec.describe "Portal::Dashboard", type: :request do
     get portal_root_path
     expect(response.body).to include("Tu reporte final está listo")
   end
+
+  it "shows the Nivel 2 unlock CTA when a paid personalized program is offered" do
+    Setting.set("webpay_enabled", true)
+    template = create(:program, template: true, generated: true, active: false,
+                      price_clp: 30_000, founder_price_clp: 19_000)
+    participant.update!(status: :completed, nivel2_offer_sent_at: 1.hour.ago,
+                        intake_state: { "template_program_id" => template.id, "offered_at" => Time.current.iso8601 })
+    login!(participant)
+    get portal_root_path
+
+    expect(response.body).to include("Desbloquea tu Nivel 2")
+    expect(response.body).to include("19.000") # founder price inside the window
+  end
 end

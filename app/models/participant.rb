@@ -31,6 +31,9 @@ class Participant < ApplicationRecord
   validate :current_day_within_program_range
 
   scope :kept, -> { undiscarded }
+  # Participants whose AI-generated program is built and waiting for human review
+  # before activation (Programs::Approver). Drives the admin review queue.
+  scope :awaiting_program_review, -> { where("intake_state->>'awaiting_review' = 'true'") }
 
   # The active ledger row for the program the participant is currently running.
   # Used to mark a cycle completed / advance to the next program.
@@ -119,8 +122,40 @@ class Participant < ApplicationRecord
     intake_state["awaiting_review"] == true
   end
 
+  # The reviewed personalized-program TEMPLATE this participant generated (if any),
+  # which they pay to unlock as their Nivel 2.
+  def nivel2_template
+    template_id = intake_state["template_program_id"]
+    template_id && Program.templates.find_by(id: template_id)
+  end
+
+  # True when a paid Nivel 2 has been vetted by an admin and is awaiting the
+  # participant's payment (drives the portal pay CTA).
+  def nivel2_offered?
+    intake_state["offered_at"].present? && nivel2_template&.paid?
+  end
+
+  # Conditional guarantee: a participant who completed a PAID program may claim one
+  # free extra cycle if still inside the claim window and hasn't claimed before.
+  def guarantee_eligible?
+    days = Setting.fetch("guarantee_claim_window_days").to_i
+    return false unless days.positive?
+    return false unless completed? && guarantee_claimed_at.nil?
+    return false unless program&.paid?
+
+    completed_at.present? && completed_at > days.days.ago
+  end
+
   def local_time(now = Time.current)
     now.in_time_zone(timezone)
+  end
+
+  # True while the day-14 founder offer window is open (founder price + expiring
+  # bonus apply). Anchored on when SendNivel2OfferJob stamped nivel2_offer_sent_at.
+  def nivel2_offer_active?(now = Time.current)
+    return false if nivel2_offer_sent_at.blank?
+
+    nivel2_offer_sent_at > Setting.fetch("nivel2_offer_window_hours").to_i.hours.before(now)
   end
 
   def in_24h_window?(now = Time.current)

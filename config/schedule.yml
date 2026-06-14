@@ -28,6 +28,11 @@ pause_inactive_participants:
   class: PauseInactiveParticipantsJob
   description: "Pause active participants with no inbound message in inactivity_pause_days days (an inbound reactivates them)"
 
+expire_abandoned_intakes:
+  cron: "30 5 * * *"
+  class: ExpireAbandonedIntakesJob
+  description: "Daily: revert participants stalled mid-intake (no activity in intake_abandonment_days) out of :intake so they're not stuck"
+
 coach_session_reminder:
   cron: "0 * * * *"
   class: CoachSessionReminderJob

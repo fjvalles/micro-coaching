@@ -42,4 +42,29 @@ RSpec.describe Programs::Approver do
     expect { described_class.new(participant: participant, template: template).call }
       .not_to change { participant.reload.program_id }
   end
+
+  context "when the participant is returning from a prior cycle (paid Nivel 2)" do
+    let(:nivel1) { create(:program, total_days: 3) }
+    let(:participant) do
+      create(:participant, status: :intake, program: nivel1, current_day: 0,
+                           completed_at: Time.current, ai_summary: "memoria del Nivel 1",
+                           intake_state: { "step" => 7, "answers" => { "pattern" => "x" } }).tap do |p|
+        p.enrollments.create!(program: nivel1, cycle_number: 1, status: :completed, started_at: 14.days.ago)
+      end
+    end
+
+    it "re-enrolls into a new cycle instead of first-activating" do
+      clone = described_class.new(participant: participant, template: template).call
+
+      participant.reload
+      expect(participant).to be_active
+      expect(participant.program).to eq(clone)
+      expect(participant.current_day).to eq(1)
+      # ReEnroller resets the rolling AI memory for the new cycle.
+      expect(participant.ai_summary).to be_nil
+      # The prior cycle stays, a new one opens.
+      expect(participant.enrollments.where(program: clone, status: :active)).to exist
+      expect(participant.enrollments.count).to eq(2)
+    end
+  end
 end

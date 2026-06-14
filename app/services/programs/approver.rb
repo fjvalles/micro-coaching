@@ -25,11 +25,24 @@ module Programs
         )
       end
 
-      Participants::Activator.new(@participant).call
+      if returning?
+        # Already ran a prior cycle (e.g. completed the free Nivel 1, now buying a
+        # personalized Nivel 2): open a fresh ledger cycle and reset the rolling AI
+        # memory rather than first-activating on day 1.
+        Participants::ReEnroller.new(@participant, program: clone).call
+      else
+        Participants::Activator.new(@participant).call
+      end
       clone
     end
 
     private
+
+    # A participant with prior enrollment cycles is returning into a new program,
+    # not enrolling for the first time.
+    def returning?
+      @participant.enrollments.exists?
+    end
 
     def pattern_seed
       @participant.intake_answers["pattern"].presence&.truncate(500) || @participant.initial_pattern

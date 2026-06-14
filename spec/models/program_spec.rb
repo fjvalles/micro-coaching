@@ -61,4 +61,31 @@ RSpec.describe Program, type: :model do
       expect(Program.available_to(nil).where(template: true)).to be_empty
     end
   end
+
+  describe "#paid?" do
+    it "is false when price_clp is zero (free trial)" do
+      expect(build(:program, price_clp: 0).paid?).to be(false)
+    end
+
+    it "is true when price_clp is positive" do
+      expect(build(:program, price_clp: 25_000).paid?).to be(true)
+    end
+  end
+
+  describe "#effective_price_clp" do
+    let(:program) { build(:program, price_clp: 30_000, founder_price_clp: 19_000) }
+
+    it "returns the founder price inside the founder window" do
+      expect(program.effective_price_clp(within_founder_window: true)).to eq(19_000)
+    end
+
+    it "returns the standing price outside the window" do
+      expect(program.effective_price_clp(within_founder_window: false)).to eq(30_000)
+    end
+
+    it "falls back to the standing price when no founder price is set" do
+      program.founder_price_clp = 0
+      expect(program.effective_price_clp(within_founder_window: true)).to eq(30_000)
+    end
+  end
 end

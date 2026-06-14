@@ -18,12 +18,18 @@ module Participants
 
     def call
       return Result.new(ok: false, reason: :disabled) unless Setting.fetch("program_intake_enabled")
-      return Result.new(ok: false, reason: :already_active) if @participant.active? || @participant.completed?
+      # A completed participant may re-enter intake to design their paid Nivel 2 (the
+      # day-14 upsell). Only an actively-running program blocks a new intake.
+      return Result.new(ok: false, reason: :already_active) if @participant.active?
 
       # awaiting_open: the first contact is a template (free text can't open a cold
       # 24h window); the participant's first reply opens the window and triggers Q1.
+      # current_day: 0 — intake sits between programs. A returning completed
+      # participant carries current_day = total_days + 1 from DayAdvancer#complete!,
+      # which would fail the program-range validation under the :intake status.
       PaperTrail.request(whodunnit: "ai:IntakeStarter", controller_info: { source: "ai" }) do
-        @participant.update!(status: :intake, intake_state: { "step" => 0, "answers" => {}, "awaiting_open" => true })
+        @participant.update!(status: :intake, current_day: 0,
+                             intake_state: { "step" => 0, "answers" => {}, "awaiting_open" => true })
       end
       SendIntakeOpenerJob.perform_later(@participant.id)
 

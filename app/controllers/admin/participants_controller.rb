@@ -7,7 +7,7 @@ module Admin
     before_action :set_participant, only: [
       :show, :edit, :update, :destroy, :enroll, :discard, :undiscard,
       :send_message, :re_enroll, :start_program, :versions,
-      :start_intake, :approve_program
+      :start_intake, :approve_program, :grant_guarantee
     ]
 
     def index
@@ -229,9 +229,40 @@ module Admin
         return
       end
 
-      Programs::Approver.new(participant: @participant, template: template).call
-      redirect_to admin_participant_path(@participant),
-                  notice: "Programa aprobado y activado. Bienvenida enviada por WhatsApp."
+      if template.paid?
+        # Paid personalized Nivel 2: admin vets quality here, but activation is gated
+        # on payment — the Webpay commit runs Approver. Mark it offered so the portal
+        # shows the pay CTA and the review queue clears.
+        @participant.update!(intake_state: @participant.intake_state.merge(
+          "awaiting_review" => false, "offered_at" => Time.current.iso8601
+        ))
+        redirect_to admin_participant_path(@participant),
+                    notice: "Programa aprobado y ofrecido. Se activa cuando #{@participant.name} pague el Nivel 2."
+      else
+        Programs::Approver.new(participant: @participant, template: template).call
+        redirect_to admin_participant_path(@participant),
+                    notice: "Programa aprobado y activado. Bienvenida enviada por WhatsApp."
+      end
+    end
+
+    # Custom action: honor the conditional guarantee — grant one free extra cycle of
+    # the completed paid program. Admin-triggered (v1). Re-enrolls into the same
+    # program and stamps the one-time claim.
+    def grant_guarantee
+      unless @participant.guarantee_eligible?
+        redirect_to admin_participant_path(@participant),
+                    alert: "Este participante no cumple las condiciones de la garantía." and return
+      end
+
+      result = Participants::ReEnroller.new(@participant, program: @participant.program).call
+      if result.ok
+        @participant.update!(guarantee_claimed_at: Time.current)
+        redirect_to admin_participant_path(@participant),
+                    notice: "Garantía aplicada: #{@participant.name} obtuvo un ciclo extra sin costo."
+      else
+        redirect_to admin_participant_path(@participant),
+                    alert: "No se pudo aplicar la garantía."
+      end
     end
 
     # Custom action: send a manual message (free text or curated template) now.

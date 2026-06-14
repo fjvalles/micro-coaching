@@ -19,6 +19,8 @@ module Programs
           total_days: @template.total_days,
           company: @company,
           response_mode: @template.response_mode,
+          price_clp: @template.price_clp,
+          founder_price_clp: @template.founder_price_clp,
           template: false,
           generated: true,
           active: true

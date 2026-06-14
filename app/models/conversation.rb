@@ -17,7 +17,8 @@ class Conversation < ApplicationRecord
     manifesto: 7,
     admin_manual: 8,
     program_intake: 9,
-    program_overview: 10
+    program_overview: 10,
+    nivel2_offer: 11
   }
 
   enum :role, { user: 0, assistant: 1, system: 2 }

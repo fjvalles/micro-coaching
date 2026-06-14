@@ -34,6 +34,21 @@ class Program < ApplicationRecord
     company_id.nil?
   end
 
+  # A program that costs money to enroll in (paid Nivel 2). price_clp == 0 is the
+  # free Nivel 1 trial.
+  def paid?
+    price_clp.to_i.positive?
+  end
+
+  # Single source of truth for "what does the participant pay right now". Inside the
+  # day-14 founder window (Participant#nivel2_offer_active?) the discounted
+  # founder_price_clp applies, when set; otherwise the standing price_clp.
+  def effective_price_clp(within_founder_window:)
+    return founder_price_clp if within_founder_window && founder_price_clp.to_i.positive?
+
+    price_clp
+  end
+
   # Never returns a template — a template toggled active must not become the default.
   def self.default
     general.live.active.order(:created_at).first || live.active.order(:created_at).first

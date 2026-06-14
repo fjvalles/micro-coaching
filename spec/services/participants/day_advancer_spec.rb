@@ -29,6 +29,15 @@ RSpec.describe Participants::DayAdvancer do
     expect(participant.current_day).to eq(15)
   end
 
+  it "enqueues the day-14 Nivel 2 offer on completion" do
+    participant.update!(current_day: 14)
+    create(:conversation, participant: participant, moment: :checkin_response,
+           day_number: 14, role: :user, created_at: Time.current)
+    expect {
+      described_class.new(participant: participant).call
+    }.to have_enqueued_job(SendNivel2OfferJob).with(participant.id)
+  end
+
   it "skips paused participants" do
     participant.update!(status: :paused)
     expect(described_class.new(participant: participant).call).to eq(:skipped)

@@ -29,6 +29,7 @@ Rails.application.routes.draw do
           post :start_program
           post :start_intake
           post :approve_program
+          post :grant_guarantee
         end
         collection do
           post :broadcast
@@ -48,6 +49,8 @@ Rails.application.routes.draw do
           post :rollback
         end
       end
+      get  "program_reviews",     to: "program_reviews#index", as: :program_reviews
+      get  "funnel",              to: "funnel#index",          as: :funnel
       get  "metodologia",         to: "methodology#index",   as: :methodology
       post "metodologia/refresh", to: "methodology#refresh", as: :refresh_methodology
 

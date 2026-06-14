@@ -8,6 +8,11 @@ RSpec.describe Payment, type: :model do
 
   it { is_expected.to validate_presence_of(:buy_order) }
   it { is_expected.to define_enum_for(:status).with_values(pending: 0, authorized: 1, rejected: 2, failed: 3, aborted: 4, refunded: 5) }
+  it { is_expected.to define_enum_for(:purpose).with_values(membership: 0, personalized: 1) }
+
+  it "defaults purpose to membership" do
+    expect(build(:payment).purpose).to eq("membership")
+  end
 
   it "validates buy_order uniqueness" do
     create(:payment, buy_order: "DUP")

@@ -79,6 +79,26 @@ RSpec.describe Participant, type: :model do
     end
   end
 
+  describe "#nivel2_offer_active?" do
+    let(:participant) { create(:participant) }
+
+    before { Setting.set("nivel2_offer_window_hours", 48) }
+
+    it "false when the offer was never sent" do
+      expect(participant.nivel2_offer_active?).to be false
+    end
+
+    it "true while inside the founder window" do
+      participant.update!(nivel2_offer_sent_at: 10.hours.ago)
+      expect(participant.nivel2_offer_active?).to be true
+    end
+
+    it "false once the window has elapsed" do
+      participant.update!(nivel2_offer_sent_at: 49.hours.ago)
+      expect(participant.nivel2_offer_active?).to be false
+    end
+  end
+
   describe "soft delete" do
     it "discard sets discarded_at" do
       p = create(:participant)

@@ -118,6 +118,7 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/guardrails/Validator` — hard gate for prompt-tuning candidates (anchors, max length, no URL/PII, bounded diff)
 - `app/services/openai/CheckinSummarizer` — returns `{summary, key_pattern}` as JSON; `temperature: 0.3`
 - `app/services/openai/ManifestoGenerator` — day-15 closing manifesto
+- `app/services/openai/Nivel2OfferGenerator` — day-14 upsell message (day1→14 contrast, "unlock your investment"); story only, the job appends price/deadline/guarantee
 - `app/services/openai/AudioTranscriber` — transcribes audio using Whisper / gpt-4o-mini-transcribe
 - `app/services/openai/VoiceAnalyzer` — analyzes voice emotion/energy using gpt-4o-audio-preview
 - `app/services/openai/Retryable` — concern offering exponential backoff retry logic for OpenAI API calls

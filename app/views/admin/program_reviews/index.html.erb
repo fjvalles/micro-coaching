@@ -1,0 +1,33 @@
+<% content_for :title, "Programas por revisar" %>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Programas personalizados por revisar (<%= @participants.size %>)</h3>
+  </div>
+  <div class="card-body">
+    <% if @participants.empty? %>
+      <p style="color:var(--text-muted);">No hay programas generados pendientes de revisión.</p>
+    <% else %>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Participante</th>
+            <th>Programa actual</th>
+            <th>Generado hace</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @participants.each do |p| %>
+            <tr>
+              <td><%= link_to p.name, admin_participant_path(p) %></td>
+              <td><%= p.program&.name || "—" %></td>
+              <td><small><%= time_ago_in_words(p.updated_at) %></small></td>
+              <td><%= link_to "Revisar y aprobar", admin_participant_path(p), class: "btn btn-sm" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>

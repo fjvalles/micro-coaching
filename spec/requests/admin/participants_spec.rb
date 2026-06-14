@@ -364,6 +364,37 @@ RSpec.describe "Admin::Participants", type: :request do
     end
   end
 
+  describe "POST /admin/participants/:id/grant_guarantee" do
+    before { Setting.set("guarantee_claim_window_days", 30) }
+
+    it "grants a free extra cycle to an eligible participant and stamps the claim" do
+      paid = create(:program, name: "Nivel 2", price_clp: 25_000)
+      done = create(:participant, program: paid, status: :completed, current_day: paid.total_days + 1,
+                    completed_at: 2.days.ago)
+      done.enrollments.create!(program: paid, cycle_number: 1, status: :completed)
+
+      expect {
+        post "/admin/participants/#{done.id}/grant_guarantee"
+      }.to have_enqueued_job(SendWelcomeJob).with(done.id)
+
+      done.reload
+      expect(done.status.to_sym).to eq(:active)
+      expect(done.current_day).to eq(1)
+      expect(done.guarantee_claimed_at).to be_present
+    end
+
+    it "refuses when the participant is not eligible (free program)" do
+      free = create(:program, price_clp: 0)
+      done = create(:participant, program: free, status: :completed, completed_at: 2.days.ago)
+
+      post "/admin/participants/#{done.id}/grant_guarantee"
+
+      expect(done.reload.guarantee_claimed_at).to be_nil
+      follow_redirect!
+      expect(response.body).to include("no cumple las condiciones")
+    end
+  end
+
   describe "POST /admin/participants/:id/discard" do
     it "soft-deletes the participant" do
       post "/admin/participants/#{participant.id}/discard"

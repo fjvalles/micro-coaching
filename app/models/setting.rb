@@ -245,6 +245,30 @@ class Setting < ApplicationRecord
       default: "Tuve un problema armando tu programa. Nuestro equipo lo revisará y te escribimos por aquí muy pronto.",
       description: "Mensaje al participante cuando la generación del programa personalizado falla."
     },
+    "intake_abandonment_days" => {
+      type: :integer, category: "program", default: 3,
+      description: "Días sin actividad tras los que ExpireAbandonedIntakesJob saca a un participante estancado a mitad del intake (vuelve a :completed o :pending). 0 = desactivado.",
+      validate: ->(v) { (0..60).cover?(v) || "debe estar entre 0 y 60" }
+    },
+    "nivel2_offer_enabled" => {
+      type: :boolean, category: "program", default: false,
+      description: "Kill-switch: si es true, al completar el programa gratis (día 14) se envía la oferta personalizada de Nivel 2 (SendNivel2OfferJob). Off = no se ofrece upsell."
+    },
+    "nivel2_offer_cta_text" => {
+      type: :text, category: "program",
+      default: "Si quieres seguir, armamos tu Nivel 2 a tu medida. Por haber completado estos 14 días tienes una oferta de fundador durante las próximas %{hours} horas, con garantía: si lo completas y no ves cambios, te damos un ciclo extra sin costo. ¿Lo diseñamos? Responde por aquí. 🙌",
+      description: "Términos deterministas que SendNivel2OfferJob agrega bajo el mensaje generado por IA (oferta de día 14). Acepta %{hours} (= nivel2_offer_window_hours)."
+    },
+    "nivel2_offer_window_hours" => {
+      type: :integer, category: "program", default: 48,
+      description: "Duración (horas) de la ventana fundadora tras enviar la oferta de día 14: dentro de ella aplica founder_price_clp y el bono que expira. Ancla en Participant#nivel2_offer_sent_at.",
+      validate: ->(v) { (1..720).cover?(v) || "debe estar entre 1 y 720" }
+    },
+    "guarantee_claim_window_days" => {
+      type: :integer, category: "program", default: 30,
+      description: "Días tras completar el Nivel 2 pagado en que el participante puede reclamar la garantía (ciclo extra gratis, una sola vez). 0 = garantía desactivada.",
+      validate: ->(v) { (0..365).cover?(v) || "debe estar entre 0 y 365" }
+    },
     "openai_retry_max" => {
       type: :integer, category: "openai", default: 3,
       description: "Intentos máximos ante errores 429/5xx/timeouts de OpenAI.",

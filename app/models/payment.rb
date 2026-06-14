@@ -14,6 +14,10 @@ class Payment < ApplicationRecord
   # refunded → reversed
   enum :status, { pending: 0, authorized: 1, rejected: 2, failed: 3, aborted: 4, refunded: 5 }
 
+  # membership   → legacy door-pay (pay before Nivel 1; activates via Activator)
+  # personalized → day-14 unlock of a personalized Nivel 2 (re-enrolls via Approver)
+  enum :purpose, { membership: 0, personalized: 1 }
+
   validates :amount, numericality: { greater_than_or_equal_to: 0 }
   validates :buy_order, presence: true, uniqueness: true
 

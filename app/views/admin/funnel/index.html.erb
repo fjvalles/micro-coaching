@@ -1,0 +1,33 @@
+<% content_for :title, "Embudo de conversión" %>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Embudo Nivel 1 → Nivel 2 pagado</h3>
+  </div>
+  <div class="card-body">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Etapa</th>
+          <th>Personas</th>
+          <th>Conversión desde la etapa anterior</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @steps.each do |s| %>
+          <tr>
+            <td><%= s[:label] %></td>
+            <td><strong><%= s[:count] %></strong></td>
+            <td>
+              <% if s[:rate].nil? %>
+                <span style="color:var(--text-muted);">—</span>
+              <% else %>
+                <span class="badge badge-neutral"><%= s[:rate] %>%</span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -64,6 +64,21 @@
   </div>
 <% end %>
 
+<% if @nivel2_template %>
+  <div class="card" style="border-color: var(--primary); box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);">
+    <h2 class="section-title" style="margin-bottom: 6px;">Desbloquea tu Nivel 2</h2>
+    <p class="eyebrow" style="margin-bottom: 16px;">
+      Tu programa personalizado está listo, hecho a partir de lo que construiste.
+      <% if @nivel2_founder %>
+        <strong>Oferta de fundador activa</strong> — incluye garantía: si lo completas y no ves cambios, ciclo extra sin costo.
+      <% end %>
+    </p>
+    <%= link_to "Desbloquear por #{portal_clp(@nivel2_price)}",
+                pagos_path(participant_id: @participant.id, program_id: @nivel2_template.id),
+                class: "btn btn-primary" %>
+  </div>
+<% end %>
+
 <% if @recent_resources.any? %>
   <div class="card card-tight">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">

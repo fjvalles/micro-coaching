@@ -33,6 +33,9 @@ module Participants
       with_ai_trail { @participant.update!(status: :completed, completed_at: Time.current, current_day: total + 1) }
       @participant.current_enrollment&.update!(status: :completed, completed_at: Time.current)
       GenerateAndSendManifestoJob.perform_later(@participant.id)
+      # Day-14 upsell: invite the participant to design a paid personalized Nivel 2.
+      # Self-gates on nivel2_offer_enabled + idempotency inside the job.
+      SendNivel2OfferJob.perform_later(@participant.id)
     end
 
     def with_ai_trail(&block)
