@@ -94,6 +94,9 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 | `CopilotSession` | Hilo de chat del copiloto de operaciones (superadmin): `belongs_to :admin_user`, `status` (active/archived), `tokens_input`/`tokens_output` (presupuesto por sesión), `metadata`. `has_many :copilot_messages, :copilot_pending_actions` |
 | `CopilotMessage` | Transcript append-only de una sesión (también es el log de auditoría): `role` (user/assistant/tool/system), `content`, `tool_name`, `tool_args` (jsonb), `tool_result` (jsonb), tokens. Broadcast en vivo vía Turbo |
 | `CopilotPendingAction` | Gate humano: act tool propuesta por el copiloto, en espera de aprobación: `tool_name`, `args` (jsonb), `status` (pending/approved/rejected/executed/failed), `result` (jsonb), `approved_by`, `executed_at`. Ejecutada solo por `Copilot::ActExecutor` al aprobar |
+| `ProgramAssistantSession` | Hilo del asistente IA de programas (admin, modal en `/admin/programs`): `belongs_to :admin_user`, `status` (active/archived), `tokens_input`/`tokens_output`. Guards `over_token_budget?` / `action_cap_reached?` (Settings `program_assistant_token_budget_per_session` / `_action_cap_per_session`). `has_many :program_assistant_messages, :program_assistant_pending_actions` |
+| `ProgramAssistantMessage` | Transcript append-only de la sesión: `role` (user/assistant/tool/system — `tool` = resultado de tool-call, dato no confiable), `content`, tokens. Broadcast en vivo vía Turbo |
+| `ProgramAssistantPendingAction` | Gate humano: act tool propuesta por el asistente, en espera de aprobación: `tool_name`, `args` (jsonb), `status` (pending/approved/rejected/executed/failed), `result` (jsonb). Scope `.awaiting`; broadcast del panel vía Turbo |
 
 All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `discard` gem for soft deletes — always scope with `.kept`.
 

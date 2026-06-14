@@ -756,7 +756,7 @@ Un admin puede crear, editar y leer programas conversando con una IA desde un mo
 ### 31.4 Límites y kill-switch
 - **Regla.** Gated por `program_assistant_enabled` (default ON). Tope de tokens por sesión (`program_assistant_token_budget_per_session`) y de acciones propuestas por sesión (`program_assistant_action_cap_per_session`). Una sesión activa por admin (se reusa o se crea); "Nueva conversación" archiva la abierta.
 - **Por qué.** Frena loops, abuso por inyección y costo descontrolado; aísla el historial por admin.
-- **Enforce.** `app/models/program_assistant_session.rb:11-18`, `app/controllers/admin/program_assistant_controller.rb:51-66`, `app/models/setting.rb`.
+- **Enforce.** `app/models/program_assistant_session.rb:11-18`, `app/controllers/admin/program_assistant_controller.rb:48-63`, `app/models/setting.rb`.
 
 ---
 
