@@ -18,7 +18,7 @@ camila = Participant.create!(
   status: :completed,
   current_day: 15,
   timezone: "America/Santiago",
-  company: "Fintech Nexus",
+  company: Company.find_or_create_by!(name: "Fintech Nexus"),
   role: "Product Owner Sr.",
   initial_pattern: "Suelo sobre-controlar el avance técnico de mi equipo porque siento que si no estoy encima de cada detalle, las cosas no se van a entregar a tiempo o con calidad. Esto me deja sin tiempo para la estrategia y cansa a mis desarrolladores.",
   enrolled_at: 15.days.ago,
@@ -124,7 +124,7 @@ mateo = Participant.create!(
   status: :completed,
   current_day: 15,
   timezone: "America/Santiago",
-  company: "Logística Austral",
+  company: Company.find_or_create_by!(name: "Logística Austral"),
   role: "Líder de Operaciones",
   initial_pattern: "Me cuesta aceptar los nuevos protocolos del sistema SAP que implementaron. Siento que alargan mi trabajo diario, así que tiendo a esquivarlos, usar planillas Excel por fuera y quejarme con mi equipo de que el sistema nuevo es inútil.",
   enrolled_at: 15.days.ago,
@@ -230,7 +230,7 @@ sofia = Participant.create!(
   status: :completed,
   current_day: 15,
   timezone: "America/Santiago",
-  company: "SaaS Solutions",
+  company: Company.find_or_create_by!(name: "SaaS Solutions"),
   role: "Key Account Manager",
   initial_pattern: "Siento que vivo en modo bombero, apagando incendios en Teams, WhatsApp y correo. Respondo todo de inmediato porque me da pánico que un cliente de ventas piense que no le presto atención, pero termino mi día a las 9 PM agotada y sintiendo que no avancé en mis propuestas importantes.",
   enrolled_at: 15.days.ago,
@@ -573,7 +573,7 @@ tomas = Participant.create!(
   status: :active,
   current_day: 3,
   timezone: "America/Santiago",
-  company: "Líder Group",
+  company: Company.find_or_create_by!(name: "Líder Group"),
   role: "Engineering Manager",
   initial_pattern: "Tiendo a no delegar la revisión técnica final de los pulls requests porque me preocupa que se suban bugs a producción.",
   enrolled_at: 3.days.ago,
@@ -628,7 +628,7 @@ valentina = Participant.create!(
   status: :active,
   current_day: 5,
   timezone: "America/Santiago",
-  company: "Empresa S.A.",
+  company: Company.find_or_create_by!(name: "Empresa S.A."),
   role: "Analista de Procesos",
   initial_pattern: "Siento resistencia a usar los nuevos flujos digitales en la intranet porque la interfaz es muy confusa y lenta.",
   enrolled_at: 5.days.ago,
@@ -687,17 +687,26 @@ user_reply = Conversation.create!(
   read_at: 2.hours.ago + 1.second
 )
 
-# Ensure an AdminUser exists for pending responses approvals/rejections
-admin_user = AdminUser.first
-if admin_user.nil?
-  admin_user = AdminUser.create!(
-    email: "admin@impulso.com",
-    password: "password123",
-    password_confirmation: "password123",
-    name: "Admin Default"
-  )
-  puts "Created default admin user for seeds: admin@impulso.com / password123"
-end
+# Ensure AdminUsers exist for testing roles and pending responses
+superadmin_user = AdminUser.find_or_initialize_by(email: "superadmin@impulso.com")
+superadmin_user.assign_attributes(
+  password: "password123",
+  password_confirmation: "password123",
+  name: "Superadmin Default",
+  superadmin: true
+)
+superadmin_user.save!
+puts "Created SuperAdmin: superadmin@impulso.com / password123"
+
+admin_user = AdminUser.find_or_initialize_by(email: "admin@impulso.com")
+admin_user.assign_attributes(
+  password: "password123",
+  password_confirmation: "password123",
+  name: "Admin Default",
+  superadmin: false
+)
+admin_user.save!
+puts "Created Admin: admin@impulso.com / password123"
 
 # 1. PENDING RESPONSE (Pending approval)
 PendingResponse.create!(
@@ -766,7 +775,7 @@ andres = Participant.create!(
   status: :paused,
   current_day: 8,
   timezone: "America/Santiago",
-  company: "Austral Consultores",
+  company: Company.find_or_create_by!(name: "Austral Consultores"),
   role: "Consultor Senior",
   initial_pattern: "Siento que me quedo pegado respondiendo correos pequeños en vez de preparar el informe de auditoría.",
   enrolled_at: 8.days.ago,
@@ -784,7 +793,7 @@ elena = Participant.create!(
   status: :pending,
   current_day: 0,
   timezone: "America/Santiago",
-  company: "Innovación Activa",
+  company: Company.find_or_create_by!(name: "Innovación Activa"),
   role: "Project Manager",
   enrolled_at: 1.day.ago,
   started_at: nil,
@@ -812,7 +821,7 @@ ignacio = Participant.create!(
   status: :active,
   current_day: 4,
   timezone: "America/Santiago",
-  company: "Holding Industrial",
+  company: Company.find_or_create_by!(name: "Holding Industrial"),
   role: "Jefe de Operaciones",
   initial_pattern: "Suelo gritar o alzar la voz en reuniones cuando las metas de despacho no se cumplen a tiempo.",
   enrolled_at: 6.days.ago,
