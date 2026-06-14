@@ -85,6 +85,18 @@ RSpec.describe "Admin::Participants", type: :request do
       expect(response.body).to include(participant.phone_e164)
     end
 
+    it "shows the review banner and approve button for a participant awaiting program review" do
+      template = create(:program, name: "Reset de Mañanas", template: true, generated: true, active: false)
+      awaiting = create(:participant, status: :intake, program: nil, current_day: 0,
+                        intake_state: { "awaiting_review" => true, "template_program_id" => template.id })
+
+      get "/admin/participants/#{awaiting.id}"
+
+      expect(response.body).to include("pendiente de revisión")
+      expect(response.body).to include("Reset de Mañanas")
+      expect(response.body).to include(approve_program_admin_participant_path(awaiting))
+    end
+
     it "shows the advance-to-next-program button for a completed participant with a next_program" do
       nivel2 = create(:program, name: "Nivel 2 Avanzado")
       nivel1 = create(:program, name: "Nivel 1 Base", next_program: nivel2)
@@ -212,6 +224,66 @@ RSpec.describe "Admin::Participants", type: :request do
 
       expect(response).to redirect_to(admin_participant_path(participant))
       expect(flash[:alert]).to include("ya pasó del día 1")
+    end
+  end
+
+  describe "POST /admin/participants/:id/start_intake" do
+    it "puts the participant into intake and enqueues the first question when enabled" do
+      allow(Setting).to receive(:fetch).and_call_original
+      allow(Setting).to receive(:fetch).with("program_intake_enabled").and_return(true)
+      participant.update!(status: :pending)
+
+      expect {
+        post "/admin/participants/#{participant.id}/start_intake"
+      }.to have_enqueued_job(SendIntakeQuestionJob).with(participant.id)
+
+      expect(response).to redirect_to(admin_participant_path(participant))
+      expect(participant.reload).to be_intake
+      expect(flash[:notice]).to include("Intake iniciado")
+    end
+
+    it "redirects with an alert when the feature is disabled" do
+      allow(Setting).to receive(:fetch).and_call_original
+      allow(Setting).to receive(:fetch).with("program_intake_enabled").and_return(false)
+
+      expect {
+        post "/admin/participants/#{participant.id}/start_intake"
+      }.not_to have_enqueued_job(SendIntakeQuestionJob)
+
+      expect(flash[:alert]).to include("desactivado")
+    end
+  end
+
+  describe "POST /admin/participants/:id/approve_program" do
+    let(:template) do
+      create(:program, template: true, generated: true, active: false, total_days: 3).tap do |p|
+        create(:day_content, program: p, day_number: 1, phase: :see)
+        create(:day_content, program: p, day_number: 2, phase: :choose)
+        create(:day_content, program: p, day_number: 3, phase: :anchor)
+      end
+    end
+
+    it "clones the awaiting-review template and activates the participant" do
+      participant.update!(status: :intake, program: nil, current_day: 0,
+                          intake_state: { "awaiting_review" => true, "template_program_id" => template.id,
+                                          "answers" => { "pattern" => "reviso el celular" } })
+
+      expect {
+        post "/admin/participants/#{participant.id}/approve_program"
+      }.to have_enqueued_job(SendWelcomeJob).with(participant.id)
+
+      expect(response).to redirect_to(admin_participant_path(participant))
+      participant.reload
+      expect(participant).to be_active
+      expect(participant.program.template).to be(false)
+      expect(flash[:notice]).to include("aprobado")
+    end
+
+    it "redirects with an alert when there is no template to review" do
+      participant.update!(status: :intake, program: nil, current_day: 0, intake_state: {})
+
+      post "/admin/participants/#{participant.id}/approve_program"
+      expect(flash[:alert]).to include("pendiente de revisión")
     end
   end
 

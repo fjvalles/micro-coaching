@@ -27,6 +27,8 @@ Rails.application.routes.draw do
           post :send_message
           post :re_enroll
           post :start_program
+          post :start_intake
+          post :approve_program
         end
         collection do
           post :broadcast

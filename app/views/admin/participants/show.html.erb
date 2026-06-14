@@ -38,6 +38,26 @@
     <% end %>
   <% end %>
 
+  <% if Setting.fetch("program_intake_enabled") && (@participant.pending? || @participant.intake?) && !@participant.intake_awaiting_review? %>
+    <%= button_to start_intake_admin_participant_path(@participant), method: :post, class: "btn btn-secondary",
+          form: { data: { turbo_confirm: "¿Iniciar el intake de programa personalizado? Se enviará la primera pregunta por WhatsApp." } } do %>
+      <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm3.75 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm3.75 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+      </svg>
+      <%= @participant.intake? ? "Reenviar pregunta de intake" : "Armar programa personalizado" %>
+    <% end %>
+  <% end %>
+
+  <% if @participant.intake_awaiting_review? %>
+    <%= button_to approve_program_admin_participant_path(@participant), method: :post, class: "btn btn-primary",
+          form: { data: { turbo_confirm: "¿Aprobar el programa generado y activar al participante? Se clonará la plantilla y se enviará la bienvenida." } } do %>
+      <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+      Aprobar programa generado
+    <% end %>
+  <% end %>
+
   <a href="<%= edit_admin_participant_path(@participant) %>" class="btn btn-secondary">
     Editar
   </a>
@@ -51,6 +71,21 @@
       Archivar
     <% end %>
   <% end %>
+<% end %>
+
+<% if @participant.intake_awaiting_review? %>
+  <% review_template = Program.templates.find_by(id: @participant.intake_state["template_program_id"]) %>
+  <div class="card" style="margin-bottom: 24px; border-left: 4px solid #f59e0b;">
+    <strong>Programa generado pendiente de revisión.</strong>
+    <p style="margin: 8px 0 0;">
+      La IA armó un programa a partir del intake. Revisa el contenido antes de aprobarlo y activarlo.
+      <% if review_template %>
+        <a href="<%= admin_program_path(review_template) %>">Ver «<%= review_template.name %>» (<%= review_template.total_days %> días)</a>.
+      <% else %>
+        (No se encontró la plantilla; pudo haberse eliminado.)
+      <% end %>
+    </p>
+  </div>
 <% end %>
 
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px;">

@@ -675,7 +675,11 @@ Un participante puede recibir un **programa generado a medida** a partir de un c
 - **Regla.** Todo el feature está detrás de `program_intake_enabled` (default OFF): sin él, ni `IntakeStarter` ni `ProgramGenerationJob` hacen nada y no se llama a OpenAI. Si la generación falla (JSON inválido o spec rechazado), el job envía `program_intake_failed_text` y deja al participante en `:intake`.
 - **Enforce.** `app/services/participants/intake_starter.rb`, `app/jobs/program_generation_job.rb`.
 
-> **Gaps conscientes.** No hay botón de admin todavía: el inicio (`IntakeStarter`) y la aprobación (`Programs::Approver`) se disparan desde consola/servicio. Tampoco hay timeout de abandono mid-intake (el step persiste; reanuda al próximo inbound). La generación es one-shot (no skeleton+fill).
+### 29.5 Acciones de admin
+- **Regla.** Desde `/admin/participants/:id`: botón **"Armar programa personalizado"** (`#start_intake` → `IntakeStarter`, visible si `program_intake_enabled` y el participante está `pending`/`intake`) y, cuando hay plantilla esperando revisión, un banner con link a la plantilla generada + botón **"Aprobar programa generado"** (`#approve_program` → `Programs::Approver`). El botón de intake se reusa como "Reenviar pregunta" mientras está en `:intake`.
+- **Enforce.** `app/controllers/admin/participants_controller.rb` (`#start_intake`, `#approve_program`), `app/views/admin/participants/show.html.erb`, `config/routes.rb`.
+
+> **Gaps conscientes.** No hay timeout de abandono mid-intake (el step persiste; reanuda al próximo inbound). La generación es one-shot (no skeleton+fill). Las plantillas generadas inactivas viven en `/admin/programs` sin un índice dedicado de "pendientes de revisión".
 
 ---
 

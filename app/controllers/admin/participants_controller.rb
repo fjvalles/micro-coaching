@@ -2,7 +2,8 @@ module Admin
   class ParticipantsController < BaseController
     before_action :set_participant, only: [
       :show, :edit, :update, :destroy, :enroll, :discard, :undiscard,
-      :send_message, :re_enroll, :start_program, :versions
+      :send_message, :re_enroll, :start_program, :versions,
+      :start_intake, :approve_program
     ]
 
     def index
@@ -198,6 +199,35 @@ module Admin
       end
     end
 
+    # Custom action: kick off the personalized-program intake questionnaire over
+    # WhatsApp (Participants::IntakeStarter). Gated by program_intake_enabled.
+    def start_intake
+      result = Participants::IntakeStarter.new(@participant).call
+      if result.ok?
+        redirect_to admin_participant_path(@participant),
+                    notice: "Intake iniciado. Se envió la primera pregunta por WhatsApp."
+      else
+        redirect_to admin_participant_path(@participant),
+                    alert: start_intake_error(result.reason)
+      end
+    end
+
+    # Custom action: approve the AI-generated template awaiting review and start
+    # the participant on a live clone (Programs::Approver).
+    def approve_program
+      template_id = @participant.intake_state["template_program_id"]
+      template = template_id && Program.templates.find_by(id: template_id)
+      if template.nil?
+        redirect_to admin_participant_path(@participant),
+                    alert: "No hay un programa generado pendiente de revisión para este participante."
+        return
+      end
+
+      Programs::Approver.new(participant: @participant, template: template).call
+      redirect_to admin_participant_path(@participant),
+                  notice: "Programa aprobado y activado. Bienvenida enviada por WhatsApp."
+    end
+
     # Custom action: send a manual message (free text or curated template) now.
     def send_message
       result = Outbound::AdminMessage.new(
@@ -275,6 +305,14 @@ module Admin
       when :completed              then "El participante ya completó el programa."
       when :already_past_day_one   then "El participante ya pasó del día 1; usa los envíos manuales del día actual."
       else                              "No se pudo iniciar el programa."
+      end
+    end
+
+    def start_intake_error(reason)
+      case reason
+      when :disabled        then "El intake de programa personalizado está desactivado (Setting program_intake_enabled)."
+      when :already_active  then "El participante ya está activo o completó el programa; no puede entrar al intake."
+      else                       "No se pudo iniciar el intake."
       end
     end
 
