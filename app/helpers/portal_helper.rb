@@ -6,8 +6,38 @@ module PortalHelper
     [
       [ "Inicio",   portal_root_path,      :home,     %w[dashboard] ],
       [ "Programa", portal_program_path,   :map,      %w[programs] ],
-      [ "Recursos", portal_resources_path, :bookmark, %w[resources] ]
+      [ "Recursos", portal_resources_path, :bookmark, %w[resources] ],
+      [ "Pagos",    portal_billing_path,   :receipt,  %w[billings] ]
     ]
+  end
+
+  SUBSCRIPTION_STATUS = {
+    "pending"  => [ "Pendiente", "pill-warn" ],
+    "active"   => [ "Activa", "pill-ok" ],
+    "past_due" => [ "Pago pendiente", "pill-warn" ],
+    "canceled" => [ "Cancelada", "pill-muted" ],
+    "paused"   => [ "Pausada", "pill-muted" ]
+  }.freeze
+
+  PAYMENT_STATUS = {
+    "pending"    => [ "Pendiente", "pill-warn" ],
+    "authorized" => [ "Pagado", "pill-ok" ],
+    "rejected"   => [ "Rechazado", "pill-warn" ],
+    "failed"     => [ "Fallido", "pill-warn" ],
+    "aborted"    => [ "Cancelado", "pill-muted" ],
+    "refunded"   => [ "Reembolsado", "pill-info" ]
+  }.freeze
+
+  def portal_subscription_status(status)
+    SUBSCRIPTION_STATUS.fetch(status.to_s, [ status.to_s.humanize, "pill-muted" ])
+  end
+
+  def portal_payment_status(status)
+    PAYMENT_STATUS.fetch(status.to_s, [ status.to_s.humanize, "pill-muted" ])
+  end
+
+  def portal_clp(amount)
+    "$#{number_with_delimiter(amount.to_i, delimiter: '.')} CLP"
   end
 
   PHASE_LABEL = { "see" => "Ver", "choose" => "Elegir", "anchor" => "Anclar" }.freeze

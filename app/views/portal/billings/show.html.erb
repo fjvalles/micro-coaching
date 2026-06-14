@@ -1,0 +1,56 @@
+<% content_for :title, "Pagos — Impulso" %>
+
+<% if @can_pay %>
+  <div class="card" style="border-color: var(--primary); box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);">
+    <h2 class="section-title" style="margin-bottom: 6px;">Activa tu membresía</h2>
+    <p class="eyebrow" style="margin-bottom: 16px;">Completa el pago para continuar tu programa.</p>
+    <%= link_to "Pagar #{portal_clp(@price)}", pagos_path(participant_id: current_participant.id), class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<div class="card">
+  <h1 class="section-title">Suscripción</h1>
+  <% if @subscriptions.any? %>
+    <% @subscriptions.each do |s| %>
+      <% label, pill = portal_subscription_status(s.status) %>
+      <div style="padding: 14px 0; border-top: 1px solid var(--border);">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+          <span style="font-weight: 600;"><%= s.plan.presence || "Membresía" %></span>
+          <span class="pill <%= pill %>"><%= label %></span>
+        </div>
+        <div class="eyebrow" style="margin-top: 6px;">
+          <%= portal_clp(s.amount_clp) %> · cada <%= s.billing_interval_days %> días
+          <% if s.active? && s.next_billing_at %>
+            <br>Próximo cobro: <%= s.next_billing_at.strftime("%d/%m/%Y") %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="empty-state">
+      <%= portal_icon(:receipt) %>
+      <p>No tienes una suscripción activa.</p>
+    </div>
+  <% end %>
+</div>
+
+<div class="card">
+  <h2 class="section-title">Historial de pagos</h2>
+  <% if @payments.any? %>
+    <% @payments.each do |p| %>
+      <% label, pill = portal_payment_status(p.status) %>
+      <div class="data-row">
+        <div>
+          <div style="font-weight: 600;"><%= portal_clp(p.amount) %></div>
+          <div class="eyebrow"><%= (p.paid_at || p.created_at)&.strftime("%d/%m/%Y") %></div>
+        </div>
+        <span class="pill <%= pill %>"><%= label %></span>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="empty-state">
+      <%= portal_icon(:receipt) %>
+      <p>Todavía no registras pagos.</p>
+    </div>
+  <% end %>
+</div>
