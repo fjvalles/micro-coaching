@@ -1,0 +1,28 @@
+<% content_for :title, "Recursos — Impulso" %>
+
+<div class="card">
+  <h1 class="section-title">Recursos compartidos</h1>
+  <p class="eyebrow" style="margin: -8px 0 20px;">Links y fuentes que te enviamos por WhatsApp, en un solo lugar.</p>
+
+  <% if @resources.any? %>
+    <% @resources.each do |d| %>
+      <% r = d.resource %>
+      <a href="<%= r.url %>" target="_blank" rel="noopener noreferrer" class="resource-item">
+        <span class="ri-icon"><%= portal_resource_icon(r.kind) %></span>
+        <span class="ri-body">
+          <p class="ri-title"><%= r.title %></p>
+          <p class="ri-meta">
+            <%= portal_resource_label(r.kind) %>
+            <% if d.created_at %> · <%= d.created_at.strftime("%d/%m/%Y") %><% end %>
+          </p>
+        </span>
+        <span class="ico-sm" style="color: var(--text-muted); flex-shrink: 0;"><%= portal_icon(:external) %></span>
+      </a>
+    <% end %>
+  <% else %>
+    <div class="empty-state">
+      <%= portal_icon(:bookmark) %>
+      <p>Aún no te hemos compartido recursos. Aparecerán aquí cuando los recibas por WhatsApp.</p>
+    </div>
+  <% end %>
+</div>

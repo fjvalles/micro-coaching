@@ -132,6 +132,11 @@ Rails.application.routes.draw do
     post   "acceso",       to: "sessions#create"
     get    "sesion/:token", to: "sessions#show",   as: :session
     delete "salir",        to: "sessions#destroy", as: :logout
+
+    resource  :program,  only: :show
+    resources :resources, only: :index
+    resource  :billing,  only: :show
+    resource  :profile,  only: %i[show update]
     root to: "dashboard#show"
   end
 
