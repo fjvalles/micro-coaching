@@ -63,3 +63,5 @@ group :test do
   gem "shoulda-matchers", "~> 6.0"
   gem "rails-controller-testing"
 end
+
+gem "rails-i18n", "~> 7.0"

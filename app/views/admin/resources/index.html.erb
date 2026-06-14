@@ -35,32 +35,34 @@
   </div>
   <div class="card-body">
     <%= form_with url: discover_admin_resources_path, method: :post, local: true do %>
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end;">
-        <div>
-          <%= label_tag "resource_search_topic", "Tema", style: "display:block; font-weight:600; margin-bottom:6px;" %>
-          <%= text_field_tag "resource_search[topic]", @discover_topic, id: "resource_search_topic", class: "form-control", placeholder: "ej. foco, ansiedad, sueño", required: true %>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <%= label_tag "resource_search_topic", "Tema", class: "form-label" %>
+          <%= text_field_tag "resource_search[topic]", @discover_topic, id: "resource_search_topic", class: "form-input", placeholder: "ej. foco, ansiedad, sueño", required: true %>
         </div>
-        <div>
-          <%= label_tag "resource_search_kind", "Tipo", style: "display:block; font-weight:600; margin-bottom:6px;" %>
-          <%= select_tag "resource_search[kind]", options_for_select(Resource.kinds.keys.map { |kind| [ kind.humanize, kind ] }, "article"), id: "resource_search_kind", class: "form-control" %>
+        <div class="form-group" style="margin-bottom: 0;">
+          <%= label_tag "resource_search_kind", "Tipo", class: "form-label" %>
+          <%= select_tag "resource_search[kind]", options_for_select(Resource.kinds.keys.map { |kind| [ kind.humanize, kind ] }, "article"), id: "resource_search_kind", class: "form-select" %>
         </div>
-        <div>
-          <%= label_tag "resource_search_program_id", "Programa", style: "display:block; font-weight:600; margin-bottom:6px;" %>
-          <%= select_tag "resource_search[program_id]", options_from_collection_for_select(@programs, :id, :name, params[:program_id]), include_blank: "General", id: "resource_search_program_id", class: "form-control" %>
+        <div class="form-group" style="margin-bottom: 0;">
+          <%= label_tag "resource_search_program_id", "Programa", class: "form-label" %>
+          <%= select_tag "resource_search[program_id]", options_from_collection_for_select(@programs, :id, :name, params[:program_id]), include_blank: "General", id: "resource_search_program_id", class: "form-select" %>
         </div>
-        <%= submit_tag "Buscar", class: "btn btn-primary" %>
+        <div class="form-group" style="margin-bottom: 0;">
+          <%= submit_tag "Buscar", class: "btn btn-primary", style: "width: 100%; height: 42px;" %>
+        </div>
       </div>
     <% end %>
   </div>
 </div>
 
 <%= form_with url: admin_resources_path, method: :get, local: true, html: { id: "resources-filters-form", class: "filter-toolbar", style: "margin-bottom: 24px;" } do %>
-  <div style="display:flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+  <div class="filter-toolbar-row">
     <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
-    <%= select_tag :status, options_for_select([ [ "Todos los estados", "" ] ] + Resource.statuses.keys.map { |s| [ s.humanize, s ] }, params[:status]), class: "form-control", onchange: "this.form.submit()" %>
-    <%= select_tag :kind, options_for_select([ [ "Todos los tipos", "" ] ] + Resource.kinds.keys.map { |k| [ k.humanize, k ] }, params[:kind]), class: "form-control", onchange: "this.form.submit()" %>
-    <%= select_tag :program_id, options_from_collection_for_select(@programs, :id, :name, params[:program_id]), include_blank: "Todos los programas", class: "form-control", onchange: "this.form.submit()" %>
-    <%= text_field_tag :topic, params[:topic], placeholder: "Tema exacto", class: "form-control" %>
+    <%= select_tag :status, options_for_select([ [ "Todos los estados", "" ] ] + Resource.statuses.keys.map { |s| [ s.humanize, s ] }, params[:status]), class: "form-select", style: "width: auto; min-width: 160px;", onchange: "this.form.submit()" %>
+    <%= select_tag :kind, options_for_select([ [ "Todos los tipos", "" ] ] + Resource.kinds.keys.map { |k| [ k.humanize, k ] }, params[:kind]), class: "form-select", style: "width: auto; min-width: 160px;", onchange: "this.form.submit()" %>
+    <%= select_tag :program_id, options_from_collection_for_select(@programs, :id, :name, params[:program_id]), include_blank: "Todos los programas", class: "form-select", style: "width: auto; min-width: 160px;", onchange: "this.form.submit()" %>
+    <%= text_field_tag :topic, params[:topic], placeholder: "Tema exacto", class: "form-input", style: "width: auto; min-width: 180px;" %>
     <%= submit_tag "Filtrar", class: "btn btn-secondary" %>
     <%= link_to "Limpiar", admin_resources_path, class: "filter-reset-link" %>
   </div>

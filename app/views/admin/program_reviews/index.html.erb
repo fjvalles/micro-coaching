@@ -4,30 +4,50 @@
   <div class="card-header">
     <h3 class="card-title">Programas personalizados por revisar (<%= @participants.size %>)</h3>
   </div>
-  <div class="card-body">
+  <div class="card-body" style="padding: 0;">
     <% if @participants.empty? %>
-      <p style="color:var(--text-muted);">No hay programas generados pendientes de revisión.</p>
+      <div class="empty-state">
+        <div class="empty-state-title">No hay programas pendientes</div>
+        <div class="empty-state-desc">Todos los programas generados han sido revisados.</div>
+      </div>
     <% else %>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Participante</th>
-            <th>Programa actual</th>
-            <th>Generado hace</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @participants.each do |p| %>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
             <tr>
-              <td><%= link_to p.name, admin_participant_path(p) %></td>
-              <td><%= p.program&.name || "—" %></td>
-              <td><small><%= time_ago_in_words(p.updated_at) %></small></td>
-              <td><%= link_to "Revisar y aprobar", admin_participant_path(p), class: "btn btn-sm" %></td>
+              <th>Participante</th>
+              <th>Programa actual</th>
+              <th>Generado hace</th>
+              <th style="text-align: right;">Acciones</th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% @participants.each do |p| %>
+              <tr>
+                <td>
+                  <a href="<%= admin_participant_path(p) %>" style="font-weight: 600; color: var(--brand); text-decoration: none;">
+                    <%= p.name %>
+                  </a>
+                  <div style="font-size: 12px; color: var(--text-muted);"><%= p.phone_e164 %></div>
+                </td>
+                <td>
+                  <% if p.program %>
+                    <span style="color: var(--text-main); font-weight: 500;"><%= p.program.name %></span>
+                  <% else %>
+                    <span style="color: var(--text-muted); font-style: italic;">Sin programa</span>
+                  <% end %>
+                </td>
+                <td>
+                  <span style="font-size: 13px; color: var(--text-main);"><%= time_ago_in_words(p.updated_at) %></span>
+                </td>
+                <td style="text-align: right;">
+                  <%= link_to "Revisar y aprobar", admin_participant_path(p), class: "btn btn-primary btn-sm" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     <% end %>
   </div>
 </div>

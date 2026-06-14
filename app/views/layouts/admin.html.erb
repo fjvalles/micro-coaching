@@ -93,6 +93,7 @@
                 </a>
               </li>
               <% pending_count = (PendingResponse.kept.pending_action.count rescue 0) %>
+              <% if pending_count.positive? || controller_name == 'pending_responses' %>
               <li>
                 <a href="<%= admin_pending_responses_path %>" class="nav-link <%= 'active' if controller_name == 'pending_responses' %>">
                   <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -104,6 +105,7 @@
                   <% end %>
                 </a>
               </li>
+              <% end %>
               <% if Setting.fetch("program_intake_enabled") %>
               <li>
                 <% review_count = Participant.kept.awaiting_program_review.size %>
