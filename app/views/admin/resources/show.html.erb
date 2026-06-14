@@ -1,0 +1,82 @@
+<% content_for :title, @resource.title %>
+
+<% content_for :breadcrumbs do %>
+  <span class="breadcrumb-sep">›</span>
+  <%= link_to "Recursos", admin_resources_path %>
+  <span class="breadcrumb-sep">›</span>
+  <span><%= @resource.title %></span>
+<% end %>
+
+<% content_for :header_actions do %>
+  <%= link_to "Editar", edit_admin_resource_path(@resource), class: "btn btn-secondary" %>
+  <%= button_to "Verificar de nuevo", verify_again_admin_resource_path(@resource), method: :patch, class: "btn btn-secondary", form: { style: "display:inline;" } %>
+  <% if @resource.verified? %>
+    <%= button_to "Aprobar", approve_admin_resource_path(@resource), method: :patch, class: "btn btn-primary", form: { style: "display:inline;" } %>
+    <%= button_to "Rechazar", reject_admin_resource_path(@resource), method: :patch, class: "btn btn-danger", form: { style: "display:inline;" } %>
+  <% end %>
+<% end %>
+
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header">
+    <h2 class="card-title">Detalle</h2>
+    <span class="badge <%= @resource.approved? ? 'badge-success' : @resource.rejected? || @resource.dead? ? 'badge-danger' : 'badge-warning' %>"><%= @resource.status %></span>
+  </div>
+  <div class="card-body" style="display:grid; gap: 14px;">
+    <div>
+      <strong>URL:</strong>
+      <%= link_to @resource.url, @resource.url, target: "_blank", rel: "noopener noreferrer" %>
+    </div>
+    <div><strong>Tipo:</strong> <%= @resource.kind %></div>
+    <div><strong>Origen:</strong> <%= @resource.source %></div>
+    <div><strong>Programa:</strong> <%= @resource.program&.name || "General" %></div>
+    <div><strong>Temas:</strong> <%= @resource.topics.join(", ").presence || "Sin temas" %></div>
+    <div><strong>Descripción:</strong> <%= simple_format(@resource.description.presence || "Sin descripción") %></div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header">
+    <h2 class="card-title">Verificación</h2>
+    <span style="color: var(--text-muted); font-size: 13px;"><%= @resource.last_verified_at ? l(@resource.last_verified_at, format: :long) : "Sin verificar" %></span>
+  </div>
+  <div class="card-body">
+    <pre style="white-space: pre-wrap; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 16px;"><%= JSON.pretty_generate(@resource.verification.presence || {}) %></pre>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Entregas recientes</h2>
+    <span class="badge badge-neutral"><%= @deliveries.size %></span>
+  </div>
+  <div class="card-body" style="padding: 0;">
+    <% if @deliveries.empty? %>
+      <div class="empty-state" style="padding: 32px 16px; text-align: center; color: var(--text-muted);">
+        Este recurso aún no se ha enviado.
+      </div>
+    <% else %>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Participante</th>
+            <th>Momento</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @deliveries.each do |delivery| %>
+            <tr>
+              <td><%= link_to delivery.participant.name, admin_participant_path(delivery.participant) %></td>
+              <td><%= delivery.moment %></td>
+              <td><%= l(delivery.created_at, format: :short) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>
+
+<div style="margin-top: 16px;">
+  <%= button_to "Archivar recurso", admin_resource_path(@resource), method: :delete, class: "btn btn-danger", data: { turbo_confirm: "¿Archivar este recurso?" } %>
+</div>

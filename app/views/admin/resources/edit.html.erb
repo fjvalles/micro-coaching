@@ -1,0 +1,12 @@
+<% content_for :title, "Editar recurso" %>
+
+<% content_for :breadcrumbs do %>
+  <span class="breadcrumb-sep">›</span>
+  <%= link_to "Recursos", admin_resources_path %>
+  <span class="breadcrumb-sep">›</span>
+  <%= link_to @resource.title, admin_resource_path(@resource) %>
+  <span class="breadcrumb-sep">›</span>
+  <span>Editar</span>
+<% end %>
+
+<%= render "form" %>

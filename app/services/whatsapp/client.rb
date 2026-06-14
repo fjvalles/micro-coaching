@@ -20,12 +20,12 @@ module Whatsapp
       })
     end
 
-    def send_text(to:, body:)
+    def send_text(to:, body:, preview_url: false)
       post({
         messaging_product: "whatsapp",
         to: to,
         type: "text",
-        text: { preview_url: false, body: body }
+        text: { preview_url: preview_url, body: body }
       })
     end
 

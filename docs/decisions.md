@@ -269,3 +269,9 @@ Decisiones que tomé durante la implementación, separadas de lo que el plan ya 
 ## Modelos OpenAI no disponibles en producción (13-jun-2026)
 
 - **Se elimina `gpt-5.4-nano` de defaults y Settings.** Producción devolvía `400 Bad Request` para `gpt-5.4-nano`, afectando `InboundIntentClassifier`, `SkillTagger`, `PatternClusterer` y el mensaje matinal. Se verificó con una llamada mínima que `gpt-5-mini` y `gpt-5-nano` están disponibles y `gpt-5.4-nano` no. Defaults nuevos: `gpt-5-nano` para clasificación/tagging/clustering y `gpt-5-mini` para matinal.
+
+## Recursos enriquecidos por catálogo (14-jun-2026)
+
+- **IDs curados en vez de URLs generadas por IA.** Las respuestas generativas solo pueden devolver `resource_id`; `Resources::MessageBuilder` anexa la URL desde `Resource.sendable` y elimina URLs libres del body. Esto evita links alucinados sin bloquear la posibilidad de enriquecer respuestas con material útil.
+- **Hallazgo, verificación y aprobación separados.** `Resources::Finder` usa búsqueda web y persiste solo URLs presentes en citaciones; `Resources::Verifier` valida HTTP/SSRF/tema; `/admin/resources` conserva el gate humano antes de que un recurso sea `approved`. Los kill-switches quedan OFF por defecto para medir precisión antes de automatizar.
+- **Preview de WhatsApp como opt-in.** `link_preview_enabled` queda separado de `resource_catalog_enabled`: se puede activar el catálogo sin cambiar la experiencia visual del cliente WhatsApp, y el comportamiento histórico (`preview_url=false`) sigue siendo el default.

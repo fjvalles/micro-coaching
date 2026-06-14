@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_14_090000) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_14_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -442,6 +442,42 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_14_090000) do
     t.index ["prompt_template_id"], name: "index_prompt_versions_on_prompt_template_id"
   end
 
+  create_table "resource_deliveries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "resource_id", null: false
+    t.uuid "participant_id", null: false
+    t.uuid "conversation_id"
+    t.string "moment"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["conversation_id"], name: "index_resource_deliveries_on_conversation_id"
+    t.index ["participant_id", "resource_id"], name: "index_resource_deliveries_on_participant_id_and_resource_id"
+    t.index ["participant_id"], name: "index_resource_deliveries_on_participant_id"
+    t.index ["resource_id"], name: "index_resource_deliveries_on_resource_id"
+  end
+
+  create_table "resources", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "title", null: false
+    t.text "url", null: false
+    t.string "kind", null: false
+    t.string "status", default: "pending", null: false
+    t.string "source", default: "manual", null: false
+    t.text "description"
+    t.jsonb "topics", default: [], null: false
+    t.uuid "program_id"
+    t.datetime "last_verified_at"
+    t.jsonb "verification", default: {}, null: false
+    t.datetime "discarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index "lower(url)", name: "index_resources_on_lower_url", unique: true
+    t.index ["discarded_at"], name: "index_resources_on_discarded_at"
+    t.index ["kind"], name: "index_resources_on_kind"
+    t.index ["program_id"], name: "index_resources_on_program_id"
+    t.index ["source"], name: "index_resources_on_source"
+    t.index ["status"], name: "index_resources_on_status"
+    t.index ["topics"], name: "index_resources_on_topics", using: :gin
+  end
+
   create_table "settings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "key", null: false
     t.text "value"
@@ -578,6 +614,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_14_090000) do
   add_foreign_key "prompt_tuning_runs", "prompt_versions"
   add_foreign_key "prompt_versions", "admin_users", column: "author_id"
   add_foreign_key "prompt_versions", "prompt_templates"
+  add_foreign_key "resource_deliveries", "conversations"
+  add_foreign_key "resource_deliveries", "participants"
+  add_foreign_key "resource_deliveries", "resources"
+  add_foreign_key "resources", "programs"
   add_foreign_key "skill_detections", "conversations"
   add_foreign_key "skill_detections", "participants"
   add_foreign_key "skill_detections", "skills"

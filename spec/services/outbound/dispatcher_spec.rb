@@ -34,6 +34,39 @@ RSpec.describe Outbound::Dispatcher do
       expect(result.queued?).to be true
       expect(result.pending_response.draft_body).to eq("")
     end
+
+    it "appends an approved catalog resource and enables preview when configured" do
+      Setting.set("resource_catalog_enabled", true)
+      Setting.set("link_preview_enabled", true)
+      resource = create(:resource, url: "https://example.com/foco", topics: [ "foco" ])
+
+      expect_any_instance_of(Whatsapp::Client).to receive(:send_text)
+        .with(to: participant.phone_e164, body: "Mira esto\n\nhttps://example.com/foco", preview_url: true)
+        .and_return(Whatsapp::Client::Response.new(success?: true, wamid: "wamid.resource"))
+
+      result = described_class.new(participant: participant, moment: :free_assistant).send_text(
+        body: "Mira esto",
+        ai: { resource_catalog: true },
+        resource_id: resource.id
+      )
+
+      expect(result.delivered?).to be true
+      expect(ResourceDelivery.find_by(resource: resource, conversation: result.conversation)).to be_present
+    end
+
+    it "strips hallucinated URLs when catalog output has no sendable resource" do
+      Setting.set("resource_catalog_enabled", true)
+
+      expect_any_instance_of(Whatsapp::Client).to receive(:send_text)
+        .with(to: participant.phone_e164, body: "Lee esto", preview_url: false)
+        .and_return(Whatsapp::Client::Response.new(success?: true, wamid: "wamid.clean"))
+
+      described_class.new(participant: participant, moment: :free_assistant).send_text(
+        body: "Lee esto https://made-up.test",
+        ai: { resource_catalog: true },
+        resource_id: nil
+      )
+    end
   end
 
   describe "#send_template" do

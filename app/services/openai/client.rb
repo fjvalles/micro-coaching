@@ -2,7 +2,7 @@ module Openai
   class Client
     include Openai::Retryable
 
-    Result = Struct.new(:content, :tokens_input, :tokens_output, :model, :latency_ms, :tool_calls, keyword_init: true)
+    Result = Struct.new(:content, :tokens_input, :tokens_output, :model, :latency_ms, :tool_calls, :annotations, keyword_init: true)
 
     DEFAULT_MODEL = Openai::ModelRouter::DEFAULT_MODEL
 
@@ -20,7 +20,7 @@ module Openai
       if Setting.fetch("openai_dry_run_global")
         return Result.new(
           content: "[dry-run] OpenAI desactivado vía openai_dry_run_global.",
-          tokens_input: 0, tokens_output: 0, model: "dry-run", latency_ms: 0, tool_calls: nil
+          tokens_input: 0, tokens_output: 0, model: "dry-run", latency_ms: 0, tool_calls: nil, annotations: []
         )
       end
 
@@ -51,7 +51,8 @@ module Openai
         tokens_output: usage["completion_tokens"].to_i,
         model: response["model"] || model,
         latency_ms: latency_ms,
-        tool_calls: message["tool_calls"].presence
+        tool_calls: message["tool_calls"].presence,
+        annotations: message["annotations"] || []
       )
     end
 

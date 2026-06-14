@@ -15,7 +15,10 @@ module Openai
       prompt_critic: "gpt-5-mini",
       guardrail_proposer: "gpt-5-mini",
       copilot: "gpt-5-mini",
-      program_generator: "gpt-5-mini"
+      program_generator: "gpt-5-mini",
+      resource_finder: "gpt-4o-search-preview",
+      resource_verifier: "gpt-5-nano",
+      resource_gap_detector: "gpt-5-nano"
     }.freeze
 
     def self.for(task)

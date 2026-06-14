@@ -1,6 +1,6 @@
 module Openai
   class MorningMessageGenerator
-    Result = Struct.new(:body, :prompt_used, :tokens_input, :tokens_output, :model, keyword_init: true)
+    Result = Struct.new(:body, :prompt_used, :tokens_input, :tokens_output, :model, :resource_id, :resource_catalog, keyword_init: true)
 
     def initialize(participant:, day_content:, client: Openai::Client.new)
       @participant = participant
@@ -19,6 +19,7 @@ module Openai
         messages: messages,
         max_tokens: Setting.fetch("openai_max_tokens_morning"),
         temperature: Setting.fetch("openai_temperature_generative"),
+        response_format: resource_catalog_available? ? { type: "json_object" } : nil,
         task: :morning_message
       )
 
@@ -31,11 +32,13 @@ module Openai
       )
 
       Result.new(
-        body: response.content,
+        body: parsed_response(response.content)[:body],
         prompt_used: messages.to_json,
         tokens_input: response.tokens_input,
         tokens_output: response.tokens_output,
-        model: response.model
+        model: response.model,
+        resource_id: parsed_response(response.content)[:resource_id],
+        resource_catalog: resource_catalog_available?
       )
     end
 
@@ -52,7 +55,8 @@ module Openai
       [
         Openai::ProgramManifesto.call(@participant.program, coach_name: @participant.coach_name),
         @day_content.ai_system_prompt.to_s,
-        Skills::CoachingHint.for(@participant)
+        Skills::CoachingHint.for(@participant),
+        resource_catalog_block
       ].compact_blank.join("\n\n")
     end
 
@@ -73,6 +77,38 @@ module Openai
         Genera el mensaje de despertar de hoy, personalizado, refiriendo brevemente al
         reporte de ayer si existe. Máximo 4 frases. Sustituye {name} por el nombre real.
       PROMPT
+    end
+
+    def resource_catalog_block
+      return "" unless resource_catalog_available?
+
+      <<~TEXT
+        Catálogo de recursos aprobados:
+        #{resource_catalog_text}
+
+        Puedes recomendar como máximo un recurso si es directamente útil. No escribas URLs.
+        Responde JSON estricto: {"body":"mensaje para WhatsApp sin URLs","resource_id":"id del catálogo o null"}.
+      TEXT
+    end
+
+    def resource_catalog_available?
+      Setting.fetch("resource_catalog_enabled") && resource_catalog_text.present?
+    end
+
+    def resource_catalog_text
+      @resource_catalog_text ||= Resources::Catalog.new(program: @participant.program).call
+    end
+
+    def parsed_response(content)
+      return { body: content.to_s, resource_id: nil } unless resource_catalog_available?
+
+      parsed = JSON.parse(content)
+      {
+        body: parsed["body"].to_s.presence || content.to_s,
+        resource_id: parsed["resource_id"].presence
+      }
+    rescue JSON::ParserError
+      { body: content.to_s, resource_id: nil }
     end
   end
 end

@@ -104,6 +104,18 @@ class Setting < ApplicationRecord
       type: :string, category: "openai", default: "gpt-5-mini",
       description: "Modelo para proponer cambios acotados a los guardrails de respuesta libre."
     },
+    "openai_model_resource_finder" => {
+      type: :string, category: "openai", default: "gpt-4o-search-preview",
+      description: "Modelo con búsqueda web para descubrir candidatos de recursos. Solo Resources::Finder puede crear URLs nuevas."
+    },
+    "openai_model_resource_verifier" => {
+      type: :string, category: "openai", default: "gpt-5-nano",
+      description: "Modelo juez para validar que una URL corresponda al tema declarado antes de revisión humana."
+    },
+    "openai_model_resource_gap_detector" => {
+      type: :string, category: "openai", default: "gpt-5-nano",
+      description: "Modelo para detectar si una conversación sugiere buscar un recurso curado."
+    },
     "openai_temperature_generative" => {
       type: :float, category: "openai", default: 0.75,
       description: "Temperatura para llamadas generativas (matinal, libre, manifiesto).",
@@ -201,6 +213,15 @@ class Setting < ApplicationRecord
     "openai_max_tokens_program" => {
       type: :integer, category: "openai", default: 4000,
       description: "max_tokens del generador de programas personalizados (ProgramGenerator, modo JSON). Un programa completo de varios días con 4 campos por día es grande."
+    },
+    "openai_max_tokens_resource_finder" => {
+      type: :integer, category: "openai", default: 1500,
+      description: "max_tokens del buscador de recursos con web search."
+    },
+    "resource_finder_max_candidates" => {
+      type: :integer, category: "openai", default: 5,
+      description: "Cantidad máxima de candidatos que Resources::Finder persiste por búsqueda.",
+      validate: ->(v) { (1..10).cover?(v) || "debe estar entre 1 y 10" }
     },
     "program_intake_enabled" => {
       type: :boolean, category: "program", default: false,
@@ -335,6 +356,27 @@ class Setting < ApplicationRecord
       type: :string, category: "program", default: "auto",
       description: "Modo de respuesta global: auto (IA envía sola), approve (IA genera, admin aprueba), suggest (admin escribe con sugerencia IA), manual (admin responde todo).",
       validate: ->(v) { %w[auto approve suggest manual].include?(v.to_s) || "debe ser auto, approve, suggest o manual" }
+    },
+    "resource_catalog_enabled" => {
+      type: :boolean, category: "program", default: false,
+      description: "Kill-switch: si es true, respuestas generativas pueden anexar recursos aprobados del catálogo por ID."
+    },
+    "resource_autodiscovery_enabled" => {
+      type: :boolean, category: "openai", default: false,
+      description: "Kill-switch: si es true, conversaciones pueden disparar detección de gaps y búsqueda web automática de candidatos."
+    },
+    "resource_review_required" => {
+      type: :boolean, category: "program", default: true,
+      description: "Si es true, los recursos verificados quedan pendientes de aprobación humana antes de ser enviables."
+    },
+    "resource_revalidation_days" => {
+      type: :integer, category: "program", default: 30,
+      description: "Días tras los cuales un recurso se considera stale y debe revalidarse.",
+      validate: ->(v) { (1..365).cover?(v) || "debe estar entre 1 y 365" }
+    },
+    "link_preview_enabled" => {
+      type: :boolean, category: "program", default: false,
+      description: "Si es true, Whatsapp::Client habilita preview_url cuando se anexa un link aprobado del catálogo."
     },
     "program_manifesto" => {
       type: :text, category: "program",

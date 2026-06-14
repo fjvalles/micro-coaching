@@ -37,3 +37,8 @@ auto_prompt_tuning:
   cron: "0 4 * * 1"
   class: AutoPromptTuningJob
   description: "Weekly: score free-chat quality and optionally propose/apply guardrail improvements"
+
+revalidate_resources:
+  cron: "15 4 * * *"
+  class: RevalidateResourcesJob
+  description: "Daily: re-check stale approved resources and mark dead links"

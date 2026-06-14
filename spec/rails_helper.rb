@@ -81,6 +81,7 @@ RSpec.configure do |config|
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
   config.include FactoryBot::Syntax::Methods
+  config.include Devise::Test::IntegrationHelpers, type: :request
   config.include ActiveJob::TestHelper, type: :job
   config.include ActiveJob::TestHelper, type: :request
   config.include ActiveSupport::Testing::TimeHelpers

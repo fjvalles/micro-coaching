@@ -21,13 +21,16 @@ module Outbound
     end
 
     # Send a free-form text. ai meta optional (prompt_used/tokens/model).
-    def send_text(body:, ai: {})
+    def send_text(body:, ai: {}, resource_id: nil, preview_url: false)
+      prepared = prepare_text(body, resource_id, ai, preview_url)
+
       if @mode == "auto"
-        convo = deliver_text(body, ai)
+        convo = deliver_text(prepared.body, ai, preview_url: prepared.preview_url)
+        record_resource_delivery(prepared.resource, convo)
         Result.new(delivered: true, conversation: convo)
       else
         pending = queue(
-          draft_body: body,
+          draft_body: prepared.body,
           delivery_kind: "text",
           ai: ai
         )
@@ -55,8 +58,12 @@ module Outbound
 
     private
 
-    def deliver_text(body, ai)
-      response = Whatsapp::Client.new.send_text(to: @participant.phone_e164, body: body)
+    def deliver_text(body, ai, preview_url: false)
+      response = Whatsapp::Client.new.send_text(
+        to: @participant.phone_e164,
+        body: body,
+        preview_url: preview_url
+      )
       Conversation.create!(
         participant: @participant,
         day_number: @day_number,
@@ -70,6 +77,29 @@ module Outbound
         tokens_input: ai[:tokens_input],
         tokens_output: ai[:tokens_output],
         model_used: ai[:model_used] || ai[:model]
+      )
+    end
+
+    def prepare_text(body, resource_id, ai, preview_url)
+      if ai[:resource_catalog] || resource_id.present?
+        Resources::MessageBuilder.new(
+          body: body,
+          resource_id: resource_id,
+          program: @participant.program
+        ).call
+      else
+        Resources::MessageBuilder::Result.new(body: body.to_s, resource: nil, preview_url: preview_url)
+      end
+    end
+
+    def record_resource_delivery(resource, conversation)
+      return unless resource && conversation&.persisted? && conversation.sent_at.present?
+
+      ResourceDelivery.create!(
+        resource: resource,
+        participant: @participant,
+        conversation: conversation,
+        moment: @moment
       )
     end
 

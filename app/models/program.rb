@@ -8,6 +8,7 @@ class Program < ApplicationRecord
   has_many :enrollments, dependent: :destroy
   has_many :prompt_templates, dependent: :destroy
   has_many :methodology_insights, dependent: :destroy
+  has_many :resources, dependent: :nullify
 
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: true,

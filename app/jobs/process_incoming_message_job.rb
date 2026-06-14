@@ -123,13 +123,13 @@ class ProcessIncomingMessageJob < ApplicationJob
           voice_analysis: voice_analysis,
           operational_context: Setting.fetch("checkin_pending_followup_text").to_s
         )
-        enqueue_skill_tagging(inbound) if taggable
+        enqueue_post_conversation_analysis(inbound) if taggable
         return
       end
 
       inbound.update!(moment: :checkin_response)
       handle_checkin(participant, text, voice_analysis: voice_analysis)
-      enqueue_skill_tagging(inbound)
+      enqueue_post_conversation_analysis(inbound)
       RefreshParticipantSummaryJob.perform_later(participant.id) if Setting.fetch("participant_summary_enabled")
     else
       intent = classify_inbound_intent(
@@ -142,7 +142,7 @@ class ProcessIncomingMessageJob < ApplicationJob
         participant: participant, inbound: inbound, text: text, intent: intent,
         voice_analysis: voice_analysis
       )
-      enqueue_skill_tagging(inbound) if taggable
+      enqueue_post_conversation_analysis(inbound) if taggable
     end
   end
 
@@ -187,10 +187,9 @@ class ProcessIncomingMessageJob < ApplicationJob
   # Async detection of the participant's human skills in this inbound. Gated +
   # idempotent inside the job; the reply is already on its way, so this adds no
   # latency. Initial-pattern answers are skipped (not coachable conversation yet).
-  def enqueue_skill_tagging(conversation)
-    return unless Setting.fetch("skill_tagging_enabled")
-
-    TagConversationSkillsJob.perform_later(conversation.id)
+  def enqueue_post_conversation_analysis(conversation)
+    TagConversationSkillsJob.perform_later(conversation.id) if Setting.fetch("skill_tagging_enabled")
+    DetectResourceGapJob.perform_later(conversation.id) if Setting.fetch("resource_autodiscovery_enabled")
   end
 
   def handle_checkin(participant, text, voice_analysis: nil)
@@ -235,7 +234,8 @@ class ProcessIncomingMessageJob < ApplicationJob
 
     ack(participant, result.body, moment: :free_assistant,
         prompt_used: result.prompt_used, tokens_input: result.tokens_input,
-        tokens_output: result.tokens_output, model_used: result.model)
+        tokens_output: result.tokens_output, model_used: result.model,
+        resource_id: result.resource_id, resource_catalog: result.resource_catalog)
   end
 
   def route_by_intent(participant:, inbound:, text:, intent:, voice_analysis: nil, operational_context: nil)
@@ -325,7 +325,12 @@ class ProcessIncomingMessageJob < ApplicationJob
   end
 
   def ack(participant, body, moment: :free_assistant, **extra)
-    Outbound::Dispatcher.new(participant: participant, moment: moment).send_text(body: body, ai: extra)
+    resource_id = extra.delete(:resource_id)
+    Outbound::Dispatcher.new(participant: participant, moment: moment).send_text(
+      body: body,
+      ai: extra,
+      resource_id: resource_id
+    )
   end
 
   # Daily free-chat cap. Returns true (and stops the AI reply) once the participant

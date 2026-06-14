@@ -23,6 +23,20 @@ RSpec.describe Whatsapp::Client do
     expect(response.wamid).to eq("wamid.OK")
   end
 
+  it "serializes preview_url for text messages" do
+    stub_request(:post, url)
+      .to_return(status: 200, body: { messages: [ { id: "wamid.PREVIEW" } ] }.to_json,
+                 headers: { "Content-Type" => "application/json" })
+
+    response = described_class.new.send_text(to: "+5215551234567", body: "hola", preview_url: true)
+
+    expect(response.success?).to be true
+    expect(WebMock).to have_requested(:post, url).with { |request|
+      payload = JSON.parse(request.body)
+      payload.dig("text", "preview_url") == true && payload.dig("text", "body") == "hola"
+    }
+  end
+
   it "returns error on 4xx" do
     stub_request(:post, url)
       .to_return(status: 400, body: { error: { message: "bad", code: 42 } }.to_json,

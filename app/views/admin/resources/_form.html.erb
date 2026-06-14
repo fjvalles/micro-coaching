@@ -1,0 +1,62 @@
+<%= form_with model: [ :admin, @resource ], local: true do |f| %>
+  <% if @resource.errors.any? %>
+    <div class="card" style="border-color: var(--rose-500); margin-bottom: 16px;">
+      <div class="card-body">
+        <strong>No se pudo guardar el recurso.</strong>
+        <ul style="margin: 8px 0 0 18px;">
+          <% @resource.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Datos del recurso</h2>
+    </div>
+    <div class="card-body" style="display: grid; gap: 16px;">
+      <div>
+        <%= f.label :title, "Título", style: "display:block; font-weight:600; margin-bottom:6px;" %>
+        <%= f.text_field :title, class: "form-control", required: true %>
+      </div>
+
+      <div>
+        <%= f.label :url, "URL pública", style: "display:block; font-weight:600; margin-bottom:6px;" %>
+        <%= f.url_field :url, class: "form-control", required: true %>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+        <div>
+          <%= f.label :kind, "Tipo", style: "display:block; font-weight:600; margin-bottom:6px;" %>
+          <%= f.select :kind, Resource.kinds.keys.map { |kind| [ kind.humanize, kind ] }, {}, class: "form-control" %>
+        </div>
+        <div>
+          <%= f.label :program_id, "Programa", style: "display:block; font-weight:600; margin-bottom:6px;" %>
+          <%= f.collection_select :program_id, Program.order(:name), :id, :name, { include_blank: "General" }, class: "form-control" %>
+        </div>
+        <% if @resource.persisted? %>
+          <div>
+            <%= f.label :status, "Estado", style: "display:block; font-weight:600; margin-bottom:6px;" %>
+            <%= f.select :status, Resource.statuses.keys.map { |status| [ status.humanize, status ] }, {}, class: "form-control" %>
+          </div>
+        <% end %>
+      </div>
+
+      <div>
+        <%= f.label :description, "Descripción", style: "display:block; font-weight:600; margin-bottom:6px;" %>
+        <%= f.text_area :description, rows: 4, class: "form-control" %>
+      </div>
+
+      <div>
+        <%= label_tag "resource_topics_text", "Temas", style: "display:block; font-weight:600; margin-bottom:6px;" %>
+        <%= text_field_tag "resource[topics_text]", @resource.topics.join(", "), class: "form-control", placeholder: "ej. foco, liderazgo, gestión del estrés" %>
+      </div>
+    </div>
+    <div class="card-footer" style="display:flex; gap: 8px; justify-content:flex-end;">
+      <%= link_to "Cancelar", @resource.persisted? ? admin_resource_path(@resource) : admin_resources_path, class: "btn btn-secondary" %>
+      <%= f.submit "Guardar", class: "btn btn-primary" %>
+    </div>
+  </div>
+<% end %>

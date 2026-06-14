@@ -698,6 +698,42 @@ Un participante puede recibir un **programa generado a medida** a partir de un c
 
 ---
 
+## 30. Recursos enriquecidos (links curados)
+
+La app puede anexar links públicos aprobados a respuestas generativas de WhatsApp. La IA **no escribe URLs**: solo puede seleccionar un `Resource` por ID desde un catálogo estable. El envío está apagado por defecto con `resource_catalog_enabled`.
+
+### 30.1 Catálogo y enviabilidad
+- **Regla.** Un recurso solo es enviable si está `kept`, `approved` y verificado dentro de `resource_revalidation_days`; el scope por programa incluye recursos generales (`program_id: nil`) y recursos del programa actual.
+- **Por qué.** Evita mandar links descartados, no revisados o vencidos, y permite mezclar curaduría general con material específico del programa.
+- **Enforce.** `app/models/resource.rb:36-55`, `app/models/setting.rb:360-379`.
+
+### 30.2 La IA selecciona IDs, no URLs
+- **Regla.** Si el catálogo está activo y hay recursos enviables, `FreeResponseGenerator` inyecta el catálogo y pide JSON con `body` + `resource_id`; `Resources::MessageBuilder` descarta URLs presentes en el body y solo anexa la URL real si el ID apunta a un `Resource.sendable.for_program(...)`.
+- **Por qué.** La memoria paramétrica del modelo puede inventar URLs; el catálogo es la única fuente de links enviables.
+- **Enforce.** `app/services/openai/free_response_generator.rb:106-151`, `app/services/resources/message_builder.rb:13-40`, `app/services/outbound/dispatcher.rb:24-103`.
+
+### 30.3 Preview de link
+- **Regla.** `Whatsapp::Client#send_text` acepta `preview_url:`; `Outbound::Dispatcher` lo activa solo para un recurso válido cuando `link_preview_enabled` está ON.
+- **Por qué.** Mantiene comportamiento histórico por defecto (`preview_url=false`) y habilita preview solo para links curados.
+- **Enforce.** `app/services/whatsapp/client.rb:23-29`, `app/services/resources/message_builder.rb:22-27`, `app/services/outbound/dispatcher.rb:61-66`.
+
+### 30.4 Verificación antes de revisión
+- **Regla.** `Resources::Verifier` valida esquema http/https, bloquea hosts privados/localhost, sigue redirects acotados, exige HTTP 2xx y usa un juez OpenAI en JSON para confirmar que el contenido corresponde al tema. Si pasa queda `verified`; si no, `rejected` o `dead`.
+- **Por qué.** `200 OK` no basta: el link debe existir, no abrir SSRF y corresponder al tema antes de que un humano lo apruebe.
+- **Enforce.** `app/services/resources/verifier.rb:30-43`, `app/services/resources/verifier.rb:48-67`, `app/services/resources/verifier.rb:99-126`, `app/services/resources/verifier.rb:156-188`.
+
+### 30.5 Revisión humana y admin
+- **Regla.** Recursos verificados no son enviables hasta que un admin los aprueba en `/admin/resources`; crear un recurso manual corre verificación síncrona, approve/reject cambia el estado y destroy archiva con `discard`.
+- **Por qué.** Mantiene el gate humano mientras el verificador no demuestre precisión operacional.
+- **Enforce.** `app/controllers/admin/resources_controller.rb:30-73`, `config/routes.rb:87-91`, `app/views/admin/resources/index.html.erb`, `app/views/admin/resources/show.html.erb`.
+
+### 30.6 Descubrimiento y link rot
+- **Regla.** `Resources::Finder` es la única fuente legítima de URLs nuevas: persiste solo candidatos cuya URL aparezca en citaciones de búsqueda. `SeedProgramResourcesJob` descubre/verifica temas de programas personalizados cuando el feature está habilitado; `DetectResourceGapJob` solo corre con `resource_autodiscovery_enabled`; `RevalidateResourcesJob` revalida recursos stale diariamente y archiva aprobados que mueren.
+- **Por qué.** Separa hallazgo, verificación y aprobación; limita costo/riesgo con kill-switches OFF por defecto y mitiga link rot.
+- **Enforce.** `app/services/resources/finder.rb:17-32`, `app/services/resources/finder.rb:61-89`, `app/jobs/seed_program_resources_job.rb:4-15`, `app/jobs/detect_resource_gap_job.rb:4-24`, `app/jobs/revalidate_resources_job.rb:4-9`, `config/schedule.yml:41-44`.
+
+---
+
 ## 13. Edge cases conocidos
 
 - **Participante sin `DayContent`.** Si no existe `DayContent(program, current_day)`, `MorningWakeForParticipantJob` retorna sin enviar. Sin error.

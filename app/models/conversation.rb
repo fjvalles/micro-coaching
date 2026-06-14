@@ -4,6 +4,7 @@ class Conversation < ApplicationRecord
   belongs_to :participant
   has_many :pending_responses, dependent: :destroy
   has_many :skill_detections, dependent: :destroy
+  has_many :resource_deliveries, dependent: :nullify
 
   enum :moment, {
     welcome: 0,

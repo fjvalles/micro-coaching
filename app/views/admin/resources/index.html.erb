@@ -1,0 +1,94 @@
+<% content_for :title, "Recursos" %>
+
+<% content_for :breadcrumbs do %>
+  <span class="breadcrumb-sep">›</span>
+  <span>Recursos</span>
+<% end %>
+
+<% content_for :header_actions do %>
+  <%= render "shared/search_field", id: "resources-search", value: params[:q], form_id: "resources-filters-form", placeholder: "Buscar recursos...", style_type: :header %>
+  <%= link_to "Nuevo recurso", new_admin_resource_path, class: "btn btn-primary" %>
+<% end %>
+
+<div class="stats-grid" style="margin-bottom: 32px;">
+  <div class="stat-card" style="border-left-color: var(--brand);">
+    <div class="stat-header"><span>Recursos activos</span></div>
+    <div class="stat-value" style="font-size: 1.6rem;"><%= @total_count %></div>
+    <div class="stat-desc">Catálogo no archivado</div>
+  </div>
+  <div class="stat-card" style="border-left-color: #f59e0b;">
+    <div class="stat-header"><span>Pendientes de revisión</span></div>
+    <div class="stat-value" style="font-size: 1.6rem;"><%= @verified_count %></div>
+    <div class="stat-desc">Verificados, aún no aprobados</div>
+  </div>
+  <div class="stat-card" style="border-left-color: #f43f5e;">
+    <div class="stat-header"><span>Muertos</span></div>
+    <div class="stat-value" style="font-size: 1.6rem;"><%= @dead_count %></div>
+    <div class="stat-desc">Requieren reemplazo o descarte</div>
+  </div>
+</div>
+
+<%= form_with url: admin_resources_path, method: :get, local: true, html: { id: "resources-filters-form", class: "filter-toolbar", style: "margin-bottom: 24px;" } do %>
+  <div style="display:flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+    <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
+    <%= select_tag :status, options_for_select([ [ "Todos los estados", "" ] ] + Resource.statuses.keys.map { |s| [ s.humanize, s ] }, params[:status]), class: "form-control", onchange: "this.form.submit()" %>
+    <%= select_tag :kind, options_for_select([ [ "Todos los tipos", "" ] ] + Resource.kinds.keys.map { |k| [ k.humanize, k ] }, params[:kind]), class: "form-control", onchange: "this.form.submit()" %>
+    <%= select_tag :program_id, options_from_collection_for_select(@programs, :id, :name, params[:program_id]), include_blank: "Todos los programas", class: "form-control", onchange: "this.form.submit()" %>
+    <%= text_field_tag :topic, params[:topic], placeholder: "Tema exacto", class: "form-control" %>
+    <%= submit_tag "Filtrar", class: "btn btn-secondary" %>
+    <%= link_to "Limpiar", admin_resources_path, class: "filter-reset-link" %>
+  </div>
+<% end %>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Catálogo curado</h2>
+    <span class="badge badge-neutral"><%= @resources.to_a.size %></span>
+  </div>
+  <div class="card-body" style="padding: 0;">
+    <% if @resources.to_a.empty? %>
+      <div class="empty-state" style="padding: 48px 16px; text-align: center;">
+        <div class="empty-state-title" style="font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 6px;">No hay recursos para este filtro</div>
+        <div class="empty-state-desc" style="font-size: 13px; color: var(--text-muted);">Crea un recurso manual o limpia los filtros.</div>
+      </div>
+    <% else %>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Recurso</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th>Programa</th>
+              <th>Última verificación</th>
+              <th style="text-align:right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @resources.each do |resource| %>
+              <tr>
+                <td>
+                  <%= link_to resource.title, admin_resource_path(resource), style: "font-weight: 600; color: var(--brand); text-decoration: none;" %>
+                  <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px; max-width: 520px; line-height: 1.4;">
+                    <%= truncate(resource.url, length: 90) %>
+                  </div>
+                </td>
+                <td><span class="badge badge-info"><%= resource.kind %></span></td>
+                <td><span class="badge <%= resource.approved? ? 'badge-success' : resource.rejected? || resource.dead? ? 'badge-danger' : 'badge-warning' %>"><%= resource.status %></span></td>
+                <td><%= resource.program&.name || "General" %></td>
+                <td><%= resource.last_verified_at ? l(resource.last_verified_at, format: :short) : "Sin verificar" %></td>
+                <td style="text-align:right; white-space: nowrap;">
+                  <%= link_to "Ver", admin_resource_path(resource), class: "btn btn-secondary btn-sm" %>
+                  <% if resource.verified? %>
+                    <%= button_to "Aprobar", approve_admin_resource_path(resource), method: :patch, class: "btn btn-primary btn-sm", form: { style: "display:inline;" } %>
+                    <%= button_to "Rechazar", reject_admin_resource_path(resource), method: :patch, class: "btn btn-danger btn-sm", form: { style: "display:inline;" } %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </div>
+</div>

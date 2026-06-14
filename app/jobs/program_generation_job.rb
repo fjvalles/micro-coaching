@@ -19,6 +19,7 @@ class ProgramGenerationJob < ApplicationJob
     return generation_failed(participant) unless build.ok?
 
     template = build.program
+    enqueue_resource_seed(template, result.spec)
 
     if Setting.fetch("program_intake_review_required")
       flag_for_review(participant, template)
@@ -51,5 +52,12 @@ class ProgramGenerationJob < ApplicationJob
     Outbound::Dispatcher.new(
       participant: participant, moment: :program_intake, day_number: 0
     ).send_text(body: Setting.fetch("program_intake_failed_text"))
+  end
+
+  def enqueue_resource_seed(template, spec)
+    topics = Array(spec["resource_topics"]).map(&:to_s).reject(&:blank?)
+    return if topics.empty?
+
+    SeedProgramResourcesJob.perform_later(template.id, topics)
   end
 end

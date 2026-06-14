@@ -84,6 +84,13 @@ Rails.application.routes.draw do
       resources :payments, only: [ :index, :show ]
       resources :subscriptions, only: [ :index ]
       resources :skills, only: [ :index, :show ]
+      resources :resources do
+        member do
+          patch :approve
+          patch :reject
+          patch :verify_again
+        end
+      end
       resources :coach_sessions
 
       get "docs",           to: "docs#index",     as: :docs
