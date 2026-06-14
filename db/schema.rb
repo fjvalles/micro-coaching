@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_14_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_14_130002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -317,6 +317,51 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_14_120000) do
     t.index ["status"], name: "index_pending_responses_on_status"
   end
 
+  create_table "program_assistant_messages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "program_assistant_session_id", null: false
+    t.integer "role", default: 0, null: false
+    t.text "content"
+    t.string "tool_name"
+    t.jsonb "tool_args", default: {}, null: false
+    t.jsonb "tool_result"
+    t.string "model_used"
+    t.integer "tokens_input", default: 0, null: false
+    t.integer "tokens_output", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["program_assistant_session_id", "created_at"], name: "idx_pa_messages_on_session_created"
+    t.index ["program_assistant_session_id"], name: "idx_pa_messages_on_session"
+  end
+
+  create_table "program_assistant_pending_actions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "program_assistant_session_id", null: false
+    t.uuid "program_assistant_message_id"
+    t.string "tool_name", null: false
+    t.jsonb "args", default: {}, null: false
+    t.integer "status", default: 0, null: false
+    t.jsonb "result"
+    t.string "approved_by"
+    t.datetime "executed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["program_assistant_message_id"], name: "idx_pa_actions_on_message"
+    t.index ["program_assistant_session_id", "status"], name: "idx_pa_actions_on_session_status"
+    t.index ["program_assistant_session_id"], name: "idx_pa_actions_on_session"
+  end
+
+  create_table "program_assistant_sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "admin_user_id", null: false
+    t.string "title"
+    t.integer "status", default: 0, null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.integer "tokens_input", default: 0, null: false
+    t.integer "tokens_output", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_user_id", "status"], name: "index_program_assistant_sessions_on_admin_user_id_and_status"
+    t.index ["admin_user_id"], name: "index_program_assistant_sessions_on_admin_user_id"
+  end
+
   create_table "programs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -600,6 +645,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_14_120000) do
   add_foreign_key "pending_responses", "admin_users", column: "approved_by_id"
   add_foreign_key "pending_responses", "conversations"
   add_foreign_key "pending_responses", "participants"
+  add_foreign_key "program_assistant_messages", "program_assistant_sessions"
+  add_foreign_key "program_assistant_pending_actions", "program_assistant_messages"
+  add_foreign_key "program_assistant_pending_actions", "program_assistant_sessions"
+  add_foreign_key "program_assistant_sessions", "admin_users"
   add_foreign_key "programs", "companies"
   add_foreign_key "programs", "programs", column: "next_program_id"
   add_foreign_key "prompt_analyses", "prompt_templates"
