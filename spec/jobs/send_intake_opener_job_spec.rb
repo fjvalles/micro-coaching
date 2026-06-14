@@ -30,6 +30,15 @@ RSpec.describe SendIntakeOpenerJob do
     }.not_to change(Conversation, :count)
   end
 
+  it "resends when the previous opener was marked failed by Meta" do
+    create(:conversation, participant: participant, role: :assistant, moment: :program_intake,
+                          sent_at: Time.current, error_message: "Meta reported failed status")
+
+    expect {
+      described_class.perform_now(participant.id)
+    }.to change { participant.conversations.where(moment: :program_intake, role: :assistant, error_message: nil).count }.by(1)
+  end
+
   it "does nothing for a participant no longer in intake" do
     participant.update!(status: :active, program: create(:program), current_day: 1)
     expect {

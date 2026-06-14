@@ -23,9 +23,12 @@ class SendIntakeOpenerJob < ApplicationJob
 
   private
 
+  # A send Meta later marked failed (error_message set) must NOT count as handled —
+  # otherwise a cold-window failure would block the corrective resend. Only a clean,
+  # delivered opener (or a queued pending) is idempotency-blocking.
   def opener_already_sent?(participant)
     participant.conversations.kept
-               .where(moment: :program_intake, role: :assistant)
+               .where(moment: :program_intake, role: :assistant, error_message: nil)
                .where.not(sent_at: nil)
                .exists? ||
       PendingResponse.kept
