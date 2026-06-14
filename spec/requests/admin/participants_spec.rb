@@ -172,7 +172,7 @@ RSpec.describe "Admin::Participants", type: :request do
             status: "pending", timezone: "America/Santiago"
           }
         }
-      }.to have_enqueued_job(SendIntakeQuestionJob)
+      }.to have_enqueued_job(SendIntakeOpenerJob)
 
       created = Participant.find_by(phone_e164: "+521999900011")
       expect(created.program).to be_nil
@@ -255,7 +255,7 @@ RSpec.describe "Admin::Participants", type: :request do
 
       expect {
         post "/admin/participants/#{participant.id}/start_intake"
-      }.to have_enqueued_job(SendIntakeQuestionJob).with(participant.id)
+      }.to have_enqueued_job(SendIntakeOpenerJob).with(participant.id)
 
       expect(response).to redirect_to(admin_participant_path(participant))
       expect(participant.reload).to be_intake
@@ -268,7 +268,7 @@ RSpec.describe "Admin::Participants", type: :request do
 
       expect {
         post "/admin/participants/#{participant.id}/start_intake"
-      }.not_to have_enqueued_job(SendIntakeQuestionJob)
+      }.not_to have_enqueued_job(SendIntakeOpenerJob)
 
       expect(flash[:alert]).to include("desactivado")
     end

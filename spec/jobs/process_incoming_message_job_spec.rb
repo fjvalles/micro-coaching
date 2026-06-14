@@ -265,4 +265,32 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
     described_class.new.perform(text_payload(text: "volví"))
     expect(participant.reload.status).to eq("active")
   end
+
+  describe "program intake flow" do
+    let(:intake_participant) do
+      create(:participant, phone_e164: "+5215551234567", program: nil, status: :intake, current_day: 0,
+                           intake_state: { "step" => 0, "answers" => {}, "awaiting_open" => true })
+    end
+
+    it "treats the first reply as window-opening and sends the first question without recording an answer" do
+      intake_participant
+      described_class.new.perform(text_payload(text: "hola, quiero empezar"))
+
+      intake_participant.reload
+      expect(intake_participant.intake_state["awaiting_open"]).to be(false)
+      expect(intake_participant.intake_step).to eq(0)
+      expect(intake_participant.intake_answers).to be_empty
+      last = intake_participant.conversations.where(moment: :program_intake, role: :assistant).last
+      expect(last.body).to eq(Participants::IntakeQuestions.at(0)[:text])
+    end
+
+    it "records subsequent replies as answers and advances the questionnaire" do
+      intake_participant.update!(intake_state: { "step" => 0, "answers" => {}, "awaiting_open" => false })
+      described_class.new.perform(text_payload(text: "dejar de postergar"))
+
+      intake_participant.reload
+      expect(intake_participant.intake_step).to eq(1)
+      expect(intake_participant.intake_answers["goal"]).to eq("dejar de postergar")
+    end
+  end
 end

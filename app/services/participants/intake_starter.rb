@@ -1,8 +1,8 @@
 module Participants
   # Puts a participant into the personalized-program intake flow: flips status to
-  # :intake, resets intake state to step 0, and sends the first question over
-  # WhatsApp. Idempotent — re-running for someone already in intake just re-sends
-  # the current question (SendIntakeQuestionJob dedupes). Gated by the
+  # :intake, resets intake state, and sends the opener template over WhatsApp (free
+  # text can't open a cold 24h window). Idempotent — re-running for someone already
+  # in intake just re-sends the opener (SendIntakeOpenerJob dedupes). Gated by the
   # program_intake_enabled kill-switch.
   #
   # Entry point shared by the admin "armar programa personalizado" action and any
@@ -20,10 +20,12 @@ module Participants
       return Result.new(ok: false, reason: :disabled) unless Setting.fetch("program_intake_enabled")
       return Result.new(ok: false, reason: :already_active) if @participant.active? || @participant.completed?
 
+      # awaiting_open: the first contact is a template (free text can't open a cold
+      # 24h window); the participant's first reply opens the window and triggers Q1.
       PaperTrail.request(whodunnit: "ai:IntakeStarter", controller_info: { source: "ai" }) do
-        @participant.update!(status: :intake, intake_state: { "step" => 0, "answers" => {} })
+        @participant.update!(status: :intake, intake_state: { "step" => 0, "answers" => {}, "awaiting_open" => true })
       end
-      SendIntakeQuestionJob.perform_later(@participant.id)
+      SendIntakeOpenerJob.perform_later(@participant.id)
 
       Result.new(ok: true, reason: :started)
     end

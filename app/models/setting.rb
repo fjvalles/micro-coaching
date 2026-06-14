@@ -190,6 +190,10 @@ class Setting < ApplicationRecord
       type: :boolean, category: "program", default: true,
       description: "Si es true, el programa generado se crea como plantilla inactiva y queda pendiente de revisión humana antes de activarse para el participante (Programs::Approver). Off = activa el programa automáticamente."
     },
+    "intake_opener_template" => {
+      type: :string, category: "program", default: "bienvenida_piloto",
+      description: "Nombre del template de WhatsApp (aprobado en Meta) usado como primer contacto del intake personalizado. Debe existir y estar aprobado; recibe 1 variable (nombre). El primer mensaje en frío no puede ser texto libre."
+    },
     "program_intake_building_text" => {
       type: :text, category: "program",
       default: "¡Listo! Con eso ya puedo armar tu programa personalizado. Dame un momento y te aviso por aquí cuando esté.",

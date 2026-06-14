@@ -151,6 +151,19 @@ class ProcessIncomingMessageJob < ApplicationJob
   # off free_user so it doesn't count toward the free-message cap.
   def handle_program_intake(participant, inbound, text)
     inbound.update!(moment: :program_intake)
+
+    # First reply after the opener template: this message only opens the 24h window
+    # (the participant hasn't seen any question yet). Don't record it as an answer —
+    # send the first question now that free text is allowed.
+    if participant.intake_state["awaiting_open"]
+      PaperTrail.request(whodunnit: "ai:ProcessIncomingMessage", controller_info: { source: "ai" }) do
+        participant.update!(intake_state: participant.intake_state.merge("awaiting_open" => false))
+      end
+      first_question = Participants::IntakeQuestions.at(participant.intake_step)
+      ack(participant, first_question[:text], moment: :program_intake) if first_question
+      return
+    end
+
     result = Participants::IntakeHandler.new(participant: participant, answer_text: text).call
 
     if result.complete?

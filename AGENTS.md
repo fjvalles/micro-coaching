@@ -118,7 +118,7 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/methodology/InsightBuilder` — builds 6 scopes of nightly aggregated insights
 - `app/services/participants/MessageClassifier` — classifies inbound message as `program_intake | initial_pattern_answer | checkin_response | free_user`
 - `app/services/openai/ProgramGenerator` — turns personalized-program intake answers into a validated JSON program **spec** (JSON mode, prompt-caching prefix, `task: :program_generator`); persistence is `Programs::Builder`'s job. Gated by `program_intake_enabled`. See `business-rules.md` §29
-- `app/services/participants/IntakeStarter` — entry point to the personalized-program flow: flips to `status: :intake`, resets `intake_state`, sends Q1 (`SendIntakeQuestionJob`)
+- `app/services/participants/IntakeStarter` — entry point to the personalized-program flow: flips to `status: :intake`, resets `intake_state` (`awaiting_open: true`), sends the opener template (`SendIntakeOpenerJob`; cold contact can't receive free text)
 - `app/services/participants/IntakeHandler` + `IntakeQuestions` — WhatsApp intake state machine; records one answer into `Participant#intake_state` (jsonb), advances the numeric `step`, returns the next question. `ProgramGenerationJob` runs on completion
 - `app/services/programs/Builder` — persists a generated spec as a `Program` **template** (`template: true`, `active: false`) + `DayContent`s in a transaction (unique, format-valid slug)
 - `app/services/programs/Cloner` — deep-copies a template `Program` (+`DayContent`s) into a live copy (`template: false`, `active: true`) for one participant
