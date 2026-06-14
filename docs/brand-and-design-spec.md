@@ -86,7 +86,18 @@ Formulario de inscripción reducido a 3 campos para máxima conversión individu
 2.  **WhatsApp** (normalizado a E.164).
 3.  **Correo** (para acceso al portal).
 
-> El controlador sigue aceptando `company`/`role` por si un flujo B2B futuro los envía, pero la landing pública no los pide. CTA único, gratis y sin tarjeta.
+> El controlador sigue aceptando `company`/`role` por si un flujo B2B futuro los envía, pero la landing pública no los pide. CTA único.
+
+### Precio fundador (configurable por Settings)
+La landing muestra un precio con descuento anclado (precio normal tachado → precio fundador) con urgencia por cupos. Los valores **nunca se hardcodean**; se leen de `Setting` en `HomeController#index`:
+
+*   `membership_price_clp` — precio fundador (el que se cobra; gatilla el flujo de pago Webpay vía `Participant#payment_required?`).
+*   `membership_regular_price_clp` — precio "normal" tachado (solo anclaje visual).
+*   `founder_spots_total` — total de cupos de fundador; se muestra "Quedan N" restando `Participant.kept.count`.
+
+Si `membership_price_clp` es 0/vacío, la landing cae a modo **gratis** ("Empieza gratis · sin tarjeta") y no publica ninguna cifra de placeholder. La sección de precio, el copy del hero, del formulario y de la FAQ de costo se adaptan solos al flag `paid = @founder_price.positive?`.
+
+La sección **"Solos cuesta. Acompañados, no."** ancla el valor con estadística real de cambio de hábitos (≈80% de propósitos fracasan; 43% abandona en el primer mes; plan + seguimiento diario = 2-3× más éxito) y compara con hacerlo solo / coach o psicólogo tradicional.
 
 ---
 

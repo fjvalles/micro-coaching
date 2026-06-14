@@ -1,4 +1,5 @@
 <main>
+  <% paid = @founder_price.to_i.positive? %>
   <!-- ===== Hero ===== -->
   <section class="landing-section hero-grid">
     <div class="hero-left">
@@ -16,10 +17,10 @@
 
       <div class="hero-buttons">
         <div class="btn-row">
-          <a href="#empezar" class="btn-landing btn-landing-primary">Empieza gratis</a>
+          <a href="#empezar" class="btn-landing btn-landing-primary"><%= paid ? "Quiero mi cupo" : "Empieza gratis" %></a>
           <a href="#como-funciona" class="btn-landing btn-landing-secondary">Cómo funciona</a>
         </div>
-        <p class="cta-note"><span class="dot-ok"></span> Gratis · sin tarjeta · directo en WhatsApp</p>
+        <p class="cta-note"><span class="dot-ok"></span> <%= paid ? "Precio fundador · cupos limitados · con garantía" : "Gratis · sin tarjeta · directo en WhatsApp" %></p>
       </div>
 
       <!-- Interactive simulator selector -->
@@ -84,8 +85,35 @@
     <p class="trust-title">Creado sobre la metodología de coaching de Comtraining, con más de una década acompañando a personas y equipos en Latinoamérica.</p>
   </section>
 
+  <!-- ===== Why change (motivation) ===== -->
+  <section class="landing-section section-soft" id="por-que-cambiar">
+    <div class="section-header-centered">
+      <span class="section-subtitle">Por qué ahora</span>
+      <h2 class="section-title">Eso que quieres cambiar puede empezar hoy</h2>
+      <p class="section-desc">Ya sabes lo que te gustaría mejorar. Quizás lo intentaste antes y la rutina te ganó — pasa, y no es por falta de ganas. Cambiar en soledad cuesta; con alguien que te acompaña cada día, se vuelve posible.</p>
+    </div>
+
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-emoji">🌅</div>
+        <h3>Para sentirte mejor</h3>
+        <p>Más energía, más calma, mejor descanso. Pequeños cambios diarios que se notan en cómo vives el día.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-emoji">💪</div>
+        <h3>Para lograr lo que te propones</h3>
+        <p>Esa meta que vienes posponiendo deja de ser un "algún día" y se convierte en pasos concretos, hoy.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-emoji">🤝</div>
+        <h3>Para no hacerlo en soledad</h3>
+        <p>Tener a alguien que te pregunta, te escucha y celebra tus avances cambia por completo si lo sostienes o no.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== What you can work on (possibilities + personalization) ===== -->
-  <section class="landing-section section-soft" id="que-trabajar">
+  <section class="landing-section" id="que-trabajar">
     <div class="section-header-centered">
       <span class="section-subtitle">Para lo que tú quieras</span>
       <h2 class="section-title">¿Qué te gustaría mejorar?</h2>
@@ -107,7 +135,7 @@
   </section>
 
   <!-- ===== How it works ===== -->
-  <section class="landing-section" id="como-funciona">
+  <section class="landing-section section-soft" id="como-funciona">
     <div class="section-header-centered">
       <span class="section-subtitle">Cómo funciona</span>
       <h2 class="section-title">Simple, y siempre contigo</h2>
@@ -129,6 +157,49 @@
         <div class="step-num">3</div>
         <h3>Conversan tu avance</h3>
         <p>En la noche conversas cómo te fue. Tu coach celebra lo logrado y ajusta lo que sigue.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Comparison: alone vs Impulso ===== -->
+  <section class="landing-section" id="comparacion">
+    <div class="section-header-centered">
+      <span class="section-subtitle">Por qué con Impulso</span>
+      <h2 class="section-title">Solos cuesta. Acompañados, no.</h2>
+      <p class="section-desc">La voluntad sola rara vez basta — y los datos lo confirman. Lo que de verdad funciona es un plan diario y alguien que le haga seguimiento. Justo lo que hace Impulso.</p>
+    </div>
+
+    <div class="stat-band">
+      <div class="stat-item">
+        <div class="stat-num">80%</div>
+        <div class="stat-text">de los propósitos se quedan en el camino.</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">43%</div>
+        <div class="stat-text">los deja antes de que termine el primer mes.</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">2-3×</div>
+        <div class="stat-text">más probabilidades de lograrlo con un plan y seguimiento diario.</div>
+      </div>
+    </div>
+    <p class="stat-source">Fuente: investigación sobre cambio de hábitos y propósitos (Columbia University; estudio publicado en PLOS ONE).</p>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <p class="compare-tag">Por tu cuenta</p>
+        <h3>Solo con fuerza de voluntad</h3>
+        <p>Gratis, pero difícil de sostener. Sin un plan ni alguien que te acompañe, la rutina suele ganar a las pocas semanas.</p>
+      </div>
+      <div class="compare-card">
+        <p class="compare-tag">Coach o psicólogo</p>
+        <h3>Acompañamiento tradicional</h3>
+        <p>Muy valioso y, a veces, necesario. Suele ser por sesión, semanal o mensual, y con una inversión bastante mayor.</p>
+      </div>
+      <div class="compare-card highlight">
+        <p class="compare-tag">La opción del día a día</p>
+        <h3>Impulso</h3>
+        <p>Acompañamiento <strong>diario</strong> por WhatsApp, hecho a tu medida y a una fracción del costo. Cercano, simple y siempre contigo.</p>
       </div>
     </div>
   </section>
@@ -244,13 +315,44 @@
     </div>
   </section>
 
+  <!-- ===== Pricing (founder, Settings-driven) ===== -->
+  <section class="landing-section section-soft" id="precio">
+    <div class="section-header-centered">
+      <span class="section-subtitle">Precio fundador</span>
+      <h2 class="section-title">Un valor especial por ser de los primeros</h2>
+      <p class="section-desc">Entra como fundador con un precio de lanzamiento por tiempo limitado, mientras queden cupos.</p>
+    </div>
+
+    <div class="pricing-card">
+      <span class="pricing-badge">Cupos de fundador</span>
+      <% if @founder_price.to_i.positive? %>
+        <div class="pricing-amount">
+          <% if @regular_price.to_i > @founder_price.to_i %>
+            <span class="pricing-regular">$<%= number_with_delimiter(@regular_price, delimiter: ".") %></span>
+          <% end %>
+          <span class="pricing-now">$<%= number_with_delimiter(@founder_price, delimiter: ".") %></span>
+        </div>
+        <p class="pricing-cycle">por tu programa personalizado de 14 días</p>
+        <% if @founder_remaining&.positive? %>
+          <p class="pricing-spots">Quedan <%= @founder_remaining %> cupos de fundador</p>
+        <% end %>
+      <% else %>
+        <div class="pricing-amount"><span class="pricing-now">Cupos abiertos</span></div>
+        <p class="pricing-cycle">Precio de lanzamiento por tiempo limitado.</p>
+      <% end %>
+
+      <a href="#empezar" class="btn-landing btn-landing-primary" style="width: 100%; padding: 16px;">Quiero mi cupo</a>
+      <p class="pricing-guarantee">Con garantía: si completas tus 14 días y no notas un cambio, te acompañamos un ciclo más sin costo.</p>
+    </div>
+  </section>
+
   <!-- ===== Sign up ===== -->
   <section class="landing-section" id="empezar">
     <div class="trial-card">
       <div class="trial-header">
-        <div class="hero-tag" style="margin-bottom: 14px;"><span>Empieza gratis</span></div>
-        <h2 class="trial-title">Prueba Impulso 14 días</h2>
-        <p class="trial-desc">Déjanos tu WhatsApp y mañana por la mañana recibes tu primer micro-reto. Gratis, sin tarjeta.</p>
+        <div class="hero-tag" style="margin-bottom: 14px;"><span><%= paid ? "Cupos de fundador" : "Empieza gratis" %></span></div>
+        <h2 class="trial-title">Empieza tus 14 días</h2>
+        <p class="trial-desc"><%= paid ? "Déjanos tus datos y asegura tu cupo de fundador. Mañana recibes tu primer micro-reto en WhatsApp." : "Déjanos tu WhatsApp y mañana por la mañana recibes tu primer micro-reto. Gratis, sin tarjeta." %></p>
       </div>
 
       <div class="trial-form">
@@ -277,9 +379,9 @@
           </div>
 
           <button type="submit" class="btn-landing btn-landing-primary" style="width: 100%; padding: 16px;">
-            Empezar mi prueba de 14 días
+            <%= paid ? "Asegurar mi cupo de fundador" : "Empezar mi prueba de 14 días" %>
           </button>
-          <p class="cta-note" style="justify-content: center;"><span class="dot-ok"></span> Gratis · sin tarjeta · sin compromiso</p>
+          <p class="cta-note" style="justify-content: center;"><span class="dot-ok"></span> <%= paid ? "Precio fundador · con garantía de acompañamiento" : "Gratis · sin tarjeta · sin compromiso" %></p>
         <% end %>
       </div>
     </div>
@@ -299,7 +401,7 @@
           <span>¿La prueba tiene costo?</span>
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer"><p>Es gratis y no te pedimos tarjeta para empezar. Te inscribes con tu WhatsApp y comienzas. Si al terminar quieres seguir con un programa más profundo, te contamos las opciones, con toda libertad.</p></div>
+        <div class="faq-answer"><p><%= paid ? "Tiene un precio fundador de lanzamiento, muy por debajo de lo que cuesta un proceso de coaching tradicional, y por tiempo limitado mientras queden cupos. Además va con garantía: si completas tus 14 días y no notas un cambio, te acompañamos un ciclo más sin costo." : "Es gratis y no te pedimos tarjeta para empezar. Te inscribes con tu WhatsApp y comienzas. Si al terminar quieres seguir con un programa más profundo, te contamos las opciones, con toda libertad." %></p></div>
       </div>
 
       <div class="faq-item">

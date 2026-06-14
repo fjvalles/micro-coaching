@@ -2,6 +2,15 @@ class HomeController < ApplicationController
   layout "landing"
   def index
     @program = Program.default
+
+    # Founder pricing for the landing (admin-configured via Settings — never hardcoded).
+    # When membership_price_clp is unset/0 the pricing block stays in "cupos abiertos"
+    # mode with no figures, so we never publish a placeholder price.
+    @founder_price  = Setting.fetch("membership_price_clp").to_i
+    @regular_price  = Setting.fetch("membership_regular_price_clp").to_i
+    @founder_spots  = Setting.fetch("founder_spots_total").to_i
+    @founder_remaining = (@founder_spots - Participant.kept.count if @founder_spots.positive?)
+    @founder_remaining = 0 if @founder_remaining && @founder_remaining.negative?
   end
 
   def preview_challenge
