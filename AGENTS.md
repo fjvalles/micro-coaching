@@ -116,7 +116,13 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/openai/ProgramManifesto` — shared constant prepended to all system prompts (promotes OpenAI prompt caching ≥1024 tokens)
 - `app/services/openai/ParticipantSummarizer` — rolling AI memory of the participant; re-run by `RefreshParticipantSummaryJob` after each check-in, writes `Participant#ai_summary` (abstracted, AI-safe). Gated by `participant_summary_enabled`
 - `app/services/methodology/InsightBuilder` — builds 6 scopes of nightly aggregated insights
-- `app/services/participants/MessageClassifier` — classifies inbound message as `initial_pattern_answer | checkin_response | free_user`
+- `app/services/participants/MessageClassifier` — classifies inbound message as `program_intake | initial_pattern_answer | checkin_response | free_user`
+- `app/services/openai/ProgramGenerator` — turns personalized-program intake answers into a validated JSON program **spec** (JSON mode, prompt-caching prefix, `task: :program_generator`); persistence is `Programs::Builder`'s job. Gated by `program_intake_enabled`. See `business-rules.md` §29
+- `app/services/participants/IntakeStarter` — entry point to the personalized-program flow: flips to `status: :intake`, resets `intake_state`, sends Q1 (`SendIntakeQuestionJob`)
+- `app/services/participants/IntakeHandler` + `IntakeQuestions` — WhatsApp intake state machine; records one answer into `Participant#intake_state` (jsonb), advances the numeric `step`, returns the next question. `ProgramGenerationJob` runs on completion
+- `app/services/programs/Builder` — persists a generated spec as a `Program` **template** (`template: true`, `active: false`) + `DayContent`s in a transaction (unique, format-valid slug)
+- `app/services/programs/Cloner` — deep-copies a template `Program` (+`DayContent`s) into a live copy (`template: false`, `active: true`) for one participant
+- `app/services/programs/Approver` — promotes a reviewed template: clone → assign → seed `initial_pattern` from intake → `Activator`. Shared by the auto path and admin approval
 - `app/services/participants/InboundIntentClassifier` — semantic JSON classifier for inbound WhatsApp text/audio transcripts; prevents non-check-in messages from consuming pending check-ins, blocks restricted data/methodology/future-content requests, and routes support/sensitive/pause intents
 - `app/services/participants/DayAdvancer` — advances `current_day`, sets `started_at` / `completed_at`
 - `app/services/participants/Enroller` — creates participant; activates immediately via `Activator` unless individual payment is required (`payment_required?`), in which case leaves `:awaiting_payment`
