@@ -1,10 +1,8 @@
 module Admin
   class AdminUsersController < BaseController
     before_action :set_admin_user, only: [ :show, :edit, :update, :destroy ]
-    # Only superadmins may manage (edit/destroy) an existing superadmin account.
-    # Granting/revoking the superadmin flag itself is enforced separately in
-    # admin_user_params (the param is stripped for non-superadmins).
-    before_action :require_superadmin_to_manage_superadmin, only: [ :edit, :update, :destroy ]
+    # The AdminUsers module is now restricted entirely to superadmins, as it is part of the System section.
+    before_action :require_superadmin
 
     def index
       @admin_users = AdminUser.all.order(:email)
@@ -65,18 +63,8 @@ module Admin
       @admin_user = AdminUser.find(params[:id])
     end
 
-    def require_superadmin_to_manage_superadmin
-      return if current_admin_user&.superadmin?
-
-      head :forbidden if @admin_user&.superadmin?
-    end
-
     def admin_user_params
-      permitted = [ :name, :email, :password, :password_confirmation ]
-      # Only superadmins may grant or revoke the superadmin flag. For everyone
-      # else the param is dropped, so a regular admin can never create or
-      # promote a superadmin (even by hand-crafting the request).
-      permitted << :superadmin if current_admin_user&.superadmin?
+      permitted = [ :name, :email, :password, :password_confirmation, :superadmin ]
       params.require(:admin_user).permit(*permitted)
     end
   end

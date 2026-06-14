@@ -1,0 +1,10 @@
+<% content_for :title, "Nueva Habilidad" %>
+
+<% content_for :breadcrumbs do %>
+  <span class="breadcrumb-sep">›</span>
+  <%= link_to "Habilidades", admin_skills_path %>
+  <span class="breadcrumb-sep">›</span>
+  <span>Nueva</span>
+<% end %>
+
+<%= render "form", skill: @skill %>

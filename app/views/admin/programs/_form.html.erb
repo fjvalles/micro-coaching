@@ -26,9 +26,11 @@
               <%= f.text_field :name, class: "form-input", placeholder: "Ej. Impulso Liderazgo en Acción", required: true %>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
-              <%= f.label :slug, "Slug (Identificador en URL)", class: "form-label" %>
+              <div class="form-label-with-tooltip">
+                <%= f.label :slug, "Slug (Identificador en URL)", class: "form-label" %>
+                <%= info_tooltip("Minúsculas, números y guiones.") %>
+              </div>
               <%= f.text_field :slug, class: "form-input", placeholder: "Ej. impulso-liderazgo-en-accion", required: true %>
-              <p class="form-help">Minúsculas, números y guiones.</p>
             </div>
           </div>
 
@@ -46,9 +48,11 @@
         </div>
         <div class="card-body" style="display: flex; flex-direction: column; gap: 20px;">
           <div class="form-group" style="margin-bottom: 0;">
-            <%= f.label :manifesto, "Manifiesto (Prompt Base de IA)", class: "form-label" %>
+            <div class="form-label-with-tooltip">
+              <%= f.label :manifesto, "Manifiesto (Prompt Base de IA)", class: "form-label" %>
+              <%= info_tooltip("Instrucciones generales permanentes compartidas por todos los días.") %>
+            </div>
             <%= f.text_area :manifesto, class: "form-textarea", style: "min-height: 220px; font-family: monospace; font-size: 13px; margin-bottom: 0;", placeholder: "Este texto se antepone a los prompts de IA. Define tono, principios y reglas..." %>
-            <p class="form-help">Instrucciones generales permanentes compartidas por todos los días.</p>
           </div>
         </div>
       </div>
@@ -69,17 +73,21 @@
           </div>
 
           <div class="form-group" style="margin-bottom: 0;">
-            <%= f.label :response_mode, "Modo de Respuesta (Override)", class: "form-label" %>
+            <div class="form-label-with-tooltip">
+              <%= f.label :response_mode, "Modo de Respuesta (Override)", class: "form-label" %>
+              <%= info_tooltip("Sobrescribe el modo global del sistema.") %>
+            </div>
             <%= f.select :response_mode,
                 [ [ "Heredar global", "" ], [ "Manual", "manual" ], [ "Sugerencia IA", "suggest" ], [ "Aprobación IA", "approve" ], [ "Automático", "auto" ] ],
                 {}, class: "form-select" %>
-            <p class="form-help">Sobrescribe el modo global del sistema.</p>
           </div>
 
           <div class="form-group" style="margin-bottom: 0;">
-            <%= f.label :company_id, "Disponibilidad", class: "form-label" %>
+            <div class="form-label-with-tooltip">
+              <%= f.label :company_id, "Disponibilidad", class: "form-label" %>
+              <%= info_tooltip("General = disponible para todos. Una empresa = programa exclusivo de esa empresa.") %>
+            </div>
             <%= f.collection_select :company_id, (@companies || Company.kept.ordered), :id, :name, { prompt: "General (todas las empresas)" }, { class: "form-select" } %>
-            <p class="form-help">General = disponible para todos. Una empresa = programa exclusivo de esa empresa.</p>
           </div>
 
           <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 0; margin-top: 10px;">

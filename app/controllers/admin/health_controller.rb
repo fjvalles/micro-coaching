@@ -3,6 +3,7 @@ module Admin
   # Complements Sentry (which covers errors) by surfacing saturation before it
   # turns into failures. Read-only.
   class HealthController < BaseController
+    before_action :require_superadmin
     def show
       @snapshot          = Ops::CapacitySnapshot.new.call
       @latency_threshold = Setting.fetch("capacity_queue_latency_alert_seconds").to_i

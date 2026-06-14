@@ -17,6 +17,8 @@
   <% end %>
 <% end %>
 
+<% clp = ->(n) { "$#{number_with_delimiter(n.to_i, delimiter: '.')}" } %>
+
 <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">
   Período: <strong style="color:var(--text-main)"><%= @period_label %></strong>
   · Tipo de cambio: <strong style="color:var(--text-main)">1 USD = <%= number_with_delimiter(@rate.round, delimiter: ".") %> CLP</strong>
@@ -30,7 +32,7 @@
       <span>Ingreso recibido</span>
       <span class="badge badge-success"><%= @payment_count %> pago<%= "s" unless @payment_count == 1 %></span>
     </div>
-    <div class="stat-value" style="font-size:1.6rem;">$<%= number_with_delimiter(@income_received_clp, delimiter: ".") %></div>
+    <div class="stat-value" style="font-size:1.6rem;"><%= clp.call(@income_received_clp) %></div>
     <div class="stat-desc">CLP, neto de comisión Transbank</div>
   </div>
 
@@ -39,7 +41,7 @@
       <span>Costos operativos</span>
       <span class="badge badge-warning">USD→CLP</span>
     </div>
-    <div class="stat-value" style="font-size:1.6rem;">$<%= number_with_delimiter(@cost_clp, delimiter: ".") %></div>
+    <div class="stat-value" style="font-size:1.6rem;"><%= clp.call(@cost_clp) %></div>
     <div class="stat-desc">CLP · $<%= "%.2f" % @cost_usd %> USD × <%= number_with_delimiter(@rate.round, delimiter: ".") %></div>
   </div>
 
@@ -50,32 +52,30 @@
         <span class="badge <%= @margin_clp >= 0 ? 'badge-success' : 'badge-danger' %>"><%= @margin_pct %>%</span>
       <% end %>
     </div>
-    <div class="stat-value" style="font-size:1.6rem; color:<%= @margin_clp >= 0 ? 'inherit' : '#ef4444' %>;">$<%= number_with_delimiter(@margin_clp, delimiter: ".") %></div>
+    <div class="stat-value" style="font-size:1.6rem; color:<%= @margin_clp >= 0 ? 'inherit' : '#ef4444' %>;"><%= clp.call(@margin_clp) %></div>
     <div class="stat-desc">CLP · ingreso recibido − costos</div>
   </div>
 </div>
 
-<!-- Two columns: income + costs -->
+<!-- Two columns: income + costs summary -->
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px;">
-
   <!-- Income breakdown (CLP) -->
   <div class="card">
     <div class="card-header">
-      <h2 class="card-title">Ingresos (CLP)</h2>
-      <%= link_to "Ver Ingresos", admin_payments_path, class: "btn btn-sm btn-secondary", style: "font-size:12px; padding:4px 10px;" %>
+      <h2 class="card-title">Resumen Ingresos (CLP)</h2>
     </div>
     <div class="card-body" style="padding:0;">
       <table class="data-table">
         <tbody>
-          <tr><td>Ingreso bruto (IVA incl.)</td><td style="text-align:right; font-family:monospace;">$<%= number_with_delimiter(@income_gross_clp, delimiter: ".") %></td></tr>
-          <tr><td>IVA débito (<%= (@tax_rate * 100).round %>%)</td><td style="text-align:right; font-family:monospace;">−$<%= number_with_delimiter(@income_iva_clp, delimiter: ".") %></td></tr>
-          <tr><td>Neto ventas (sin IVA)</td><td style="text-align:right; font-family:monospace;">$<%= number_with_delimiter(@income_net_clp, delimiter: ".") %></td></tr>
-          <tr><td>Comisión Transbank</td><td style="text-align:right; font-family:monospace;">−$<%= number_with_delimiter(@commission_clp, delimiter: ".") %></td></tr>
+          <tr><td>Ingreso bruto (IVA incl.)</td><td style="text-align:right; font-family:monospace;"><%= clp.call(@income_gross_clp) %></td></tr>
+          <tr><td>IVA débito (<%= (@tax_rate * 100).round %>%)</td><td style="text-align:right; font-family:monospace;">−<%= clp.call(@income_iva_clp) %></td></tr>
+          <tr><td>Neto ventas (sin IVA)</td><td style="text-align:right; font-family:monospace;"><%= clp.call(@income_net_clp) %></td></tr>
+          <tr><td>Comisión Transbank</td><td style="text-align:right; font-family:monospace;">−<%= clp.call(@commission_clp) %></td></tr>
         </tbody>
         <tfoot>
           <tr style="font-weight:600; background:var(--bg-subtle);">
             <td>Neto recibido</td>
-            <td style="text-align:right; font-family:monospace;">$<%= number_with_delimiter(@income_received_clp, delimiter: ".") %></td>
+            <td style="text-align:right; font-family:monospace;"><%= clp.call(@income_received_clp) %></td>
           </tr>
         </tfoot>
       </table>
@@ -85,8 +85,7 @@
   <!-- Cost breakdown (USD → CLP) -->
   <div class="card">
     <div class="card-header">
-      <h2 class="card-title">Costos (USD → CLP)</h2>
-      <%= link_to "Ver Finanzas", admin_finances_path, class: "btn btn-sm btn-secondary", style: "font-size:12px; padding:4px 10px;" %>
+      <h2 class="card-title">Resumen Costos (USD → CLP)</h2>
     </div>
     <div class="card-body" style="padding:0;">
       <table class="data-table">
@@ -97,23 +96,160 @@
           <tr>
             <td>OpenAI / IA</td>
             <td style="text-align:right; font-family:monospace;">$<%= "%.2f" % @ai_cost_usd %></td>
-            <td style="text-align:right; font-family:monospace;">$<%= number_with_delimiter((@ai_cost_usd * @rate).round, delimiter: ".") %></td>
+            <td style="text-align:right; font-family:monospace;"><%= clp.call((@ai_cost_usd * @rate).round) %></td>
           </tr>
           <tr>
             <td>Costos fijos (prorrateados)</td>
             <td style="text-align:right; font-family:monospace;">$<%= "%.2f" % @manual_cost_usd %></td>
-            <td style="text-align:right; font-family:monospace;">$<%= number_with_delimiter((@manual_cost_usd * @rate).round, delimiter: ".") %></td>
+            <td style="text-align:right; font-family:monospace;"><%= clp.call((@manual_cost_usd * @rate).round) %></td>
           </tr>
         </tbody>
         <tfoot>
           <tr style="font-weight:600; background:var(--bg-subtle);">
             <td>Total costos</td>
             <td style="text-align:right; font-family:monospace;">$<%= "%.2f" % @cost_usd %></td>
-            <td style="text-align:right; font-family:monospace;">$<%= number_with_delimiter(@cost_clp, delimiter: ".") %></td>
+            <td style="text-align:right; font-family:monospace;"><%= clp.call(@cost_clp) %></td>
           </tr>
         </tfoot>
       </table>
     </div>
+  </div>
+</div>
+
+<!-- Detailed Costs -->
+<h2 class="section-title" style="margin-top: 40px; margin-bottom: 16px;">Detalle de Costos</h2>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px;">
+  <!-- Manual Costs -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Costos Fijos (mensuales)</h2>
+      <%= link_to "Editar", edit_admin_setting_path("cost_hosting_monthly_usd"),
+            class: "btn btn-sm btn-secondary",
+            style: "font-size:12px; padding:4px 10px;" %>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Concepto</th>
+            <th style="text-align:right;">Mensual (USD)</th>
+            <th style="text-align:right;">En período (USD)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%
+            manual_rows = [
+              ["Hosting / Servidor",        @manual_monthly[:hosting], "cost_hosting_monthly_usd"],
+              ["Email (Postmark/SendGrid)",  @manual_monthly[:email],   "cost_email_monthly_usd"],
+              ["Meta/WhatsApp Cloud API",    @manual_monthly[:meta],    "cost_meta_api_monthly_usd"],
+              ["Publicidad (Ads)",           @manual_monthly[:ads],     "cost_ads_monthly_usd"],
+              ["Otros (dominio, tools…)",    @manual_monthly[:other],   "cost_other_monthly_usd"],
+            ]
+          %>
+          <% manual_rows.each do |label, monthly, key| %>
+            <tr>
+              <td>
+                <%= label %>
+                <%= link_to "editar", edit_admin_setting_path(key),
+                      style: "font-size:11px; color:var(--brand); margin-left:4px;" %>
+              </td>
+              <td style="text-align:right; font-family:monospace;">$<%= "%.2f" % monthly %></td>
+              <td style="text-align:right; font-family:monospace;">$<%= "%.2f" % (monthly * @period_months) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:600; background:var(--bg-subtle);">
+            <td>Total fijos</td>
+            <td style="text-align:right; font-family:monospace;">$<%= "%.2f" % @manual_monthly.values.sum %>/mes</td>
+            <td style="text-align:right; font-family:monospace;">$<%= "%.2f" % @manual_total %></td>
+          </tr>
+        </tfoot>
+      </table>
+      <p style="padding:8px 16px; font-size:11px; color:var(--text-muted);">
+        Los costos fijos se prorratean según los días del período.
+      </p>
+    </div>
+  </div>
+
+  <!-- AI Costs -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Costos OpenAI (calculados)</h2>
+      <span class="badge badge-neutral"><%= @ai_calls %> llamadas</span>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <% if @ai_by_model.empty? %>
+        <p style="padding:16px; color:var(--text-muted); font-size:13px;">Sin ejecuciones en el período.</p>
+      <% else %>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Modelo</th>
+              <th style="text-align:right;">Llamadas</th>
+              <th style="text-align:right;">Tokens</th>
+              <th style="text-align:right;">Costo USD</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @ai_by_model.each do |row| %>
+              <tr>
+                <td><code style="font-size:11px;"><%= row[:model] %></code></td>
+                <td style="text-align:right;"><%= number_with_delimiter(row[:calls]) %></td>
+                <td style="text-align:right;"><%= number_with_delimiter(row[:tokens_in] + row[:tokens_out]) %></td>
+                <td style="text-align:right; font-family:monospace;">$<%= "%.4f" % row[:cost] %></td>
+              </tr>
+            <% end %>
+          </tbody>
+          <tfoot>
+            <tr style="font-weight:600; background:var(--bg-subtle);">
+              <td>Total</td>
+              <td style="text-align:right;"><%= number_with_delimiter(@ai_calls) %></td>
+              <td style="text-align:right;"><%= number_with_delimiter(@ai_tokens_in + @ai_tokens_out) %></td>
+              <td style="text-align:right; font-family:monospace;">$<%= "%.4f" % @ai_total %></td>
+            </tr>
+          </tfoot>
+        </table>
+        <p style="padding:8px 16px; font-size:11px; color:var(--text-muted);">
+          Precios por modelo en <code>Finances::CostCalculator::OPENAI_PRICING</code>.
+        </p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Income -->
+<h2 class="section-title" style="margin-top: 40px; margin-bottom: 16px;">Detalle de Ingresos</h2>
+<div class="card" style="margin-bottom:32px;">
+  <div class="card-header"><h3 class="card-title">Historial de pagos</h3></div>
+  <div class="card-body" style="padding: 0;">
+    <% if @payments.any? %>
+      <table class="table">
+        <thead>
+          <tr><th>Fecha</th><th>Orden</th><th>Cliente</th><th>Monto</th><th>Estado</th><th style="text-align:right;"></th></tr>
+        </thead>
+        <tbody>
+          <% @payments.each do |p| %>
+            <tr>
+              <td><%= p.created_at.strftime("%d/%m/%Y %H:%M") %></td>
+              <td style="font-family: monospace; font-size: 12px;"><%= p.buy_order %></td>
+              <td><%= p.participant&.name || p.company&.name || "—" %></td>
+              <td><%= clp.call(p.amount) %></td>
+              <td>
+                <% badge = { "authorized" => "badge-success", "pending" => "badge-warning", "rejected" => "badge-danger", "failed" => "badge-danger", "aborted" => "badge-neutral", "refunded" => "badge-info" }[p.status] || "badge-neutral" %>
+                <span class="badge <%= badge %>"><%= p.status %></span>
+              </td>
+              <td style="text-align:right;"><%= link_to "Ver", admin_payment_path(p), class: "btn btn-secondary btn-sm" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="empty-state">
+        <div class="empty-state-title">Sin pagos en este período</div>
+        <div class="empty-state-desc">Los pagos aprobados vía Webpay aparecerán aquí con su desglose de comisión e IVA.</div>
+      </div>
+    <% end %>
   </div>
 </div>
 
@@ -124,7 +260,6 @@
       <strong>costos operativos</strong> (OpenAI medido + costos fijos prorrateados, en USD convertidos a CLP).
       El IVA débito no es ingreso (se entera al SII). Ajusta el tipo de cambio en
       <%= link_to "Configuración → usd_clp_rate", edit_admin_setting_path("usd_clp_rate") %>.
-      Ingresos en CLP provienen de <%= link_to "Ingresos", admin_payments_path %>; costos USD de <%= link_to "Finanzas", admin_finances_path %>.
     </p>
   </div>
 </div>

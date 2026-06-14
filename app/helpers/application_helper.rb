@@ -177,4 +177,9 @@ module ApplicationHelper
     require "kramdown" unless defined?(Kramdown)
     Kramdown::Document.new(text, input: "GFM", hard_wrap: false).to_html.html_safe
   end
+
+  # Renders an 'i' icon that displays a tooltip on hover
+  def info_tooltip(text)
+    content_tag(:span, "i", class: "tooltip-icon", data: { tooltip: text }, title: "")
+  end
 end

@@ -1,5 +1,6 @@
 module Admin
   class AuditLogsController < BaseController
+    before_action :require_superadmin
     TRACKED_TYPES = %w[Participant Program DayContent].freeze
 
     def index

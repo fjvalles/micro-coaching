@@ -5,15 +5,36 @@
   <span>Documentación</span>
 <% end %>
 
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-body">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+      
+      <a href="<%= admin_methodology_path %>" class="card" style="display: block; text-decoration: none; padding: 20px; margin-bottom: 0; border: 1px solid var(--border); transition: border-color 0.2s;">
+        <h4 style="color: var(--brand); margin-bottom: 6px; font-size: 16px; font-weight: 600;">Metodología</h4>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 0;">Insights generados, marco científico, lecciones aprendidas y evolución de prompts.</p>
+      </a>
+
+      <a href="<%= admin_docs_strategy_path %>" class="card" style="display: block; text-decoration: none; padding: 20px; margin-bottom: 0; border: 1px solid var(--border); transition: border-color 0.2s;">
+        <h4 style="color: var(--brand); margin-bottom: 6px; font-size: 16px; font-weight: 600;">Estrategia</h4>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 0;">Estrategia comercial, lean canvas, posicionamiento de marca y guiones de venta.</p>
+      </a>
+
+      <% if current_admin_user&.superadmin? %>
+      <a href="<%= admin_docs_technical_path %>" class="card" style="display: block; text-decoration: none; padding: 20px; margin-bottom: 0; border: 1px solid var(--border); transition: border-color 0.2s;">
+        <h4 style="color: var(--brand); margin-bottom: 6px; font-size: 16px; font-weight: 600;">Técnico</h4>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 0;">Arquitectura, decisiones, reglas de negocio y guía del sistema.</p>
+      </a>
+      <% end %>
+
+    </div>
+  </div>
+</div>
+
 <div class="card">
   <div class="card-header">
-    <h3 class="card-title">Documentos disponibles</h3>
+    <h3 class="card-title">Todos los archivos (Markdown)</h3>
   </div>
   <div class="card-body">
-    <p class="text-muted" style="margin-bottom: 24px; color: var(--text-muted); font-size: 14px;">
-      Reglas de negocio, decisiones de arquitectura, metodología y documentos de estrategia comercial extraídos directamente de los archivos Markdown del repositorio.
-    </p>
-
     <div style="display: grid; gap: 16px;">
       <% @docs.each do |doc| %>
         <% if doc[:exists] %>

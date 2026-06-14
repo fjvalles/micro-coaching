@@ -113,16 +113,23 @@
                 </a>
               </li>
               <li>
-                <a href="https://business.facebook.com/latest/whatsapp_manager/message_templates/?business_id=419829158905512&tab=message-templates&filters=%7B%22date_range%22%3A7%2C%22language%22%3A[]%2C%22quality%22%3A[]%2C%22search_text%22%3A%22%22%2C%22status%22%3A[%22APPROVED%22%2C%22IN_APPEAL%22%2C%22PAUSED%22%2C%22PENDING%22%2C%22REJECTED%22]%2C%22tag%22%3A[]%7D&nav_ref=whatsapp_manager&asset_id=26675130985523263" target="_blank" rel="noopener noreferrer" class="nav-link">
+                <% review_count = Participant.kept.awaiting_program_review.size %>
+                <a href="<%= admin_program_reviews_path %>" class="nav-link <%= 'active' if controller_name == 'program_reviews' %>">
                   <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m9 12.75 3 3m0 0 3-3m-3 3v-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                   </svg>
-                  <span style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                    <span>Plantillas Meta</span>
-                    <svg style="width: 12px; height: 12px; opacity: 0.6;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                    </svg>
-                  </span>
+                  <span>Por revisar</span>
+                  <% if review_count.positive? %>
+                    <span class="badge badge-warning" style="margin-left:auto;"><%= review_count %></span>
+                  <% end %>
+                </a>
+              </li>
+              <li>
+                <a href="<%= admin_funnel_path %>" class="nav-link <%= 'active' if controller_name == 'funnel' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3h16.5l-6 8.25v6L9.75 21v-9.75L3.75 3Z" />
+                  </svg>
+                  <span>Embudo</span>
                 </a>
               </li>
             </ul>
@@ -133,14 +140,6 @@
             <div class="nav-group-title">Aprendizaje</div>
             <ul class="nav-links">
               <li>
-                <a href="<%= admin_methodology_path %>" class="nav-link <%= 'active' if controller_name == 'methodology' %>">
-                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-                  </svg>
-                  <span>Metodología</span>
-                </a>
-              </li>
-              <li>
                 <a href="<%= admin_daily_reports_path %>" class="nav-link <%= 'active' if controller_name == 'daily_reports' %>">
                   <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
@@ -148,6 +147,47 @@
                   <span>Reportes Diarios</span>
                 </a>
               </li>
+
+              <li>
+                <a href="<%= admin_skills_path %>" class="nav-link <%= 'active' if controller_name == 'skills' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                  </svg>
+                  <span>Habilidades</span>
+                </a>
+              </li>
+              <li>
+                <a href="<%= admin_resources_path(status: 'verified') %>" class="nav-link <%= 'active' if controller_name == 'resources' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                  </svg>
+                  <span>Recursos</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Finanzas Group -->
+          <div>
+            <div class="nav-group-title">Finanzas</div>
+            <ul class="nav-links">
+              <li>
+                <a href="<%= admin_profit_loss_path %>" class="nav-link <%= 'active' if controller_name == 'profit_loss' || controller_name == 'payments' %>">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+                  </svg>
+                  <span>Resultado</span>
+                </a>
+              </li>
+
+            </ul>
+          </div>
+
+          <!-- System Group -->
+          <% if current_admin_user&.superadmin? %>
+          <div>
+            <div class="nav-group-title">Sistema</div>
+            <ul class="nav-links">
               <li>
                 <a href="<%= admin_prompt_templates_path %>" class="nav-link <%= 'active' if controller_name == 'prompt_templates' %>">
                   <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -170,29 +210,6 @@
                   </a>
                 </li>
               <% end %>
-              <li>
-                <a href="<%= admin_skills_path %>" class="nav-link <%= 'active' if controller_name == 'skills' %>">
-                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-                  </svg>
-                  <span>Habilidades</span>
-                </a>
-              </li>
-              <li>
-                <a href="<%= admin_resources_path(status: 'verified') %>" class="nav-link <%= 'active' if controller_name == 'resources' %>">
-                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-                  </svg>
-                  <span>Recursos</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <!-- System Group -->
-          <div>
-            <div class="nav-group-title">Sistema</div>
-            <ul class="nav-links">
               <% if current_admin_user&.superadmin? && Setting.fetch("copilot_enabled") %>
               <li>
                 <a href="<%= admin_copilot_path %>" class="nav-link <%= 'active' if controller_name == 'copilot' %>">
@@ -222,38 +239,7 @@
                   <span>Administradores</span>
                 </a>
               </li>
-              <li>
-                <a href="<%= admin_finances_path %>" class="nav-link <%= 'active' if controller_name == 'finances' %>">
-                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                  <span>Finanzas</span>
-                </a>
-              </li>
-              <li>
-                <a href="<%= admin_payments_path %>" class="nav-link <%= 'active' if controller_name == 'payments' %>">
-                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
-                  </svg>
-                  <span>Ingresos</span>
-                </a>
-              </li>
-              <li>
-                <a href="<%= admin_profit_loss_path %>" class="nav-link <%= 'active' if controller_name == 'profit_loss' %>">
-                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
-                  </svg>
-                  <span>Resultado</span>
-                </a>
-              </li>
-              <li>
-                <a href="<%= admin_subscriptions_path %>" class="nav-link <%= 'active' if controller_name == 'subscriptions' %>">
-                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                  </svg>
-                  <span>Suscripciones</span>
-                </a>
-              </li>
+
               <li>
                 <a href="<%= admin_health_path %>" class="nav-link <%= 'active' if controller_name == 'health' %>">
                   <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -271,26 +257,43 @@
                 </a>
               </li>
               <li>
-                <a href="<%= admin_docs_strategy_path %>" class="nav-link <%= 'active' if controller_name == 'docs' && action_name == 'strategy' %>">
+                <a href="<%= admin_docs_path %>" class="nav-link <%= 'active' if controller_name == 'docs' || controller_name == 'methodology' %>">
                   <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0 1 16.5 7.605" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
                   </svg>
-                  <span>Estrategia</span>
+                  <span>Documentación</span>
                 </a>
               </li>
-              <% if current_admin_user&.superadmin? %>
               <li>
-                <a href="<%= admin_docs_technical_path %>" class="nav-link <%= 'active' if controller_name == 'docs' && action_name == 'technical' %>">
+                <a href="https://business.facebook.com/latest/whatsapp_manager/message_templates/?business_id=419829158905512&tab=message-templates&filters=%7B%22date_range%22%3A7%2C%22language%22%3A[]%2C%22quality%22%3A[]%2C%22search_text%22%3A%22%22%2C%22status%22%3A[%22APPROVED%22%2C%22IN_APPEAL%22%2C%22PAUSED%22%2C%22PENDING%22%2C%22REJECTED%22]%2C%22tag%22%3A[]%7D&nav_ref=whatsapp_manager&asset_id=26675130985523263" target="_blank" rel="noopener noreferrer" class="nav-link">
                   <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                   </svg>
-                  <span>Técnico</span>
+                  <span style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <span>Plantillas Meta</span>
+                    <svg style="width: 12px; height: 12px; opacity: 0.6;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                    </svg>
+                  </span>
                 </a>
               </li>
-              <% end %>
+              <li>
+                <a href="https://sentry.io/" target="_blank" rel="noopener noreferrer" class="nav-link">
+                  <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <span>Sentry</span>
+                    <svg style="width: 12px; height: 12px; opacity: 0.6;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                    </svg>
+                  </span>
+                </a>
+              </li>
 
             </ul>
           </div>
+          <% end %>
         </nav>
 
         <div class="sidebar-footer">
@@ -336,6 +339,9 @@
               </button>
               <% end %>
             </div>
+            <% if content_for?(:page_description) %>
+              <p class="header-description"><%= yield :page_description %></p>
+            <% end %>
           </div>
           <div class="header-actions">
             <%= yield :header_actions %>

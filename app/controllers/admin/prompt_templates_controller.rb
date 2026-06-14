@@ -1,5 +1,6 @@
 module Admin
   class PromptTemplatesController < BaseController
+    before_action :require_superadmin
     before_action :set_template, only: [ :show, :edit, :update, :analyze, :apply_suggestion ]
 
     def index
