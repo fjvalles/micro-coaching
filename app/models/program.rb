@@ -18,6 +18,8 @@ class Program < ApplicationRecord
   scope :ordered, -> { order(:name) }
   scope :general, -> { where(company_id: nil) }
   scope :for_company, ->(company) { where(company_id: company) }
+  scope :templates, -> { where(template: true) }
+  scope :live, -> { where(template: false) }
 
   # Programs a participant may be enrolled in: general programs plus any owned by
   # the participant's company.

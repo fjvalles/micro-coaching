@@ -10,6 +10,7 @@ module Participants
     end
 
     def classify
+      return Result.new(type: :program_intake, reason: "personalized program intake in progress") if @participant.intake?
       return Result.new(type: :initial_pattern_answer, reason: "no pattern recorded yet") if needs_initial_pattern?
       return Result.new(type: :checkin_response, reason: "in checkin window with pending checkin") if checkin_pending?
       Result.new(type: :free_user, reason: "default")

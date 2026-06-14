@@ -13,7 +13,8 @@ module Openai
       manifesto: "gpt-5-mini",
       pattern_clusterer: "gpt-5-nano",
       prompt_critic: "gpt-5-mini",
-      copilot: "gpt-5-mini"
+      copilot: "gpt-5-mini",
+      program_generator: "gpt-5-mini"
     }.freeze
 
     def self.for(task)

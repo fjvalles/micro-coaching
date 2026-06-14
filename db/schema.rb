@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_13_160003) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_13_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -232,6 +232,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_160003) do
     t.text "focus_hint"
     t.text "ai_summary"
     t.datetime "ai_summary_updated_at"
+    t.jsonb "intake_state", default: {}, null: false
     t.index ["company_id"], name: "index_participants_on_company_id"
     t.index ["discarded_at"], name: "index_participants_on_discarded_at"
     t.index ["phone_e164"], name: "index_participants_on_phone_e164", unique: true
@@ -314,6 +315,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_160003) do
     t.string "response_mode"
     t.uuid "company_id"
     t.uuid "next_program_id"
+    t.boolean "template", default: false, null: false
+    t.boolean "generated", default: false, null: false
     t.index ["company_id"], name: "index_programs_on_company_id"
     t.index ["next_program_id"], name: "index_programs_on_next_program_id"
     t.index ["slug"], name: "index_programs_on_slug", unique: true

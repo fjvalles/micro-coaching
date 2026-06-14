@@ -93,6 +93,8 @@ class ProcessIncomingMessageJob < ApplicationJob
     classification = Participants::MessageClassifier.new(participant: participant).classify
 
     case classification.type
+    when :program_intake
+      handle_program_intake(participant, inbound, text)
     when :initial_pattern_answer
       intent = classify_inbound_intent(
         participant: participant, inbound: inbound, text: text,
@@ -140,6 +142,21 @@ class ProcessIncomingMessageJob < ApplicationJob
         voice_analysis: voice_analysis
       )
       enqueue_skill_tagging(inbound) if taggable
+    end
+  end
+
+  # Records one intake answer, then either asks the next question or kicks off
+  # program generation when the questionnaire is complete. The inbound is reclassified
+  # off free_user so it doesn't count toward the free-message cap.
+  def handle_program_intake(participant, inbound, text)
+    inbound.update!(moment: :program_intake)
+    result = Participants::IntakeHandler.new(participant: participant, answer_text: text).call
+
+    if result.complete?
+      ack(participant, Setting.fetch("program_intake_building_text"), moment: :program_intake)
+      ProgramGenerationJob.perform_later(participant.id)
+    else
+      ack(participant, result.next_question, moment: :program_intake)
     end
   end
 

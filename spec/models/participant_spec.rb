@@ -4,7 +4,7 @@ RSpec.describe Participant, type: :model do
   it { is_expected.to validate_presence_of(:name) }
   it { is_expected.to validate_presence_of(:phone_e164) }
   it { is_expected.to validate_presence_of(:timezone) }
-  it { is_expected.to define_enum_for(:status).with_values(pending: 0, active: 1, completed: 2, paused: 3, awaiting_payment: 4) }
+  it { is_expected.to define_enum_for(:status).with_values(pending: 0, active: 1, completed: 2, paused: 3, awaiting_payment: 4, intake: 5) }
   it { is_expected.to have_many(:conversations) }
   it { is_expected.to have_many(:daily_reports) }
 

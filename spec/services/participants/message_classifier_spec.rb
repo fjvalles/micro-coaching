@@ -13,6 +13,12 @@ RSpec.describe Participants::MessageClassifier do
     skip "Timecop not present"
   end
 
+  it "classifies as program_intake while the participant is in intake, regardless of other state" do
+    participant.update!(status: :intake, program: nil, current_day: 0, initial_pattern: nil)
+    result = described_class.new(participant: participant).classify
+    expect(result.type).to eq(:program_intake)
+  end
+
   it "classifies as initial_pattern_answer when no pattern + welcome exists" do
     participant.update!(initial_pattern: nil)
     create(:conversation, participant: participant, moment: :welcome, role: :assistant)

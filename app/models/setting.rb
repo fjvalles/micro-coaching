@@ -178,6 +178,28 @@ class Setting < ApplicationRecord
       type: :integer, category: "openai", default: 300,
       description: "max_tokens del resumen rodante del participante (ParticipantSummarizer)."
     },
+    "openai_max_tokens_program" => {
+      type: :integer, category: "openai", default: 4000,
+      description: "max_tokens del generador de programas personalizados (ProgramGenerator, modo JSON). Un programa completo de varios días con 4 campos por día es grande."
+    },
+    "program_intake_enabled" => {
+      type: :boolean, category: "program", default: false,
+      description: "Kill-switch: si es true, los participantes en estado :intake reciben el cuestionario por WhatsApp y se genera un programa personalizado con IA. Off = no se llama a OpenAI ni se genera nada."
+    },
+    "program_intake_review_required" => {
+      type: :boolean, category: "program", default: true,
+      description: "Si es true, el programa generado se crea como plantilla inactiva y queda pendiente de revisión humana antes de activarse para el participante (Programs::Approver). Off = activa el programa automáticamente."
+    },
+    "program_intake_building_text" => {
+      type: :text, category: "program",
+      default: "¡Listo! Con eso ya puedo armar tu programa personalizado. Dame un momento y te aviso por aquí cuando esté.",
+      description: "Mensaje que recibe el participante al terminar el cuestionario de intake, mientras se genera su programa."
+    },
+    "program_intake_failed_text" => {
+      type: :text, category: "program",
+      default: "Tuve un problema armando tu programa. Nuestro equipo lo revisará y te escribimos por aquí muy pronto.",
+      description: "Mensaje al participante cuando la generación del programa personalizado falla."
+    },
     "openai_retry_max" => {
       type: :integer, category: "openai", default: 3,
       description: "Intentos máximos ante errores 429/5xx/timeouts de OpenAI.",

@@ -652,6 +652,33 @@ Hay dos clases de `AdminUser`. Todo `AdminUser` (autenticado por Devise) accede 
 
 ---
 
+## 29. Programa personalizado por intake (WhatsApp)
+
+Un participante puede recibir un **programa generado a medida** a partir de un cuestionario por WhatsApp, en lugar de un `Program` pre-autorado. La IA arma la plantilla; un humano la revisa antes de activarla. Apagado por defecto (`program_intake_enabled`).
+
+### 29.1 Estado `:intake` y máquina de preguntas
+- **Regla.** `Participants::IntakeStarter` pone al participante en `status: :intake`, resetea `intake_state` (jsonb: `{ "step", "answers", "awaiting_review" }`) y envía la primera pregunta (`SendIntakeQuestionJob`). Mientras `intake?`, `MessageClassifier` clasifica **todo** inbound como `:program_intake` (antes que cualquier otra rama). Cada respuesta la registra `Participants::IntakeHandler`, que persiste la respuesta bajo la clave de la pregunta actual, incrementa `step` y devuelve la siguiente pregunta — o completitud. El cuestionario vive en `Participants::IntakeQuestions::ALL` (orden = fuente de verdad del step; **solo agregar al final**, nunca reordenar mid-flight).
+- **Por qué.** El step numérico en `intake_state` hace la conversación idempotente sin depender del conteo de mensajes; un inbound reprocesado solo avanza si trae respuesta nueva.
+- **Enforce.** `app/services/participants/intake_starter.rb`, `app/services/participants/message_classifier.rb:13`, `app/jobs/process_incoming_message_job.rb#handle_program_intake`, `app/services/participants/intake_handler.rb`, `app/services/participants/intake_questions.rb`.
+
+### 29.2 Generación → plantilla → clon
+- **Regla.** Al completar el cuestionario, `ProgramGenerationJob` llama `Openai::ProgramGenerator` (modo JSON, prefijo de manifiesto para prompt caching, `task: :program_generator`), que devuelve un spec validado estructuralmente (`total_days` entre `MIN_DAYS=5` y `MAX_DAYS=30`, `days.length == total_days`, fases válidas). `Programs::Builder` lo persiste como **`Program` plantilla** (`template: true`, `generated: true`, `active: false`) + sus `DayContent` en una transacción (slug único, format-válido). `Programs::Cloner` hace deep-copy de la plantilla a un **programa vivo** (`template: false`, `active: true`) que se asigna al participante.
+- **Por qué.** La plantilla es el artefacto reutilizable/revisable; el clon es la copia de trabajo del participante. Separa "lo que la IA propuso" de "lo que el participante corre".
+- **Enforce.** `app/jobs/program_generation_job.rb`, `app/services/openai/program_generator.rb`, `app/services/programs/builder.rb`, `app/services/programs/cloner.rb`.
+
+### 29.3 La revisión humana es la defensa primaria
+- **Regla.** Con `program_intake_review_required = true` (default), el job **se detiene tras construir la plantilla inactiva**: marca `intake_state["awaiting_review"] = true` + `template_program_id`, y el participante queda en `:intake` sin re-generar. Un humano revisa la plantilla y la aprueba con `Programs::Approver.new(participant:, template:).call`, que clona, asigna el programa, siembra `initial_pattern` desde la respuesta `pattern` del intake (para no re-preguntar en el welcome) y activa vía `Participants::Activator` (día 1 + `SendWelcomeJob`). Con la flag en `false`, el job aprueba automáticamente.
+- **Por qué.** El `ai_system_prompt` generado corre en vivo conversando con el participante; un humano firma antes de que se envíe. Convierte "IA autora de prompts en producción" en "borrador revisado".
+- **Enforce.** `app/jobs/program_generation_job.rb#flag_for_review`, `app/services/programs/approver.rb`.
+
+### 29.4 Kill-switch y fallo
+- **Regla.** Todo el feature está detrás de `program_intake_enabled` (default OFF): sin él, ni `IntakeStarter` ni `ProgramGenerationJob` hacen nada y no se llama a OpenAI. Si la generación falla (JSON inválido o spec rechazado), el job envía `program_intake_failed_text` y deja al participante en `:intake`.
+- **Enforce.** `app/services/participants/intake_starter.rb`, `app/jobs/program_generation_job.rb`.
+
+> **Gaps conscientes.** No hay botón de admin todavía: el inicio (`IntakeStarter`) y la aprobación (`Programs::Approver`) se disparan desde consola/servicio. Tampoco hay timeout de abandono mid-intake (el step persiste; reanuda al próximo inbound). La generación es one-shot (no skeleton+fill).
+
+---
+
 ## 13. Edge cases conocidos
 
 - **Participante sin `DayContent`.** Si no existe `DayContent(program, current_day)`, `MorningWakeForParticipantJob` retorna sin enviar. Sin error.

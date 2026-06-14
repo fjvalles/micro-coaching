@@ -6,7 +6,7 @@ class Participant < ApplicationRecord
   belongs_to :program, optional: true
   belongs_to :company, optional: true
 
-  enum :status, { pending: 0, active: 1, completed: 2, paused: 3, awaiting_payment: 4 }
+  enum :status, { pending: 0, active: 1, completed: 2, paused: 3, awaiting_payment: 4, intake: 5 }
 
   # Passwordless portal login. Token embeds email so changing it invalidates old links.
   generates_token_for :portal_login, expires_in: 30.minutes do
@@ -90,6 +90,21 @@ class Participant < ApplicationRecord
                                   .limit(limit).pluck(:skill_id)
     by_id = Skill.where(id: ordered_ids).index_by(&:id)
     ordered_ids.filter_map { |id| by_id[id] }
+  end
+
+  # Intake state machine helpers. intake_state jsonb shape:
+  #   { "step" => Integer (next unanswered question index), "answers" => { key => text },
+  #     "awaiting_review" => Boolean }
+  def intake_step
+    intake_state.fetch("step", 0).to_i
+  end
+
+  def intake_answers
+    intake_state.fetch("answers", {})
+  end
+
+  def intake_awaiting_review?
+    intake_state["awaiting_review"] == true
   end
 
   def local_time(now = Time.current)
