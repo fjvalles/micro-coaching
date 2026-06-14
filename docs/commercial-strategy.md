@@ -2,6 +2,25 @@
 
 Documento de trabajo para aterrizar la salida a mercado del producto. Complementa la documentación técnica y pedagógica con decisiones de posicionamiento, buyer y estrategia de piloto.
 
+> [!IMPORTANT]
+> **Dos capas, no contradictorias.** Este documento describe la **tesis B2B** (venta consultiva a empresas, pilotos por cohorte) — sigue siendo la salida a mercado *aspiracional*. La sección **0** describe el **embudo B2C que ya está construido en el producto** (prueba gratis 14 días → Nivel 2 personalizado pagado). El embudo B2C actúa como motor de validación y sensor de demanda mientras se cierra el primer piloto B2B. Las reglas vivas de este embudo son canónicas en [`docs/business-rules.md`](business-rules.md) §21, §22, §29, §32.
+
+---
+
+## 0. Lo que ya está construido (embudo B2C)
+
+A diferencia del piloto B2B (todavía por cerrar), el producto **ya implementa** un embudo individual de extremo a extremo:
+
+1. **Nivel 1 gratis (14 días).** Todo participante vive el programa base sin costo (`Program#price_clp = 0`). El pago se movió de la puerta al **final**.
+2. **Oferta de día 14.** Al completar, `SendNivel2OfferJob` (gated por `nivel2_offer_enabled`) envía una oferta generada por IA (`Openai::Nivel2OfferGenerator`, contraste día 1→14) para diseñar un **Nivel 2 personalizado pagado**. No hay catálogo pre-armado: el intake actúa como sensor de demanda.
+3. **Ventana fundadora.** `nivel2_offer_window_hours` (default 48) abre un precio fundador (`Program#founder_price_clp`).
+4. **Pagar para desbloquear.** El participante entra al intake → la IA genera el Nivel 2 → revisión humana obligatoria → el portal muestra "Desbloquea tu Nivel 2". El pago (Webpay Plus, único, `Payment.purpose = personalized`) activa el ciclo vía `Programs::Approver`/`ReEnroller`.
+5. **Garantía condicional.** Un ciclo extra gratis dentro de `guarantee_claim_window_days` (default 30) si no hubo resultado.
+
+Canales de pago vivos: **Webpay Plus** (pago único, `/pagos`) y **Webpay Oneclick** (suscripción recurrente, `/suscripcion` — build-complete pero tras kill-switch `webpay_oneclick_enabled` hasta tener credenciales de producción). Portal de participante en `/portal` (magic-link). Embudo de conversión observable en `/admin/funnel`.
+
+> Esta capa B2C **no reemplaza** la tesis B2B: convive con la regla de membresía cubierta por empresa (`Company#covers_membership` → el miembro no paga individual; ver §21 de business-rules).
+
 ---
 
 ## 1. Tesis Comercial
@@ -144,7 +163,12 @@ No es "probar una tecnologia". Es validar:
 
 ---
 
-## 6. Pricing Tentativo Posterior
+## 6. Pricing
+
+> [!NOTE]
+> **B2C (vivo en el producto):** el precio es **por programa**, no global. `Program#price_clp` (0 = gratis, p. ej. el Nivel 1 de prueba) y `Program#founder_price_clp` (precio fundador dentro de la ventana). El Nivel 2 personalizado es el único producto pagado hoy; su precio se define al crear/aprobar el programa. Ver `business-rules.md` §32.1.
+
+### 6.1 Pricing B2B tentativo (piloto fundacional, aspiracional)
 
 Una vez validado el piloto fundacional, el rango inicial sugerido es:
 

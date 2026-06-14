@@ -46,6 +46,7 @@ Se persiste en `PromptExecution`, ligado a `PromptTemplate` (la "ranura" del pro
 * `Conversation.voice_analysis` (jsonb) — tono, emoción, energía, pace cuando hay audio.
 * `Conversation.transcription` — texto del audio.
 * `Participant.energy_map` (jsonb) — mapa de energía longitudinal.
+* `SkillDetection` — habilidades humanas detectadas por `Openai::SkillTagger` en cada check-in/chat libre (0–3 por conversación + confianza). Señal de qué competencias afloran en la población.
 
 ### 2.3 Garantías
 
@@ -91,6 +92,10 @@ Materializa **6 vistas agregadas** en la tabla `methodology_insights` (jsonb pay
 | `prompt_evolution` | SQL: por `PromptTemplate`, lista de versiones con delta tokens/latencia antes vs después de cada cambio | Validar que las mejoras *de hecho* mejoraron |
 
 Cada payload es self-contained — la UI lee una fila y renderiza.
+
+### 3.3 `AutoPromptTuningJob` (loop semi-automático)
+
+Corre semanalmente (cron `0 4 * * 1`, lunes). Puntúa la calidad del chat libre reciente y, según el resultado, **propone o aplica** mejoras a los guardrails del prompt. Es el primer eslabón donde IMPROVE puede cerrarse sin intervención manual (dentro de límites): convierte el patrón "Observe → Evaluate → propuesta de PromptVersion" en una rutina programada en vez de un click del admin. Sigue sujeto al mismo versionado (`PromptVersion`) y trazabilidad que la vía manual, por lo que un cambio malo es auditable y reversible.
 
 ---
 
