@@ -62,7 +62,7 @@ namespace :data do
         corrected = apply_replacements(original, replacements)
 
         if original != corrected
-          day.public_send("\#{field}=", corrected)
+          day.public_send("#{field}=", corrected)
           changes = true
         end
       end
@@ -83,7 +83,7 @@ namespace :data do
         corrected = apply_replacements(original, replacements)
 
         if original != corrected
-          program.public_send("\#{field}=", corrected)
+          program.public_send("#{field}=", corrected)
           changes = true
         end
       end
