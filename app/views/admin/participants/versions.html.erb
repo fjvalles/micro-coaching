@@ -3,31 +3,31 @@
     <%= form_with url: versions_admin_participant_path(@participant), method: :get, data: { turbo_frame: "participant_versions" }, style: "display: flex; gap: 12px; width: 100%; flex-wrap: wrap; align-items: flex-end;" do |f| %>
       
       <div style="flex: 1; min-width: 150px;">
-        <%= f.label :date, "Fecha", style: "display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px;" %>
-        <%= f.date_field :date, value: params[:date], class: "form-control form-control-sm", style: "width: 100%;", onchange: "this.form.requestSubmit()" %>
+        <%= f.label :date, "Fecha", style: "display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;" %>
+        <%= f.date_field :date, value: params[:date], class: "form-input", style: "width: 100%; height: 42px;", onchange: "this.form.requestSubmit()" %>
       </div>
 
       <div style="flex: 1; min-width: 150px;">
-        <%= f.label :event, "Acción", style: "display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px;" %>
-        <%= f.select :event, options_for_select([["Todas las acciones", ""], ["Crear", "create"], ["Modificar", "update"], ["Eliminar", "destroy"]], params[:event]), {}, class: "form-select form-select-sm", style: "width: 100%;", onchange: "this.form.requestSubmit()" %>
+        <%= f.label :event, "Acción", style: "display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;" %>
+        <%= f.select :event, options_for_select([["Todas las acciones", ""], ["Crear", "create"], ["Modificar", "update"], ["Eliminar", "destroy"]], params[:event]), {}, class: "form-select", style: "width: 100%; height: 42px;", onchange: "this.form.requestSubmit()" %>
       </div>
 
       <div style="flex: 1; min-width: 150px;">
-        <%= f.label :source, "Origen", style: "display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px;" %>
-        <%= f.select :source, options_for_select([["Todos los orígenes", ""], ["Admin manual", "admin"], ["IA automático", "ai"], ["Sistema", "system"]], params[:source]), {}, class: "form-select form-select-sm", style: "width: 100%;", onchange: "this.form.requestSubmit()" %>
+        <%= f.label :source, "Origen", style: "display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;" %>
+        <%= f.select :source, options_for_select([["Todos los orígenes", ""], ["Admin manual", "admin"], ["IA automático", "ai"], ["Sistema", "system"]], params[:source]), {}, class: "form-select", style: "width: 100%; height: 42px;", onchange: "this.form.requestSubmit()" %>
       </div>
 
       <div style="flex: 1; min-width: 150px;">
-        <%= f.label :whodunnit, "Ejecutado Por", style: "display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px;" %>
-        <%= f.text_field :whodunnit, value: params[:whodunnit], class: "form-control form-control-sm", style: "width: 100%;", placeholder: "Buscar...", onchange: "this.form.requestSubmit()" %>
+        <%= f.label :whodunnit, "Ejecutado Por", style: "display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;" %>
+        <%= f.text_field :whodunnit, value: params[:whodunnit], class: "form-input", style: "width: 100%; height: 42px;", placeholder: "Buscar...", onchange: "this.form.requestSubmit()" %>
       </div>
       
       <div style="display: flex; gap: 8px;">
         <noscript>
-          <%= f.submit "Filtrar", class: "btn btn-secondary btn-sm" %>
+          <%= f.submit "Filtrar", class: "btn btn-secondary" %>
         </noscript>
         <% if params[:date].present? || params[:event].present? || params[:source].present? || params[:whodunnit].present? %>
-          <a href="<%= versions_admin_participant_path(@participant) %>" class="btn btn-secondary btn-sm" style="height: 34px; display: flex; align-items: center;" data-turbo-frame="participant_versions">
+          <a href="<%= versions_admin_participant_path(@participant) %>" class="btn btn-secondary" style="height: 42px; display: flex; align-items: center;" data-turbo-frame="participant_versions">
             Limpiar
           </a>
         <% end %>
