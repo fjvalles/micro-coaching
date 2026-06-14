@@ -806,6 +806,13 @@ h1, h2, h3, h4 {
   letter-spacing: 0.08em;
 }
 
+.input-optional {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  opacity: 0.6;
+}
+
 .input-text {
   background-color: rgba(0, 0, 0, 0.4);
   border: 1px solid var(--border);
@@ -860,7 +867,7 @@ h1, h2, h3, h4 {
 }
 
 .enrollment-fields {
-  display: none; /* Controlled by JS/Stimulus */
+  display: flex; /* Visible by default; the AI demo is an optional hook above it */
   flex-direction: column;
   gap: 24px;
   margin-top: 32px;

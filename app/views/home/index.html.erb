@@ -317,18 +317,18 @@
             </div>
 
             <div class="input-group">
-              <label class="input-label" for="enroll-company">Empresa / Organización</label>
-              <%= f.text_field :company, id: "enroll-company", class: "input-text", placeholder: "Ej. Comtraining S.A.", required: true %>
+              <label class="input-label" for="enroll-company">Empresa / Organización <span class="input-optional">(opcional)</span></label>
+              <%= f.text_field :company, id: "enroll-company", class: "input-text", placeholder: "Ej. Comtraining S.A." %>
             </div>
 
             <div class="input-group">
-              <label class="input-label" for="enroll-role">Cargo o Rol de Liderazgo</label>
-              <%= f.text_field :role, id: "enroll-role", class: "input-text", placeholder: "Ej. Gerente de RRHH / PMO", required: true %>
+              <label class="input-label" for="enroll-role">Cargo o Rol de Liderazgo <span class="input-optional">(opcional)</span></label>
+              <%= f.text_field :role, id: "enroll-role", class: "input-text", placeholder: "Ej. Gerente de RRHH / PMO" %>
             </div>
 
             <div class="input-group input-group-full">
-              <label class="input-label" for="enroll-email">Correo Electrónico Corporativo</label>
-              <%= f.email_field :email, id: "enroll-email", class: "input-text", placeholder: "carlos.gomez@empresa.com", required: true %>
+              <label class="input-label" for="enroll-email">Correo Electrónico <span class="input-optional">(opcional)</span></label>
+              <%= f.email_field :email, id: "enroll-email", class: "input-text", placeholder: "carlos.gomez@empresa.com" %>
             </div>
           </div>
 
@@ -687,8 +687,7 @@
       hideError();
       setLoading(true);
       
-      // Reset view states
-      enrollForm.style.display = "none";
+      // Reset view states (the enroll form stays visible by default)
       previewContainer.style.display = "none";
 
       // Make AJAX post request to rails controller
