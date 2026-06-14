@@ -536,11 +536,26 @@
           if (chat) chat.scrollTop = chat.scrollHeight;
         }
 
+        function initSidebarScroll() {
+          const nav = document.querySelector(".sidebar-nav");
+          if (!nav) return;
+          
+          const savedScroll = sessionStorage.getItem("sidebarScrollPosition");
+          if (savedScroll !== null) {
+            nav.scrollTop = parseInt(savedScroll, 10);
+          }
+          
+          nav.addEventListener("scroll", function() {
+            sessionStorage.setItem("sidebarScrollPosition", nav.scrollTop);
+          }, { passive: true });
+        }
+
         // Run formatters and initiations
         function runInitializers() {
           formatMarkdownAlerts();
           initHelpDrawer();
           initSidebar();
+          initSidebarScroll();
           initChatAutoScroll();
         }
 
