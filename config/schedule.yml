@@ -32,3 +32,8 @@ coach_session_reminder:
   cron: "0 * * * *"
   class: CoachSessionReminderJob
   description: "Hourly: WhatsApp reminder for confirmed 1-1 coach sessions starting within coach_session_reminder_lead_hours"
+
+auto_prompt_tuning:
+  cron: "0 4 * * 1"
+  class: AutoPromptTuningJob
+  description: "Weekly: score free-chat quality and optionally propose/apply guardrail improvements"

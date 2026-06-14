@@ -3,6 +3,22 @@ class Setting < ApplicationRecord
   CATEGORIES   = %w[timing openai whatsapp program admin general finances copilot].freeze
   CACHE_PREFIX = "setting:".freeze
   CACHE_TTL    = 5.minutes
+  DEFAULT_FREE_CHAT_STYLE_GUARDRAILS = <<~TEXT
+    - No te quedes en bucle indagando sensaciones corporales. Si ya exploraste
+      una sensación física durante 2 turnos, cierra esa línea y vuelve al patrón
+      del día o a un gesto concreto. No eres terapeuta somático: el foco es el
+      cambio de conducta, no el escaneo corporal infinito.
+    - Varía cómo reconoces lo que dice la persona. Evita repetir muletillas como
+      "Gracias por decirlo" o "Perfecto, gracias por compartir" en mensajes
+      seguidos. A veces basta con responder sin acuse previo.
+    - Respeta la autonomía. Si la persona pide flexibilidad o no quiere fijar una
+      hora o estructura exacta, no insistas: acéptalo y ofrece un apoyo abierto.
+      No repitas la misma pregunta (p. ej. "¿a qué hora?") si ya mostró resistencia.
+    - Haz UNA sola pregunta por mensaje, nunca dos. No encadenes preguntas con
+      "y" ni "o" (mal: "¿va lento o rápido, y qué cambia en tu respiración?").
+      Elige la pregunta más importante y deja el resto para después. Si tus
+      respuestas son cortas, no infles las tuyas.
+  TEXT
 
   # Canonical schema. Add entries here; consumers read via Setting.fetch(key).
   # Each entry: type, category, description, default, optional validate proc.
@@ -83,6 +99,10 @@ class Setting < ApplicationRecord
     "openai_model_prompt_critic" => {
       type: :string, category: "openai", default: "gpt-5-mini",
       description: "Modelo para analizar y proponer mejoras de prompts."
+    },
+    "openai_model_guardrail_proposer" => {
+      type: :string, category: "openai", default: "gpt-5-mini",
+      description: "Modelo para proponer cambios acotados a los guardrails de respuesta libre."
     },
     "openai_temperature_generative" => {
       type: :float, category: "openai", default: 0.75,
@@ -226,6 +246,39 @@ class Setting < ApplicationRecord
     "coach_name" => {
       type: :string, category: "openai", default: "",
       description: "Nombre del coach/asistente que firma las interacciones por WhatsApp. Se inyecta en el system prompt para humanizar. Vacío = sin nombre. (Override por empresa llega con el modelo Company.)"
+    },
+    "free_chat_style_guardrails" => {
+      type: :text, category: "openai", default: DEFAULT_FREE_CHAT_STYLE_GUARDRAILS,
+      description: "Bloque editable de estilo conversacional para Openai::FreeResponseGenerator. No incluye seguridad/privacidad ni memoria del participante."
+    },
+    "auto_prompt_tuning_enabled" => {
+      type: :boolean, category: "openai", default: false,
+      description: "Kill-switch maestro del auto-tuning de guardrails conversacionales."
+    },
+    "auto_prompt_tuning_mode" => {
+      type: :string, category: "openai", default: "observe",
+      description: "Modo del auto-tuning: observe registra score, propose crea propuestas para aprobar, apply aplica con rollback automático.",
+      validate: ->(v) { %w[observe propose apply].include?(v.to_s) || "debe ser observe, propose o apply" }
+    },
+    "auto_tuning_score_threshold" => {
+      type: :integer, category: "openai", default: 70,
+      description: "Score mínimo aceptable de calidad conversacional. Bajo este valor se propone una mejora.",
+      validate: ->(v) { (0..100).cover?(v) || "debe estar entre 0 y 100" }
+    },
+    "auto_tuning_rollback_margin" => {
+      type: :integer, category: "openai", default: 5,
+      description: "Caída de score contra baseline que dispara rollback automático.",
+      validate: ->(v) { (0..100).cover?(v) || "debe estar entre 0 y 100" }
+    },
+    "auto_tuning_max_guardrails_chars" => {
+      type: :integer, category: "openai", default: 1500,
+      description: "Largo máximo permitido para el bloque editable de guardrails.",
+      validate: ->(v) { (500..4000).cover?(v) || "debe estar entre 500 y 4000" }
+    },
+    "auto_tuning_sample_size" => {
+      type: :integer, category: "openai", default: 30,
+      description: "Cantidad máxima de mensajes recientes usados por AutoPromptTuningJob.",
+      validate: ->(v) { (5..200).cover?(v) || "debe estar entre 5 y 200" }
     },
 
     # ── whatsapp ───────────────────────────────────────────────────────────

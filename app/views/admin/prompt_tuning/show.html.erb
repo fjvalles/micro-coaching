@@ -1,0 +1,133 @@
+<% content_for :title, "Auto-tuning #{ @run.created_at.strftime("%d/%m/%Y") }" %>
+
+<% content_for :breadcrumbs do %>
+  <span>/</span>
+  <a href="<%= admin_prompt_tuning_index_path %>">Auto-tuning</a>
+  <span>/</span>
+  <span><%= @run.status %></span>
+<% end %>
+
+<% content_for :header_actions do %>
+  <%= link_to "Volver", admin_prompt_tuning_index_path, class: "btn btn-secondary" %>
+  <% if @run.proposed? %>
+    <%= button_to "Aprobar", approve_admin_prompt_tuning_path(@run), method: :post, class: "btn btn-primary", data: { turbo_confirm: "¿Aplicar estos guardrails al chat libre?" } %>
+    <%= button_to "Rechazar", reject_admin_prompt_tuning_path(@run), method: :post, class: "btn btn-danger", data: { turbo_confirm: "¿Rechazar esta propuesta?" } %>
+  <% elsif @run.applied? && @run.previous_guardrails.present? %>
+    <%= button_to "Rollback", rollback_admin_prompt_tuning_path(@run), method: :post, class: "btn btn-danger", data: { turbo_confirm: "¿Revertir al bloque anterior?" } %>
+  <% end %>
+<% end %>
+
+<div class="stats-grid" style="margin-bottom: 24px;">
+  <div class="stat-card">
+    <div class="stat-header"><span>Estado</span></div>
+    <div class="stat-value" style="font-size: 20px;"><%= @run.status %></div>
+    <span class="stat-desc">Modo: <%= @run.mode %></span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-header"><span>Score</span></div>
+    <div class="stat-value"><%= @run.score %></div>
+    <span class="stat-desc">Baseline: <%= @run.baseline_score || "—" %></span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-header"><span>Cambio</span></div>
+    <div class="stat-value" style="font-size: 18px;"><%= @run.change_kind || "—" %></div>
+    <span class="stat-desc">Ventana: <%= @run.window_start.to_date %> → <%= @run.window_end.to_date %></span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-header"><span>Rollback</span></div>
+    <div class="stat-value" style="font-size: 18px;"><%= @run.rolled_back_at ? "sí" : "no" %></div>
+    <span class="stat-desc">Post-score: <%= @run.post_score || "—" %></span>
+  </div>
+</div>
+
+<% if @run.validation_errors.present? %>
+  <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--danger);">
+    <div class="card-body">
+      <strong>Errores de validación:</strong>
+      <%= @run.validation_errors.join(", ") %>
+    </div>
+  </div>
+<% end %>
+
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header">
+    <h3 class="card-title">Diff antes/después</h3>
+  </div>
+  <div class="card-body">
+    <% if @diff_rows.empty? %>
+      <p style="color: var(--text-muted); margin: 0;">No hay candidato para comparar.</p>
+    <% else %>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <% @diff_rows.each do |row| %>
+          <% color = if row[:before] && row[:after]
+                       "var(--bg-secondary)"
+                     elsif row[:after]
+                       "var(--emerald-50)"
+                     else
+                       "var(--rose-50)"
+                     end %>
+          <div style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: <%= color %>; font-size: 13.5px; line-height: 1.5;">
+            <% unless row[:before] && row[:after] %>
+              <strong><%= row[:after] ? "+ " : "- " %></strong>
+            <% end %>
+            <%= row[:body] %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header">
+    <h3 class="card-title">Por qué</h3>
+  </div>
+  <div class="card-body">
+    <% subscores = @run.findings["subscores"] || {} %>
+    <% if subscores.present? %>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+        <% subscores.each do |key, value| %>
+          <span class="badge badge-neutral"><%= key %>: <%= value %></span>
+        <% end %>
+      </div>
+    <% end %>
+    <p style="font-size: 14px; line-height: 1.6; margin: 0;"><%= @run.rationale.presence || "Sin rationale de LLM." %></p>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header">
+    <h3 class="card-title">Evidencia</h3>
+  </div>
+  <div class="card-body">
+    <% examples = @run.findings["examples"] || [] %>
+    <% if examples.empty? %>
+      <p style="color: var(--text-muted); margin: 0;">Sin ejemplos ofensores registrados.</p>
+    <% else %>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <% examples.first(3).each do |example| %>
+          <div style="padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-secondary);">
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px;"><%= example["type"] || example[:type] %></div>
+            <div style="font-size: 13.5px; line-height: 1.55;"><%= example["body"] || example[:body] %></div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% if @run.proposed? %>
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Editar y aprobar</h3>
+    </div>
+    <div class="card-body">
+      <%= form_with model: @run, url: update_and_approve_admin_prompt_tuning_path(@run), method: :patch, local: true do |f| %>
+        <%= f.text_area :proposed_guardrails, rows: 14, class: "form-input", style: "font-family: monospace; line-height: 1.5;" %>
+        <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+          <%= f.submit "Guardar edición y aprobar", class: "btn btn-primary", data: { turbo_confirm: "¿Validar y aplicar la edición?" } %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

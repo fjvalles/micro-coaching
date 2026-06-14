@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_13_170000) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_14_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -65,6 +65,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_170000) do
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_companies_on_discarded_at"
     t.index ["slug"], name: "index_companies_on_slug", unique: true
+  end
+
+  create_table "conversation_quality_scores", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "window_start", null: false
+    t.datetime "window_end", null: false
+    t.integer "score", null: false
+    t.integer "sample_size", default: 0, null: false
+    t.jsonb "subscores", default: {}, null: false
+    t.jsonb "examples", default: [], null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_conversation_quality_scores_on_created_at"
+    t.index ["window_start", "window_end"], name: "index_conversation_quality_scores_on_window"
   end
 
   create_table "conversations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -383,6 +397,37 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_170000) do
     t.index ["program_id"], name: "index_prompt_templates_on_program_id"
   end
 
+  create_table "prompt_tuning_runs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "conversation_quality_score_id"
+    t.uuid "prompt_version_id"
+    t.string "status", default: "observed", null: false
+    t.string "mode", default: "observe", null: false
+    t.datetime "window_start", null: false
+    t.datetime "window_end", null: false
+    t.integer "score", null: false
+    t.integer "baseline_score"
+    t.integer "post_score"
+    t.string "change_kind"
+    t.text "current_guardrails"
+    t.text "proposed_guardrails"
+    t.text "previous_guardrails"
+    t.text "applied_guardrails"
+    t.jsonb "findings", default: {}, null: false
+    t.jsonb "validation_errors", default: [], null: false
+    t.text "rationale"
+    t.datetime "applied_at"
+    t.datetime "rejected_at"
+    t.datetime "rolled_back_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["conversation_quality_score_id"], name: "index_prompt_tuning_runs_on_conversation_quality_score_id"
+    t.index ["created_at"], name: "index_prompt_tuning_runs_on_created_at"
+    t.index ["mode"], name: "index_prompt_tuning_runs_on_mode"
+    t.index ["prompt_version_id"], name: "index_prompt_tuning_runs_on_prompt_version_id"
+    t.index ["status"], name: "index_prompt_tuning_runs_on_status"
+    t.index ["window_start", "window_end"], name: "index_prompt_tuning_runs_on_window"
+  end
+
   create_table "prompt_versions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "prompt_template_id", null: false
     t.uuid "author_id"
@@ -529,6 +574,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_170000) do
   add_foreign_key "prompt_executions", "prompt_templates"
   add_foreign_key "prompt_executions", "prompt_versions"
   add_foreign_key "prompt_templates", "programs"
+  add_foreign_key "prompt_tuning_runs", "conversation_quality_scores"
+  add_foreign_key "prompt_tuning_runs", "prompt_versions"
   add_foreign_key "prompt_versions", "admin_users", column: "author_id"
   add_foreign_key "prompt_versions", "prompt_templates"
   add_foreign_key "skill_detections", "conversations"

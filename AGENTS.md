@@ -60,6 +60,7 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 - `PauseInactiveParticipantsJob` — daily at 05:00 UTC, pauses `active` participants with no inbound in `inactivity_pause_days`
 - `SubscriptionBillingJob` — daily at 08:00 UTC, charges due Webpay Oneclick subscriptions; dunning to `past_due` after `subscription_max_retries`
 - `CapacityAlertJob` — every 15 min, warns Sentry past `capacity_queue_latency_alert_seconds` / `capacity_backlog_alert_threshold` (0 = off)
+- `AutoPromptTuningJob` — weekly Monday 04:00 UTC; scores free-chat quality and, when enabled, proposes/applies bounded `free_chat_style_guardrails` edits with rollback
 
 ## Domain model
 
@@ -79,6 +80,8 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 | `PromptVersion` | `prompt_template_id`, `version`, `body`, `origin` (service/day_content/admin/analysis) |
 | `PromptAnalysis` | `prompt_template_id`, `findings` (jsonb), `suggested_body`, `rationale` |
 | `PromptExecution` | `prompt_template_id`, `prompt_version_id`, `program_id`, `participant_id`, `conversation_id`, `rendered_messages` (jsonb), `output_body`, tokens, `billable_seconds`, latency |
+| `ConversationQualityScore` | Weekly deterministic score for free-chat quality: `window_start/end`, `score`, `sample_size`, `subscores`, `examples` |
+| `PromptTuningRun` | Auto-tuning audit/canary row: `status`, `mode`, score/baseline/post-score, current/proposed/previous/applied guardrails, findings, validation errors, apply/reject/rollback timestamps |
 | `UnknownInbound` | `phone`, `wamid`, `message_type`, `body_preview`, `received_at` |
 | `MethodologyInsight` | `scope`, `payload` (jsonb), `generated_at`, `program_id` |
 | `CoachSession` | `participant_id`, `scheduled_at`, `duration_minutes`, `status` (scheduled/confirmed/completed/cancelled), `notes`, `reminder_sent_at` |
@@ -104,6 +107,9 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/ResponseMode` — resolves response mode precedence (participant > program > global Setting)
 - `app/services/openai/MorningMessageGenerator` — builds personalized wake message; supports `dry_run: true`
 - `app/services/openai/FreeResponseGenerator` — free-form AI reply; uses conversation history
+- `app/services/conversations/QualityScorer` — deterministic free-chat quality scorer; no tokens, returns score/subscores/examples
+- `app/services/openai/GuardrailProposer` — JSON-mode internal analyzer that proposes bounded edits to `free_chat_style_guardrails`
+- `app/services/guardrails/Validator` — hard gate for prompt-tuning candidates (anchors, max length, no URL/PII, bounded diff)
 - `app/services/openai/CheckinSummarizer` — returns `{summary, key_pattern}` as JSON; `temperature: 0.3`
 - `app/services/openai/ManifestoGenerator` — day-15 closing manifesto
 - `app/services/openai/AudioTranscriber` — transcribes audio using Whisper / gpt-4o-mini-transcribe
@@ -153,6 +159,8 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - Panel a medida montado en `/admin`, protegido por Devise `AdminUser`.
 - Dashboard moderno con métricas clave y actividad reciente de participantes y mensajes.
 - Acciones nativas en UI para "Inscribir Participante", "Archivar" (soft-delete vía `discard`), y desarchivar.
+- `/admin/prompt_tuning` (superadmin) muestra propuestas de auto-tuning, diff de guardrails, evidencia, aprobar/editar/rechazar y rollback manual.
+- `PromptTuningMailer` avisa por email a superadmins cuando queda una propuesta pendiente.
 - Sidekiq Web en `/sidekiq` protegido bajo autenticación de `admin_user`.
 
 ## Environment variables
@@ -195,6 +203,7 @@ Use `travel_to` (Rails built-in), not Timecop.
 - Temperature: `0.75` (generative), `0.3` (JSON summarizer/classifiers). GPT-5-family Chat Completions omit custom temperature and use `max_completion_tokens`.
 - CheckinSummarizer uses `response_format: { type: "json_object" }` with fallback if parse fails
 - Program-scoped content: `DayContent` belongs to `Program`; `Participant` belongs to `Program`
+- `FreeResponseGenerator` keeps safety/privacy/memory in code, but style guardrails come from `Setting.fetch("free_chat_style_guardrails")` with a code fallback.
 
 ## Quality gate (mandatory on code change)
 

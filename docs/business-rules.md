@@ -338,6 +338,14 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 
 ### 12.bis.4 Análisis IA on-demand
 - **Regla.** `/admin/prompt_templates/:id/analyze` encola `AnalyzePromptJob` → `Openai::PromptCritic` toma las últimas 20 ejecuciones y devuelve `findings + suggested_body + rationale` persistidos en `PromptAnalysis`.
+
+### 12.bis.5 Auto-tuning acotado del chat libre
+- **Regla.** El bloque editable de estilo de `Openai::FreeResponseGenerator` vive en el Setting `free_chat_style_guardrails`; seguridad, privacidad, anti-inyección y memoria del participante siguen en código.
+- **Regla.** `AutoPromptTuningJob` corre semanalmente sólo si `auto_prompt_tuning_enabled` está activo. En `observe` registra `ConversationQualityScore`; en `propose` crea un `PromptTuningRun` pendiente cuando el score cae bajo `auto_tuning_score_threshold`; en `apply` valida y aplica el candidato.
+- **Regla.** La decisión de aplicar o revertir usa score determinista (`Conversations::QualityScorer`), no LLM. `Openai::GuardrailProposer` sólo redacta candidatos JSON y `Guardrails::Validator` bloquea candidatos sin anclas, con URLs/PII, demasiado largos o con diff excesivo.
+- **Notificación.** Cuando queda una propuesta pendiente, `PromptTuningMailer.proposal` avisa por email a los superadmins con score, tipo de cambio y deep-link al panel.
+- **Rollback.** Si la ventana siguiente cae más de `auto_tuning_rollback_margin` bajo el baseline de un run aplicado, `PromptTuningRun#rollback!` restaura los guardrails previos y crea `PromptVersion(origin: "auto_tuner")`.
+- **Enforce.** `app/jobs/auto_prompt_tuning_job.rb`, `app/mailers/prompt_tuning_mailer.rb`, `app/services/conversations/quality_scorer.rb`, `app/services/openai/guardrail_proposer.rb`, `app/services/guardrails/validator.rb`, `/admin/prompt_tuning`.
 ## 14. Modos de Respuesta y Supervisión Humana (Human-in-the-loop)
 
 ### 14.1 Resolución de modo de respuesta (Precedencia)

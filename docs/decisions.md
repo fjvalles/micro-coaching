@@ -151,6 +151,13 @@ Decisiones que tomé durante la implementación, separadas de lo que el plan ya 
 - **`PromptCritic` usa el mismo `Openai::Client` y devuelve JSON.** Se reutiliza la infra (retries, dry-run) en lugar de tocar la API directo. Modelo y temperatura por default; SAMPLE_SIZE=20 ejecuciones para evitar prompts gigantes.
 - **Aplicar sugerencia = crear versión, no reemplazar.** El botón "Aplicar como nueva versión" en analyses encola el body sugerido como `PromptVersion` con origen `analysis` y lo promueve a current_body. La versión previa queda en historial y se puede revertir desde la UI (editar + pegar body anterior).
 
+## Auto-tuning acotado del prompt libre (14-jun-2026)
+
+- **Guardrails de estilo en Setting, invariantes en código.** `FreeResponseGenerator` lee `free_chat_style_guardrails` en runtime para poder ajustar estilo sin deploy, pero mantiene seguridad, privacidad, anti-inyección y memoria como código inmutable para el auto-tuner. Si el Setting queda vacío, cae al default de código.
+- **Heurística decide; LLM redacta.** `Conversations::QualityScorer` produce el score determinista que habilita propuesta, aplicación y rollback. `Openai::GuardrailProposer` sólo genera un candidato JSON acotado, y `Guardrails::Validator` bloquea URLs/PII, pérdida de anclas, largos excesivos y rewrites grandes.
+- **Tabla dedicada para canary y rollback.** `PromptTuningRun` se separa de `PromptAnalysis` porque necesita estados operacionales (`proposed/applied/rolled_back`), baseline/post-score y guardrails previo/aplicado. `PromptVersion(origin: "auto_tuner")` conserva el historial compatible con prompts.
+- **Push por email, no WhatsApp nuevo.** Las propuestas pendientes se notifican a superadmins con `PromptTuningMailer` y deep-link a `/admin/prompt_tuning`. Se evitó sumar WhatsApp saliente para admins porque ActionMailer/Resend ya existe; Sentry queda como observabilidad de apply/rollback, no como cola de decisión.
+
 ## Supervisión Humana y Modos de Respuesta (24-may-2026)
 
 - **Modos `auto`, `approve`, `suggest` y `manual` con precedencia dinámica.** La precedencia `participante > programa > global Setting` permite aislar y auditar usuarios específicos o programas de prueba sin perturbar el resto de la base instalada.

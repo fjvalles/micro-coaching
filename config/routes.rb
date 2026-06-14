@@ -40,6 +40,14 @@ Rails.application.routes.draw do
           post :apply_suggestion
         end
       end
+      resources :prompt_tuning, only: [ :index, :show ] do
+        member do
+          post :approve
+          patch :update_and_approve
+          post :reject
+          post :rollback
+        end
+      end
       get  "metodologia",         to: "methodology#index",   as: :methodology
       post "metodologia/refresh", to: "methodology#refresh", as: :refresh_methodology
 

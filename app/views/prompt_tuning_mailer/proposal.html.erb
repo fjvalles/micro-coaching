@@ -1,0 +1,13 @@
+<h2>Propuesta de auto-tuning de prompt</h2>
+
+<p><strong>Score:</strong> <%= @run.score %>/100</p>
+<p><strong>Tipo de cambio:</strong> <%= @run.change_kind %></p>
+
+<% if @run.rationale.present? %>
+  <p><strong>Rationale:</strong> <%= @run.rationale %></p>
+<% end %>
+
+<p>
+  Revisar y decidir:
+  <%= link_to admin_prompt_tuning_url(@run), admin_prompt_tuning_url(@run) %>
+</p>

@@ -1,0 +1,97 @@
+<% content_for :title, "Auto-tuning de prompts" %>
+
+<% content_for :header_actions do %>
+  <%= link_to "Settings", admin_settings_path, class: "btn btn-secondary" %>
+<% end %>
+
+<div class="stats-grid" style="margin-bottom: 24px;">
+  <div class="stat-card">
+    <div class="stat-header"><span>Modo</span></div>
+    <div class="stat-value" style="font-size: 20px;"><%= Setting.fetch("auto_prompt_tuning_mode") %></div>
+    <span class="stat-desc"><%= Setting.fetch("auto_prompt_tuning_enabled") ? "Activo" : "Kill-switch apagado" %></span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-header"><span>Último score</span></div>
+    <div class="stat-value" style="font-size: 28px;"><%= @latest_score&.score || "—" %></div>
+    <span class="stat-desc">Umbral: <%= Setting.fetch("auto_tuning_score_threshold") %></span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-header"><span>Pendientes</span></div>
+    <div class="stat-value" style="font-size: 28px;"><%= @pending_runs.count %></div>
+    <span class="stat-desc">Propuestas esperando decisión</span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-header"><span>Cooldown</span></div>
+    <div class="stat-value" style="font-size: 20px;">1/semana</div>
+    <span class="stat-desc">Aplicación máxima automática</span>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header">
+    <h3 class="card-title">Cola de propuestas</h3>
+  </div>
+  <div class="card-body" style="padding: 0;">
+    <% if @pending_runs.empty? %>
+      <div class="empty-state" style="padding: 32px;">
+        <div class="empty-state-title">Sin propuestas pendientes</div>
+        <div class="empty-state-desc">El job semanal seguirá registrando scores cuando el kill-switch esté activo.</div>
+      </div>
+    <% else %>
+      <table class="table" style="margin-bottom: 0;">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Score</th>
+            <th>Cambio</th>
+            <th>Rationale</th>
+            <th style="text-align: right;">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @pending_runs.each do |run| %>
+            <tr>
+              <td><%= l(run.created_at, format: :short) %></td>
+              <td><span class="badge badge-warning"><%= run.score %>/100</span></td>
+              <td><%= run.change_kind %></td>
+              <td style="max-width: 520px;"><%= run.rationale.to_s.truncate(140) %></td>
+              <td style="text-align: right;"><%= link_to "Decidir", admin_prompt_tuning_path(run), class: "btn btn-primary btn-sm" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Historial</h3>
+  </div>
+  <div class="card-body" style="padding: 0;">
+    <table class="table" style="margin-bottom: 0;">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Modo</th>
+          <th>Score</th>
+          <th>Ventana</th>
+          <th style="text-align: right;">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @runs.each do |run| %>
+          <tr>
+            <td><%= l(run.created_at, format: :short) %></td>
+            <td><span class="badge badge-neutral"><%= run.status %></span></td>
+            <td><%= run.mode %></td>
+            <td><%= run.score %>/100</td>
+            <td><%= run.window_start.to_date %> → <%= run.window_end.to_date %></td>
+            <td style="text-align: right;"><%= link_to "Ver", admin_prompt_tuning_path(run), class: "btn btn-secondary btn-sm" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

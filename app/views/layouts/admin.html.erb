@@ -156,6 +156,20 @@
                   <span>Prompts IA</span>
                 </a>
               </li>
+              <% if current_admin_user&.superadmin? %>
+                <% prompt_tuning_pending_count = (PromptTuningRun.pending.count rescue 0) %>
+                <li>
+                  <a href="<%= admin_prompt_tuning_index_path %>" class="nav-link <%= 'active' if controller_name == 'prompt_tuning' %>">
+                    <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c.251.023.501.05.75.082m-.75-.082a24.301 24.301 0 0 0-4.5 0m4.5 0v.008m0 0v.008m.75-.016a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.75 14.5M15 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0M5 14.5a3.75 3.75 0 0 0 3.75 3.75h6.5A3.75 3.75 0 0 0 19 14.5M5 14.5l1.75 4.75A2.25 2.25 0 0 0 8.86 20.75h6.28a2.25 2.25 0 0 0 2.11-1.5L19 14.5" />
+                    </svg>
+                    <span>Auto-tuning</span>
+                    <% if prompt_tuning_pending_count.positive? %>
+                      <span class="badge badge-warning" style="margin-left:auto;"><%= prompt_tuning_pending_count %></span>
+                    <% end %>
+                  </a>
+                </li>
+              <% end %>
               <li>
                 <a href="<%= admin_skills_path %>" class="nav-link <%= 'active' if controller_name == 'skills' %>">
                   <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -604,4 +618,3 @@
     </script>
   </body>
 </html>
-
