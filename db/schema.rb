@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_14_140000) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_14_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -218,6 +218,29 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_14_140000) do
     t.datetime "updated_at", null: false
     t.index ["program_id", "scope"], name: "index_methodology_insights_on_program_id_and_scope"
     t.index ["scope", "generated_at"], name: "index_methodology_insights_on_scope_and_generated_at", order: { generated_at: :desc }
+  end
+
+  create_table "participant_reminders", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "participant_id", null: false
+    t.uuid "source_conversation_id"
+    t.uuid "sent_conversation_id"
+    t.string "status", default: "pending", null: false
+    t.datetime "scheduled_at", null: false
+    t.datetime "sent_at"
+    t.datetime "canceled_at"
+    t.string "timezone", null: false
+    t.text "requested_text", null: false
+    t.text "body", null: false
+    t.string "failure_reason"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["participant_id", "status", "scheduled_at"], name: "idx_on_participant_id_status_scheduled_at_ee0250a97d"
+    t.index ["participant_id"], name: "index_participant_reminders_on_participant_id"
+    t.index ["scheduled_at"], name: "index_participant_reminders_on_scheduled_at"
+    t.index ["sent_conversation_id"], name: "index_participant_reminders_on_sent_conversation_id"
+    t.index ["source_conversation_id"], name: "index_participant_reminders_on_source_conversation_id", unique: true, where: "(source_conversation_id IS NOT NULL)"
+    t.index ["status"], name: "index_participant_reminders_on_status"
   end
 
   create_table "participants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -643,6 +666,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_14_140000) do
   add_foreign_key "enrollments", "participants"
   add_foreign_key "enrollments", "programs"
   add_foreign_key "methodology_insights", "programs"
+  add_foreign_key "participant_reminders", "conversations", column: "sent_conversation_id"
+  add_foreign_key "participant_reminders", "conversations", column: "source_conversation_id"
+  add_foreign_key "participant_reminders", "participants"
   add_foreign_key "participants", "companies"
   add_foreign_key "participants", "programs"
   add_foreign_key "payments", "companies"

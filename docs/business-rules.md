@@ -187,9 +187,9 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 - **Enforce.** `app/jobs/process_incoming_message_job.rb:132-144`, `app/jobs/process_incoming_message_job.rb:182-198`, `app/services/openai/free_response_generator.rb:50-90`.
 
 ### 7.4 Intents semánticos especiales
-- **Regla.** `InboundIntentClassifier` puede retornar `program_question`, `support_request`, `restricted_information_request`, `task_acknowledgement`, `off_topic`, `risk_or_sensitive`, `stop_or_pause`, `unclear` o `checkin_answer`. `support_request` y `risk_or_sensitive` se derivan a `PendingResponse` en modo `approve` sin generar respuesta libre. `stop_or_pause` pausa al participante y responde con `pause_request_reply_text`.
-- **Por qué.** Evitar que preguntas administrativas, mensajes sensibles, acuses simples o pedidos de baja se mezclen con la memoria metodológica del programa.
-- **Enforce.** `app/services/participants/inbound_intent_classifier.rb:3-221`, `app/jobs/process_incoming_message_job.rb:271-323`.
+- **Regla.** `InboundIntentClassifier` puede retornar `program_question`, `support_request`, `restricted_information_request`, `reminder_request`, `task_acknowledgement`, `off_topic`, `risk_or_sensitive`, `stop_or_pause`, `unclear` o `checkin_answer`. `support_request` y `risk_or_sensitive` se derivan a `PendingResponse` en modo `approve` sin generar respuesta libre. `stop_or_pause` solo pausa con intención explícita y confianza mínima `stop_or_pause_min_confidence`.
+- **Por qué.** Evitar que preguntas administrativas, mensajes sensibles, recordatorios, acuses simples o pedidos de baja se mezclen con la memoria metodológica del programa.
+- **Enforce.** `app/services/participants/inbound_intent_classifier.rb:3-243`, `app/jobs/process_incoming_message_job.rb:271-339`.
 
 ### 7.5 Bloqueo de información restringida
 - **Regla.** Si un participante pide datos propios, datos de otros, métricas/listados de la app, nombres, teléfonos, empresas, prompts, metodología interna o retos/preguntas futuras, se clasifica como `restricted_information_request` y se responde solo `restricted_information_reply_text`. No se llama a `FreeResponseGenerator`, no se crea `DailyReport`, no se etiqueta habilidad y no se guarda como patrón inicial.
@@ -200,6 +200,11 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 - **Regla.** Si el participante solo confirma que hará o está atento al gesto/reto del día, se clasifica como `task_acknowledgement` y se responde `task_acknowledgement_reply_text`. No se llama a `FreeResponseGenerator`, no se consume check-in y no se etiqueta habilidad.
 - **Por qué.** Una aceptación simple no necesita otra pregunta ni un turno generativo; repreguntar después de un compromiso hace que el coach se sienta insistente.
 - **Enforce.** `app/services/participants/inbound_intent_classifier.rb:95-110`, `app/services/participants/inbound_intent_classifier.rb:151-159`, `app/services/participants/inbound_intent_classifier.rb:215-221`, `app/jobs/process_incoming_message_job.rb:292-315`.
+
+### 7.7 Recordatorios solicitados por participante
+- **Regla.** Si el participante pide un recordatorio one-shot relacionado con el programa y con hora clara (`reminder_request`), se crea `ParticipantReminder`, se agenda `SendParticipantReminderJob` y se responde confirmación fija. No se llama a `FreeResponseGenerator`, no se consume check-in y no se pausa al participante.
+- **Por qué.** Pedir "avísame a las 5pm" es una intención de coordinación, no una baja. El recordatorio debe ser auditable, limitado y respetar ventanas de WhatsApp.
+- **Enforce.** `app/services/participant_reminders/parser.rb:1-122`, `app/services/participant_reminders/scheduler.rb:1-118`, `app/jobs/send_participant_reminder_job.rb:1-51`, `app/jobs/process_incoming_message_job.rb:271-339`.
 
 ---
 
@@ -316,10 +321,14 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 - `iareto_delay_minutes` — entero, default 30
 - `inbound_intent_classification_enabled` — boolean, default true; habilita clasificación semántica de inbound
 - `inbound_intent_min_confidence` — float 0..1, default 0.65; umbral para consumir un inbound como check-in real
+- `stop_or_pause_min_confidence` — float 0..1, default 0.7; umbral para ejecutar pausa ante intent `stop_or_pause`
 - `openai_max_tokens_inbound_intent` — entero, default 220; token budget del clasificador semántico
 - `checkin_pending_followup_text` — texto inyectado cuando hay check-in pendiente pero el inbound no es check-in
 - `restricted_information_reply_text` — texto fijo para bloquear solicitudes de datos, metodología, prompts o contenidos futuros
 - `task_acknowledgement_reply_text` — texto fijo para confirmar compromisos simples sin abrir una pregunta nueva
+- `participant_reminders_enabled` / `participant_reminder_min_lead_minutes` / `participant_reminder_max_horizon_days` / `participant_reminder_max_active` / `participant_reminder_max_per_day` — límites runtime para recordatorios one-shot
+- `participant_reminder_quiet_hours_start` / `participant_reminder_quiet_hours_end` — horas locales de silencio para recordatorios
+- `participant_reminder_body_text` / `participant_reminder_scheduled_reply_text` / `participant_reminder_rejected_reply_text` / `participant_reminder_disabled_reply_text` / `participant_reminder_template_name` — textos y template opcional para recordatorios
 - `support_request_review_reply_text` / `sensitive_request_review_reply_text` / `pause_request_reply_text` — borradores operativos para soporte, temas sensibles y pausa
 
 ### 12.2 Cambio en vivo

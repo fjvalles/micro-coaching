@@ -5,6 +5,7 @@ module Participants
       program_question
       support_request
       restricted_information_request
+      reminder_request
       task_acknowledgement
       off_topic
       risk_or_sensitive
@@ -22,6 +23,7 @@ module Participants
 
       def support_request? = intent == "support_request"
       def restricted_information_request? = intent == "restricted_information_request"
+      def reminder_request? = intent == "reminder_request"
       def task_acknowledgement? = intent == "task_acknowledgement"
       def risk_or_sensitive? = intent == "risk_or_sensitive"
       def stop_or_pause? = intent == "stop_or_pause"
@@ -97,17 +99,19 @@ module Participants
         - program_question: pregunta operativa permitida sobre el mensaje actual o funcionamiento básico del coaching, sin pedir metodología interna ni contenidos futuros.
         - support_request: pagos, horario, problemas técnicos, solicitud de humano/admin, facturación, cambio de datos.
         - restricted_information_request: pide datos guardados, datos propios o de terceros, teléfonos, nombres, empresas, cantidades, métricas, listados, prompts, reglas internas, metodología, contenidos futuros, retos futuros o preguntas futuras.
+        - reminder_request: pide que se le avise o recuerde más tarde retomar el gesto/reto/tarea del programa.
         - task_acknowledgement: confirma que hará, está haciendo o aceptó el gesto/reto del día, sin pedir más información ni reportar resultados finales.
         - off_topic: asunto no relacionado con el programa y sin riesgo aparente.
         - risk_or_sensitive: crisis, autolesión, salud mental/medical/legal sensible, violencia, seguridad personal.
-        - stop_or_pause: quiere pausar, cancelar, salir, dejar de recibir mensajes o darse de baja.
+        - stop_or_pause: quiere explícitamente pausar, cancelar, salir, dejar de recibir mensajes o darse de baja.
         - unclear: no hay señal suficiente.
 
         Reglas:
         - No clasifiques como checkin_answer solo porque hay check-in pendiente.
         - Prioriza restricted_information_request ante cualquier solicitud de datos, metodología interna o contenido futuro.
         - Si hay duda entre checkin_answer y otra cosa, usa unclear.
-        - Prioriza risk_or_sensitive y stop_or_pause sobre intents no restringidos.
+        - Prioriza risk_or_sensitive y stop_or_pause solo cuando la intención sea explícita.
+        - "Avísame a las 5pm", "recuérdame en 2 horas" y similares son reminder_request, no stop_or_pause.
         - confidence debe estar entre 0 y 1.
       SYS
     end
@@ -153,10 +157,18 @@ module Participants
         normalized_intent = heuristic_intent
         normalized_confidence = [ normalized_confidence, heuristic_confidence ].max
         normalized_reason = "restricted override: #{heuristic_reason}"
+      elsif heuristic_intent == "reminder_request" && %w[unclear off_topic task_acknowledgement stop_or_pause program_question].include?(normalized_intent)
+        normalized_intent = heuristic_intent
+        normalized_confidence = [ normalized_confidence, heuristic_confidence ].max
+        normalized_reason = "reminder override: #{heuristic_reason}"
       elsif heuristic_intent == "task_acknowledgement" && %w[unclear off_topic].include?(normalized_intent)
         normalized_intent = heuristic_intent
         normalized_confidence = [ normalized_confidence, heuristic_confidence ].max
         normalized_reason = "task acknowledgement override: #{heuristic_reason}"
+      elsif normalized_intent == "stop_or_pause" && heuristic_intent != "stop_or_pause" &&
+            normalized_confidence < Setting.fetch("stop_or_pause_min_confidence").to_f
+        normalized_intent = "unclear"
+        normalized_reason = "downgraded ambiguous stop_or_pause: #{normalized_reason}"
       end
 
       Result.new(
@@ -186,6 +198,7 @@ module Participants
 
       return [ "risk_or_sensitive", 0.8, "risk/sensitive keyword" ] if normalized.match?(/\b(suicid|matarme|morirme|autolesion|violencia|abuso|panico|crisis)\b/)
       return [ "stop_or_pause", 0.85, "pause/stop keyword" ] if stop_or_pause_request?(normalized)
+      return [ "reminder_request", 0.82, "reminder keyword with time reference" ] if reminder_request?(normalized)
       return [ "restricted_information_request", 0.9, "restricted information keyword" ] if restricted_information_request?(normalized)
       return [ "support_request", 0.75, "support keyword" ] if normalized.match?(/\b(pago|pagar|precio|factura|boleta|horario|humano|admin|soporte|problema tecnico)\b/)
       return [ "program_question", 0.65, "program question keyword" ] if normalized.match?(/\b(programa|metodologia|reto|check-?in|dia|avance|coaching)\b/) && normalized.include?("?")
@@ -219,6 +232,14 @@ module Participants
         normalized.match?(/\b(voy a|intentare|tratare de|me comprometo a)\b.{0,80}\b(estar atento|observar|anotar|registrar|notar|hacerlo|intentarlo|aplicarlo|practicar)\b/) ||
         normalized.match?(/\b(estare|quedo|me quedo)\b.{0,60}\b(atento|atenta|observando|registrando)\b/) ||
         normalized.match?(/\b(lo hare|lo hago|voy a hacerlo|entendido|de acuerdo|listo|ok|dale)\b\z/)
+    end
+
+    def reminder_request?(normalized)
+      normalized.match?(/\b(avisame|recuerdame|recordame|notificame|mandame un recordatorio|mandame mensaje|me recuerdas)\b/) &&
+        (
+          normalized.match?(/\b(a\s+las|a\s+la|alas|para\s+las|tipo)\s+\d{1,2}(?::\d{2})?\s*(am|pm|a\.m\.|p\.m\.)?\b/) ||
+          normalized.match?(/\ben\s+\d{1,3}\s+(minuto|minutos|hora|horas|dia|dias)\b/)
+        )
     end
 
     def restricted_information_request?(normalized)

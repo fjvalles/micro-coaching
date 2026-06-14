@@ -91,6 +91,7 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 | `Enrollment` | Ledger histórico de ciclos (modelo **secuencial**; estado vivo en `Participant`): `belongs_to :participant/:program`, `cycle_number` (global por participante), `status` (active/completed/canceled), `started_at`, `completed_at`. Único `[participant_id, program_id, cycle_number]`. Escrito por `Activator`/`DayAdvancer`/`ReEnroller` |
 | `Resource` | Catálogo curado de links públicos (`kind`: video/article/audio_ref; `status`: pending/verified/approved/rejected/dead; `source`: manual/admin_search/program_seed/gap_detection), `topics` jsonb, scope opcional por `program_id`, soft-deleted (`discard`). Solo `approved` + verificado recientemente es enviable |
 | `ResourceDelivery` | Auditoría de qué `Resource` se anexó a qué participante/conversación/momento |
+| `ParticipantReminder` | Recordatorio one-shot solicitado por WhatsApp: `status` (pending/sent/failed/canceled), `scheduled_at`, `timezone`, `requested_text`, `body`, `source_conversation_id`, `sent_conversation_id`, `failure_reason`. Límites runtime vía Settings; no recurrencias v1 |
 | `CopilotSession` | Hilo de chat del copiloto de operaciones (superadmin): `belongs_to :admin_user`, `status` (active/archived), `tokens_input`/`tokens_output` (presupuesto por sesión), `metadata`. `has_many :copilot_messages, :copilot_pending_actions` |
 | `CopilotMessage` | Transcript append-only de una sesión (también es el log de auditoría): `role` (user/assistant/tool/system), `content`, `tool_name`, `tool_args` (jsonb), `tool_result` (jsonb), tokens. Broadcast en vivo vía Turbo |
 | `CopilotPendingAction` | Gate humano: act tool propuesta por el copiloto, en espera de aprobación: `tool_name`, `args` (jsonb), `status` (pending/approved/rejected/executed/failed), `result` (jsonb), `approved_by`, `executed_at`. Ejecutada solo por `Copilot::ActExecutor` al aprobar |
@@ -143,7 +144,8 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/programs/Cloner` — deep-copies a template `Program` (+`DayContent`s) into a live copy (`template: false`, `active: true`) for one participant
 - `app/services/programs/Approver` — promotes a reviewed template: clone → assign → seed `initial_pattern` from intake → `Activator`. Shared by the auto path and admin approval
 - `app/services/programs/OverviewMessage` — deterministic "what to expect" message (scope, duration, daily cadence, see→choose→anchor arc) built from the participant's program; sets expectations to reduce uncertainty/improve completion. Never reveals future-day challenge content. Sent by `SendProgramOverviewJob` (enqueued from `Activator`, gated on the 24h window)
-- `app/services/participants/InboundIntentClassifier` — semantic JSON classifier for inbound WhatsApp text/audio transcripts; prevents non-check-in messages from consuming pending check-ins, blocks restricted data/methodology/future-content requests, and routes support/sensitive/pause intents
+- `app/services/participants/InboundIntentClassifier` — semantic JSON classifier for inbound WhatsApp text/audio transcripts; prevents non-check-in messages from consuming pending check-ins, blocks restricted data/methodology/future-content requests, and routes support/sensitive/reminder/pause intents
+- `app/services/participant_reminders/Parser` + `Scheduler` — deterministic one-shot reminder flow for coaching-related "avísame/recuérdame" requests; enforces horizon, quiet hours, active/day caps, and schedules `SendParticipantReminderJob`
 - `app/services/participants/DayAdvancer` — advances `current_day`, sets `started_at` / `completed_at`
 - `app/services/participants/Enroller` — creates participant; activates immediately via `Activator` unless individual payment is required (`payment_required?`), in which case leaves `:awaiting_payment`
 - `app/services/participants/AudioProcessor` — orchestrates audio downloading, transcription, paralinguistic analysis
@@ -219,6 +221,7 @@ Use `travel_to` (Rails built-in), not Timecop.
 - Program-scoped content: `DayContent` belongs to `Program`; `Participant` belongs to `Program`
 - `FreeResponseGenerator` keeps safety/privacy/memory in code, but style guardrails come from `Setting.fetch("free_chat_style_guardrails")` with a code fallback.
 - Recursos enriquecidos: la IA nunca escribe URLs; solo puede devolver `resource_id` del catálogo. `resource_catalog_enabled`, `resource_autodiscovery_enabled` y `link_preview_enabled` están OFF por defecto; ver `docs/business-rules.md` §30.
+- Recordatorios por WhatsApp: solo one-shot, relacionados al programa, con hora clara y límites (`participant_reminder_*`). Fuera de ventana 24h requieren `participant_reminder_template_name`.
 
 ## Quality gate (mandatory on code change)
 

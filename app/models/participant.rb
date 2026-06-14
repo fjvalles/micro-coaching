@@ -19,6 +19,7 @@ class Participant < ApplicationRecord
   has_many :skill_detections, dependent: :destroy
   has_many :enrollments, dependent: :destroy
   has_many :resource_deliveries, dependent: :destroy
+  has_many :participant_reminders, dependent: :destroy
 
   validates :name, presence: true
   validates :phone_e164, presence: true, uniqueness: true,

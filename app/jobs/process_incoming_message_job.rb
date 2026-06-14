@@ -269,6 +269,11 @@ class ProcessIncomingMessageJob < ApplicationJob
   end
 
   def route_by_intent(participant:, inbound:, text:, intent:, voice_analysis: nil, operational_context: nil)
+    if intent.reminder_request?
+      handle_reminder_request(participant, inbound, text)
+      return false
+    end
+
     if intent.stop_or_pause?
       handle_stop_or_pause(participant)
       return false
@@ -313,6 +318,16 @@ class ProcessIncomingMessageJob < ApplicationJob
 
   def handle_task_acknowledgement(participant)
     ack(participant, Setting.fetch("task_acknowledgement_reply_text").to_s)
+  end
+
+  def handle_reminder_request(participant, inbound, text)
+    result = ParticipantReminders::Scheduler.new(
+      participant: participant,
+      text: text,
+      source_conversation: inbound
+    ).call
+
+    ack(participant, result.message.to_s)
   end
 
   def handle_stop_or_pause(participant)

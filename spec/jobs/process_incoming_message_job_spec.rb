@@ -306,6 +306,28 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
       expect(participant.reload.status).to eq("paused")
       expect(participant.conversations.where(role: :assistant).last.body).to include("pausé")
     end
+
+    it "schedules reminder requests without pausing or generating a free AI reply" do
+      expect_any_instance_of(Openai::FreeResponseGenerator).not_to receive(:call)
+      Setting.set("participant_reminder_scheduled_reply_text", "Listo, te aviso el %{when}.")
+      participant.update!(timezone: "America/Santiago")
+
+      travel_to(Time.zone.parse("2026-06-14 12:04:00 -0400")) do
+        expect {
+          described_class.new.perform(text_payload(text: "Sí. Avísame a las 5pm"))
+        }.to change(ParticipantReminder, :count).by(1)
+          .and have_enqueued_job(SendParticipantReminderJob)
+      end
+
+      inbound = participant.conversations.where(role: :user).last
+      reminder = ParticipantReminder.last
+      reply = participant.conversations.where(role: :assistant).last
+
+      expect(inbound.inbound_intent).to eq("reminder_request")
+      expect(participant.reload).to be_active
+      expect(reminder.scheduled_at.in_time_zone("America/Santiago")).to eq(Time.zone.parse("2026-06-14 17:00:00 -0400"))
+      expect(reply.body).to include("Listo, te aviso")
+    end
   end
 
   describe "free message daily cap" do

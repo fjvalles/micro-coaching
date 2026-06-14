@@ -127,6 +127,41 @@ RSpec.describe Participants::InboundIntentClassifier do
     expect(result.confidence).to eq(0.72)
   end
 
+  it "classifies reminder requests as reminders instead of pauses" do
+    Setting.set("inbound_intent_classification_enabled", false)
+
+    result = described_class.new(
+      participant: participant,
+      text: "Sí. Avísame a las 5pm",
+      checkin_pending: false,
+      client: client
+    ).call
+
+    expect(result.intent).to eq("reminder_request")
+  end
+
+  it "overrides an ambiguous LLM pause result when the text asks for a reminder" do
+    allow(client).to receive(:chat).and_return(
+      Openai::Client::Result.new(
+        content: { intent: "stop_or_pause", confidence: 0.42, reason: "misread reminder as pause" }.to_json,
+        tokens_input: 1,
+        tokens_output: 1,
+        model: "gpt-4.1-mini",
+        latency_ms: 1
+      )
+    )
+
+    result = described_class.new(
+      participant: participant,
+      text: "Sí. Avísame a las 5pm",
+      checkin_pending: false,
+      client: client
+    ).call
+
+    expect(result.intent).to eq("reminder_request")
+    expect(result.reason).to include("reminder override")
+  end
+
   it "overrides an unclear LLM result for clear task acknowledgements" do
     allow(client).to receive(:chat).and_return(
       Openai::Client::Result.new(

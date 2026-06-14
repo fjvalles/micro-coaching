@@ -164,6 +164,11 @@ class Setting < ApplicationRecord
       description: "Confianza mínima (0.0–1.0) para tratar un mensaje como respuesta real de check-in.",
       validate: ->(v) { (0.0..1.0).cover?(v) || "debe estar entre 0.0 y 1.0" }
     },
+    "stop_or_pause_min_confidence" => {
+      type: :float, category: "openai", default: 0.7,
+      description: "Confianza mínima para ejecutar una pausa cuando el clasificador semántico devuelve stop_or_pause; señales ambiguas se degradan a unclear/reminder.",
+      validate: ->(v) { (0.0..1.0).cover?(v) || "debe estar entre 0.0 y 1.0" }
+    },
     "checkin_pending_followup_text" => {
       type: :text, category: "program",
       default: "Te respondo eso y dejo pendiente el check-in de hoy. Cuando puedas, responde las preguntas del día para cerrar el avance.",
@@ -183,6 +188,64 @@ class Setting < ApplicationRecord
       type: :text, category: "program",
       default: "Perfecto, queda tomado. Te leo cuando cierres el día.",
       description: "Respuesta fija y breve cuando el participante confirma que hará el gesto/reto del día; evita repreguntar o abrir conversación libre."
+    },
+    "participant_reminders_enabled" => {
+      type: :boolean, category: "program", default: true,
+      description: "Kill-switch: si es true, un inbound puede programar recordatorios one-shot simples relacionados con el programa."
+    },
+    "participant_reminder_min_lead_minutes" => {
+      type: :integer, category: "program", default: 2,
+      description: "Anticipación mínima para programar un recordatorio solicitado por participante.",
+      validate: ->(v) { (0..1440).cover?(v) || "debe estar entre 0 y 1440" }
+    },
+    "participant_reminder_max_horizon_days" => {
+      type: :integer, category: "program", default: 30,
+      description: "Horizonte máximo en días para recordatorios one-shot solicitados por participante.",
+      validate: ->(v) { (1..365).cover?(v) || "debe estar entre 1 y 365" }
+    },
+    "participant_reminder_max_active" => {
+      type: :integer, category: "program", default: 3,
+      description: "Cantidad máxima de recordatorios pendientes por participante.",
+      validate: ->(v) { (0..20).cover?(v) || "debe estar entre 0 y 20" }
+    },
+    "participant_reminder_max_per_day" => {
+      type: :integer, category: "program", default: 2,
+      description: "Cantidad máxima de recordatorios solicitados por participante para un mismo día local.",
+      validate: ->(v) { (0..10).cover?(v) || "debe estar entre 0 y 10" }
+    },
+    "participant_reminder_quiet_hours_start" => {
+      type: :integer, category: "program", default: 22,
+      description: "Hora local de inicio de silencio para recordatorios solicitados por participante.",
+      validate: ->(v) { (0..23).cover?(v) || "debe estar entre 0 y 23" }
+    },
+    "participant_reminder_quiet_hours_end" => {
+      type: :integer, category: "program", default: 7,
+      description: "Hora local de término de silencio para recordatorios solicitados por participante.",
+      validate: ->(v) { (0..23).cover?(v) || "debe estar entre 0 y 23" }
+    },
+    "participant_reminder_body_text" => {
+      type: :text, category: "program",
+      default: "Te recuerdo retomar el paso de hoy. Puedes hacer solo 5 minutos.",
+      description: "Cuerpo del recordatorio one-shot enviado al participante. Soporta %{name} y %{day}."
+    },
+    "participant_reminder_scheduled_reply_text" => {
+      type: :text, category: "program",
+      default: "Listo, te aviso el %{when}.",
+      description: "Confirmación fija cuando se agenda un recordatorio. Soporta %{when}."
+    },
+    "participant_reminder_rejected_reply_text" => {
+      type: :text, category: "program",
+      default: "Puedo programar recordatorios simples del programa con hora clara, por ejemplo: “avísame a las 5pm”. No agendé este porque está fuera de esos límites.",
+      description: "Respuesta fija cuando un pedido de recordatorio no cumple límites de horario, horizonte, contenido o volumen."
+    },
+    "participant_reminder_disabled_reply_text" => {
+      type: :text, category: "program",
+      default: "Por ahora no puedo programar recordatorios desde el chat.",
+      description: "Respuesta fija cuando el kill-switch de recordatorios está apagado."
+    },
+    "participant_reminder_template_name" => {
+      type: :string, category: "whatsapp", default: "",
+      description: "Template WhatsApp aprobado para recordatorios fuera de la ventana de 24h. Debe aceptar variables [nombre, cuerpo]. Vacío = falla fuera de ventana."
     },
     "sensitive_request_review_reply_text" => {
       type: :text, category: "admin",

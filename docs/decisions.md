@@ -285,3 +285,10 @@ Decisiones que tomé durante la implementación, separadas de lo que el plan ya 
 - **Garantía condicional (ciclo extra gratis).** Reversión de riesgo (lever #1 de Hormozi) sin exposición de caja: si completa y no ve cambios, ciclo extra sin costo, una sola vez (`guarantee_claimed_at`). v1 honrada por admin.
 - **Pago único Webpay Plus, no suscripción.** Oneclick sigue sin credenciales productivas verificadas; no se bloquea el lanzamiento del upsell por eso.
 - **Encuadre de oferta fundado en marcos.** Hooked (la oferta = "desbloquea tu inversión"), Inspired (instrumentar el embudo desde el día 1, validar el riesgo de valor antes de productizar), $100M Offers (oferta nombrada/apilada + garantía).
+
+## Recordatorios one-shot solicitados por WhatsApp (14-jun-2026)
+
+- **One-shot primero, no recurrencias.** Se implementan recordatorios puntuales con hora clara ("avísame a las 5pm", "recuérdame en 2 horas") antes de permitir rutinas recurrentes. Reduce superficie de abuso, volumen y ambigüedad de lenguaje mientras se valida si los participantes realmente usan la feature.
+- **Recordatorio genérico de programa, no lista personal libre.** El cuerpo enviado sale de `participant_reminder_body_text`, no del texto arbitrario del usuario. Así se evita convertir WhatsApp en agenda médica/financiera/legal y se mantiene el alcance en coaching.
+- **Pausar exige intención explícita.** "Avísame a las 5pm" se trata como coordinación, no como baja. `stop_or_pause` queda protegido por heurística explícita y umbral `stop_or_pause_min_confidence`, porque pausar corta el programa y no debe depender de una lectura ambigua.
+- **Fuera de la ventana de 24h requiere template opt-in.** Los recordatorios intentan texto libre si el participante sigue dentro de la ventana de atención; fuera de ella solo usan `participant_reminder_template_name` si el operador configuró un template aprobado. Vacío = falla auditable, no envío informal.
