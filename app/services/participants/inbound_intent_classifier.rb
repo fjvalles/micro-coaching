@@ -10,11 +10,13 @@ module Participants
       off_topic
       risk_or_sensitive
       stop_or_pause
+      timing_change_request
       unclear
     ].freeze
 
     Result = Struct.new(
       :intent, :confidence, :reason, :prompt_used, :tokens_input, :tokens_output, :model,
+      :requested_wake_hour, :requested_checkin_hour,
       keyword_init: true
     ) do
       def checkin_answer?(threshold)
@@ -27,6 +29,7 @@ module Participants
       def task_acknowledgement? = intent == "task_acknowledgement"
       def risk_or_sensitive? = intent == "risk_or_sensitive"
       def stop_or_pause? = intent == "stop_or_pause"
+      def timing_change_request? = intent == "timing_change_request"
     end
 
     def initialize(participant:, text:, checkin_pending:, conversation: nil, client: Openai::Client.new)
@@ -92,7 +95,8 @@ module Participants
 
         Clasifica un mensaje entrante de WhatsApp antes de decidir el flujo del programa.
         Devuelve JSON estricto con:
-        {"intent":"...", "confidence":0.0, "reason":"..."}
+        {"intent":"...", "confidence":0.0, "reason":"...", "requested_wake_hour":null, "requested_checkin_hour":null}
+        Si no se pide cambio de hora, deja requested_wake_hour y requested_checkin_hour en null. Formato 24h (0-23).
 
         Intents permitidos:
         - checkin_answer: responde sustantivamente las preguntas/reflexiones del check-in del día.
@@ -104,6 +108,7 @@ module Participants
         - off_topic: asunto no relacionado con el programa y sin riesgo aparente.
         - risk_or_sensitive: crisis, autolesión, salud mental/medical/legal sensible, violencia, seguridad personal.
         - stop_or_pause: quiere explícitamente pausar, cancelar, salir, dejar de recibir mensajes o darse de baja.
+        - timing_change_request: pide explícitamente cambiar la hora a la que recibe el mensaje de la mañana (despertar) o el de la noche (check-in). Ej: "escríbeme a las 9am", "cámbiame la hora a las 10 de la noche".
         - unclear: no hay señal suficiente.
 
         Reglas:
@@ -143,11 +148,13 @@ module Participants
         prompt_used: prompt_used,
         tokens_input: response.tokens_input,
         tokens_output: response.tokens_output,
-        model: response.model
+        model: response.model,
+        requested_wake_hour: parsed["requested_wake_hour"],
+        requested_checkin_hour: parsed["requested_checkin_hour"]
       )
     end
 
-    def normalized_result(intent:, confidence:, reason:, prompt_used:, tokens_input: 0, tokens_output: 0, model: nil)
+    def normalized_result(intent:, confidence:, reason:, prompt_used:, tokens_input: 0, tokens_output: 0, model: nil, requested_wake_hour: nil, requested_checkin_hour: nil)
       normalized_intent = INTENTS.include?(intent.to_s) ? intent.to_s : "unclear"
       normalized_confidence = confidence.to_f.clamp(0.0, 1.0).round(3)
       normalized_reason = reason.to_s.truncate(500)
@@ -178,7 +185,9 @@ module Participants
         prompt_used: prompt_used,
         tokens_input: tokens_input.to_i,
         tokens_output: tokens_output.to_i,
-        model: model.presence || "heuristic"
+        model: model.presence || "heuristic",
+        requested_wake_hour: requested_wake_hour,
+        requested_checkin_hour: requested_checkin_hour
       )
     end
 
@@ -198,6 +207,7 @@ module Participants
 
       return [ "risk_or_sensitive", 0.8, "risk/sensitive keyword" ] if normalized.match?(/\b(suicid|matarme|morirme|autolesion|violencia|abuso|panico|crisis)\b/)
       return [ "stop_or_pause", 0.85, "pause/stop keyword" ] if stop_or_pause_request?(normalized)
+      return [ "timing_change_request", 0.85, "timing change keyword" ] if timing_change_request?(normalized)
       return [ "reminder_request", 0.82, "reminder keyword with time reference" ] if reminder_request?(normalized)
       return [ "restricted_information_request", 0.9, "restricted information keyword" ] if restricted_information_request?(normalized)
       return [ "support_request", 0.75, "support keyword" ] if normalized.match?(/\b(pago|pagar|precio|factura|boleta|horario|humano|admin|soporte|problema tecnico)\b/)
@@ -223,6 +233,11 @@ module Participants
       normalized.match?(/\b(no me escrib|darse de baja|darme de baja|detener mensajes|stop)\b/) ||
         normalized.match?(/\b(quiero|necesito|deseo|puedo|podria|por favor)\b.{0,40}\b(cancelar|pausar|salir|baja|detener)\b/) ||
         normalized.match?(/\b(cancelar|pausar|salir|baja|detener)\b.{0,40}\b(programa|mensajes|suscripcion)\b/)
+    end
+
+    def timing_change_request?(normalized)
+      normalized.match?(/\b(cambia|cambiar|modifica|escribeme|mandame)\b.{0,60}\b(hora|horario|mañana|despertar|noche|check-?in|check in)\b/) ||
+        normalized.match?(/\b(escribeme|escribanme|cambia|cambiar).{0,30}(a las|alas|para las)\s+\d{1,2}\b/)
     end
 
     def task_acknowledgement?(normalized)

@@ -29,6 +29,8 @@ class Participant < ApplicationRecord
   validates :initial_pattern, length: { maximum: 500 }, allow_blank: true
   validates :focus_hint, length: { maximum: 1000 }, allow_blank: true
   validates :coach_notes, length: { maximum: 5000 }, allow_blank: true
+  validates :wake_hour, numericality: { only_integer: true, greater_than_or_equal_to: 0, less_than_or_equal_to: 23 }, allow_nil: true
+  validates :checkin_hour, numericality: { only_integer: true, greater_than_or_equal_to: 0, less_than_or_equal_to: 23 }, allow_nil: true
   validate :current_day_within_program_range
 
   scope :kept, -> { undiscarded }

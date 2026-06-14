@@ -274,6 +274,11 @@ class ProcessIncomingMessageJob < ApplicationJob
       return false
     end
 
+    if intent.timing_change_request?
+      handled = handle_timing_change_request(participant, intent, text, voice_analysis)
+      return false if handled
+    end
+
     if intent.stop_or_pause?
       handle_stop_or_pause(participant)
       return false
@@ -328,6 +333,36 @@ class ProcessIncomingMessageJob < ApplicationJob
     ).call
 
     ack(participant, result.message.to_s)
+  end
+
+  def handle_timing_change_request(participant, intent, text, voice_analysis)
+    wake = intent.requested_wake_hour
+    checkin = intent.requested_checkin_hour
+
+    if wake.blank? && checkin.blank?
+      # Fallback to normal AI response if the AI couldn't parse any hour
+      handle_free(participant, text, voice_analysis: voice_analysis)
+      return true
+    end
+
+    updates = {}
+    updates[:wake_hour] = wake if wake.present?
+    updates[:checkin_hour] = checkin if checkin.present?
+
+    PaperTrail.request(whodunnit: "ai:TimingChange", controller_info: { source: "ai" }) do
+      participant.update!(updates)
+    end
+
+    msg = "¡Listo! He actualizado tu horario."
+    if wake.present?
+      msg += " El mensaje de la mañana llegará a las #{wake}:00 hrs."
+    end
+    if checkin.present?
+      msg += " El check-in de la noche llegará a las #{checkin}:00 hrs."
+    end
+
+    ack(participant, msg)
+    true
   end
 
   def handle_stop_or_pause(participant)

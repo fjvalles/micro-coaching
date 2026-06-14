@@ -2,10 +2,11 @@ class MorningWakeJob < ApplicationJob
   queue_as :default
 
   def perform
-    wake_hour = Setting.fetch("wake_hour").to_i
     program_totals = Program.pluck(:id, :total_days).to_h
+    default_wake_hour = Setting.fetch("wake_hour").to_i
 
     Participant.kept.active.find_each do |participant|
+      wake_hour = participant.wake_hour || default_wake_hour
       next unless participant.local_time.hour == wake_hour
 
       total = program_totals[participant.program_id] || 14

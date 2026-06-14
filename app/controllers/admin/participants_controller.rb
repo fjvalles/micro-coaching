@@ -358,7 +358,7 @@ module Admin
         :program_id, :company_id, :name, :phone_e164, :email, :role, :status,
         :current_day, :timezone, :initial_pattern, :energy_map,
         :closing_manifesto, :pending_checkin_at, :response_mode,
-        :focus_hint, :coach_notes
+        :focus_hint, :coach_notes, :wake_hour, :checkin_hour
       )
       # The intake sentinel is not a real program_id — drop it so the participant
       # saves with no program; start_intake_after_save kicks off the questionnaire.

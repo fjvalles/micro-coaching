@@ -207,6 +207,20 @@
             <p class="form-help">Ej. America/Santiago</p>
           </div>
 
+          <div class="form-grid-2col">
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :wake_hour, "Hora Despertar", class: "form-label" %>
+              <%= f.number_field :wake_hour, class: "form-input", placeholder: "Por defecto (#{Setting.fetch('wake_hour')})", min: 0, max: 23 %>
+              <p class="form-help">Dejar vacío para usar el global.</p>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <%= f.label :checkin_hour, "Hora Check-in", class: "form-label" %>
+              <%= f.number_field :checkin_hour, class: "form-input", placeholder: "Por defecto (#{Setting.fetch('checkin_hour')})", min: 0, max: 23 %>
+              <p class="form-help">Dejar vacío para usar el global.</p>
+            </div>
+          </div>
+
           <div class="form-group" style="margin-bottom: 0;">
             <%= f.label :response_mode, "Modo de Respuesta (IA / Manual)", class: "form-label" %>
             <%= f.select :response_mode,

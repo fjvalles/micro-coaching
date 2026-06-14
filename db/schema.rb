@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_14_150000) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_14_183856) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -272,6 +272,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_14_150000) do
     t.jsonb "intake_state", default: {}, null: false
     t.datetime "nivel2_offer_sent_at"
     t.datetime "guarantee_claimed_at"
+    t.integer "wake_hour"
+    t.integer "checkin_hour"
     t.index ["company_id"], name: "index_participants_on_company_id"
     t.index ["discarded_at"], name: "index_participants_on_discarded_at"
     t.index ["phone_e164"], name: "index_participants_on_phone_e164", unique: true
