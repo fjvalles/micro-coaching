@@ -14,6 +14,9 @@ gem "bootsnap", require: false
 
 # App-specific
 gem "redis", ">= 4.0.1"
+# Sidekiq 7.3 calls ConnectionPool::TimedStack#pop with a positional timeout.
+# connection_pool 3.x made that keyword-only, which kills Sidekiq's scheduler.
+gem "connection_pool", "~> 2.5"
 gem "sidekiq", "~> 7.0"
 gem "sidekiq-cron", "~> 2.0"
 gem "devise"
