@@ -331,6 +331,10 @@ class Setting < ApplicationRecord
       type: :boolean, category: "whatsapp", default: true,
       description: "Kill-switch: si es false, Whatsapp::Client no envía nada (modo mantenimiento)."
     },
+    "whatsapp_self_signup_enabled" => {
+      type: :boolean, category: "whatsapp", default: false,
+      description: "Kill-switch: si es true, un número desconocido que escribe por WhatsApp se inscribe solo en la prueba gratis (ProcessIncomingMessageJob#maybe_self_signup). Off = solo se registra como UnknownInbound."
+    },
     "whatsapp_retry_max" => {
       type: :integer, category: "whatsapp", default: 3,
       description: "Intentos máximos ante 429/5xx de Meta Cloud API.",

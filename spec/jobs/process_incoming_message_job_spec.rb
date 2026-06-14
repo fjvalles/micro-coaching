@@ -46,6 +46,50 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
     }.not_to change(UnknownInbound, :count)
   end
 
+  describe "WhatsApp-first self-signup" do
+    def signup_payload(from: "56999000111", name: "Ana Pérez")
+      {
+        "entry" => [ { "changes" => [ { "value" => {
+          "contacts" => [ { "wa_id" => from, "profile" => { "name" => name } } ],
+          "messages" => [ { "from" => from, "id" => "wamid.#{SecureRandom.hex(4)}",
+                            "timestamp" => Time.now.to_i.to_s, "type" => "text", "text" => { "body" => "Quiero empezar" } } ]
+        } } ] } ]
+      }
+    end
+
+    before do
+      Setting.set("whatsapp_self_signup_enabled", true)
+      Setting.set("membership_price_clp", 0) # door free → activates immediately
+      create(:program)
+    end
+
+    it "enrolls a brand-new participant from the WhatsApp profile name and skips UnknownInbound" do
+      expect {
+        described_class.new.perform(signup_payload)
+      }.to change(Participant, :count).by(1)
+      expect(UnknownInbound.count).to eq(0)
+
+      p = Participant.find_by(phone_e164: "+56999000111")
+      expect(p.name).to eq("Ana Pérez")
+      expect(p).to be_active
+    end
+
+    it "falls back to a placeholder name when the profile name is missing" do
+      payload = signup_payload
+      payload["entry"][0]["changes"][0]["value"].delete("contacts")
+      described_class.new.perform(payload)
+      expect(Participant.find_by(phone_e164: "+56999000111").name).to eq("Nuevo participante")
+    end
+
+    it "stays a no-op (UnknownInbound) when the kill-switch is off" do
+      Setting.set("whatsapp_self_signup_enabled", false)
+      expect {
+        described_class.new.perform(signup_payload)
+      }.to change(UnknownInbound, :count).by(1)
+      expect(Participant.where(phone_e164: "+56999000111")).to be_empty
+    end
+  end
+
   it "stores inbound from known participant" do
     allow_any_instance_of(Openai::FreeResponseGenerator).to receive(:call).and_return(
       Openai::FreeResponseGenerator::Result.new(body: "respondido", prompt_used: "p", tokens_input: 1, tokens_output: 1, model: "m")

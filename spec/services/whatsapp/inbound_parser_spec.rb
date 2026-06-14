@@ -61,6 +61,21 @@ RSpec.describe Whatsapp::InboundParser do
     expect(result[:messages].first.text).to be_nil
   end
 
+  it "captures the WhatsApp profile name from contacts" do
+    payload = {
+      "entry" => [{ "changes" => [{ "value" => {
+        "contacts" => [{ "wa_id" => "5215551234567", "profile" => { "name" => "Ana Pérez" } }],
+        "messages" => [{ "from" => "5215551234567", "id" => "wamid.n", "timestamp" => "1", "type" => "text", "text" => { "body" => "Hola" } }]
+      } }] }]
+    }
+    msg = described_class.parse(payload)[:messages].first
+    expect(msg.profile_name).to eq("Ana Pérez")
+  end
+
+  it "leaves profile_name nil when no contact matches" do
+    expect(described_class.parse(text_payload)[:messages].first.profile_name).to be_nil
+  end
+
   it "handles malformed payload" do
     expect(described_class.parse("not json")).to eq(messages: [], statuses: [])
   end

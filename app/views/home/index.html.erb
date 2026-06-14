@@ -327,8 +327,9 @@
             </div>
 
             <div class="input-group input-group-full">
-              <label class="input-label" for="enroll-email">Correo Electrónico <span class="input-optional">(opcional)</span></label>
-              <%= f.email_field :email, id: "enroll-email", class: "input-text", placeholder: "carlos.gomez@empresa.com" %>
+              <label class="input-label" for="enroll-email">Correo Electrónico</label>
+              <%= f.email_field :email, id: "enroll-email", class: "input-text", placeholder: "tucorreo@ejemplo.com", required: true %>
+              <span class="input-help">Lo necesitas para iniciar sesión en tu portal.</span>
             </div>
           </div>
 

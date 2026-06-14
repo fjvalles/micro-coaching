@@ -28,7 +28,13 @@ class ProcessIncomingMessageJob < ApplicationJob
     participant = Participant.kept.find_by(phone_e164: normalized)
 
     unless participant
-      log_unknown_inbound(message)
+      participant = maybe_self_signup(message, normalized)
+      unless participant
+        log_unknown_inbound(message)
+        return
+      end
+      # First contact handled: the signup fires the welcome (the inbound already
+      # opened the 24h window, so free-text works). Don't also treat it as chat.
       return
     end
 
@@ -359,6 +365,21 @@ class ProcessIncomingMessageJob < ApplicationJob
     Outbound::Dispatcher.new(participant: participant, moment: :free_assistant).send_text(
       body: Setting.fetch("voice_message_reply_text").to_s
     )
+  end
+
+  # WhatsApp-first self-signup: a stranger who texts the number is enrolled into
+  # the free trial on the spot. Their inbound already opened the 24h window, so the
+  # welcome lands as free text (no template needed). Gated by whatsapp_self_signup_enabled.
+  # Returns the new Participant, or nil when disabled / not eligible / creation failed.
+  def maybe_self_signup(message, phone)
+    return nil unless Setting.fetch("whatsapp_self_signup_enabled")
+    return nil unless message.type == "text" # only a text message initiates signup
+
+    name = message.profile_name.to_s.strip.presence || "Nuevo participante"
+    Participants::Enroller.new(name: name, phone_e164: phone).call
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotUnique => e
+    Rails.logger.warn("[SelfSignup] failed phone=#{phone}: #{e.message}")
+    nil
   end
 
   def log_unknown_inbound(message)

@@ -60,13 +60,19 @@ RSpec.describe "Home", type: :request do
 
     context "with missing parameters" do
       it "redirects with flash alert when name is missing" do
-        post enroll_path, params: { name: "", phone: "+56912345678" }
+        post enroll_path, params: { name: "", phone: "+56912345678", email: "carlos@example.com" }
         expect(response).to redirect_to(root_path)
         expect(flash[:alert]).to include("obligatorios")
       end
 
       it "redirects with flash alert when phone is missing" do
-        post enroll_path, params: { name: "Carlos", phone: "" }
+        post enroll_path, params: { name: "Carlos", phone: "", email: "carlos@example.com" }
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to include("obligatorios")
+      end
+
+      it "redirects with flash alert when email is missing" do
+        post enroll_path, params: { name: "Carlos", phone: "+56912345678", email: "" }
         expect(response).to redirect_to(root_path)
         expect(flash[:alert]).to include("obligatorios")
       end
@@ -74,7 +80,7 @@ RSpec.describe "Home", type: :request do
 
     context "with invalid phone numbers" do
       it "rejects phone numbers that don't match E.164 pattern" do
-        post enroll_path, params: { name: "Carlos", phone: "abc1234" }
+        post enroll_path, params: { name: "Carlos", phone: "abc1234", email: "carlos@example.com" }
         expect(response).to redirect_to(root_path)
         expect(flash[:alert]).to include("formato internacional")
       end
@@ -110,7 +116,12 @@ RSpec.describe "Home", type: :request do
       end
 
       it "automatically cleans phone formatting spacing and prepends + if missing" do
-        post enroll_path, params: { name: "Carlos", phone: " 56 9 1234-5678 ", timezone: "America/Santiago" }
+        post enroll_path, params: {
+          name: "Carlos",
+          phone: " 56 9 1234-5678 ",
+          email: "carlos@example.com",
+          timezone: "America/Santiago"
+        }
         expect(response).to have_http_status(:ok)
         participant = Participant.order(:created_at).last
         expect(participant.phone_e164).to eq("+56912345678")
@@ -120,7 +131,7 @@ RSpec.describe "Home", type: :request do
         create(:participant, phone_e164: "+56912345678", program: program)
 
         expect {
-          post enroll_path, params: { name: "Carlos Nuevo", phone: "+56912345678" }
+          post enroll_path, params: { name: "Carlos Nuevo", phone: "+56912345678", email: "nuevo@example.com" }
         }.not_to change(Participant, :count)
 
         expect(response).to redirect_to(root_path)
@@ -131,7 +142,12 @@ RSpec.describe "Home", type: :request do
         Setting.set("webpay_enabled", true)
         Setting.set("membership_price_clp", 15_000)
 
-        post enroll_path, params: { name: "Paga", phone: "+56999998888", timezone: "America/Santiago" }
+        post enroll_path, params: {
+          name: "Paga",
+          phone: "+56999998888",
+          email: "paga@example.com",
+          timezone: "America/Santiago"
+        }
 
         participant = Participant.order(:created_at).last
         expect(participant.status).to eq("awaiting_payment")

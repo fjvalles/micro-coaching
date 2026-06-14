@@ -55,8 +55,8 @@ class HomeController < ApplicationController
     timezone = params[:timezone].presence || ENV.fetch("DEFAULT_TIMEZONE", "America/Santiago")
 
     # Basic validations
-    if name.blank? || phone.blank?
-      flash[:alert] = "El nombre y el teléfono son obligatorios."
+    if name.blank? || phone.blank? || email.blank?
+      flash[:alert] = "El nombre, el teléfono y el correo electrónico son obligatorios."
       redirect_to root_path and return
     end
 

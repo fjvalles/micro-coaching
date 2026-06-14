@@ -1,6 +1,6 @@
 module Whatsapp
   class InboundParser
-    Message = Struct.new(:from, :wamid, :type, :text, :media_id, :timestamp, keyword_init: true)
+    Message = Struct.new(:from, :wamid, :type, :text, :media_id, :timestamp, :profile_name, keyword_init: true)
     Status  = Struct.new(:wamid, :status, :timestamp, :recipient, keyword_init: true)
 
     def self.parse(payload)
@@ -27,9 +27,20 @@ module Whatsapp
     def messages
       entries.flat_map do |entry|
         entry.fetch("changes", []).flat_map do |change|
-          (change.dig("value", "messages") || []).map { |m| build_message(m) }
+          names = contact_names(change)
+          (change.dig("value", "messages") || []).map { |m| build_message(m, names) }
         end
       end.compact
+    end
+
+    # Maps wa_id → WhatsApp profile name from the webhook's contacts block.
+    # Used by WhatsApp-first self-signup to name a brand-new participant.
+    def contact_names(change)
+      (change.dig("value", "contacts") || []).each_with_object({}) do |c, h|
+        wa_id = c["wa_id"]
+        name = c.dig("profile", "name")
+        h[wa_id] = name if wa_id && name.present?
+      end
     end
 
     def statuses
@@ -40,7 +51,7 @@ module Whatsapp
       end.compact
     end
 
-    def build_message(m)
+    def build_message(m, names = {})
       type = m["type"]
       text = case type
              when "text" then m.dig("text", "body")
@@ -55,7 +66,8 @@ module Whatsapp
         type: type,
         text: text,
         media_id: media_id,
-        timestamp: m["timestamp"]
+        timestamp: m["timestamp"],
+        profile_name: names[m["from"]]
       )
     end
 
