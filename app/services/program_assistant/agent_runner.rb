@@ -151,6 +151,9 @@ module ProgramAssistant
           cantidad de días enviados al crear.
         - Progresión típica: primeros días "see", centrales "choose", finales
           "anchor". Español neutro, cálido, sin tecnicismos, sin exceso de emojis.
+        - morning_template, iareto_text y checkin_questions son fragmentos que se
+          insertan dentro de plantillas de WhatsApp. No incluyas saludo inicial,
+          nombre del participante ni firma/remitente en esos campos.
         - Usa siempre correcta ortografía en español: tildes (á, é, í, ó, ú) y la
           letra eñe (ñ).
 

@@ -108,6 +108,7 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/whatsapp/TemplateSender` — wraps `Client#send_template` with template name helpers
 - `app/services/whatsapp/DailyTemplateName` — resolves WhatsApp template name enforcing 14-day cycle unless custom overridden
 - `app/services/whatsapp/AdminTemplateCatalog` — builds the admin manual-send template dropdown: welcome + per-day (despertar/iareto/checkin) derived from the participant's program DayContents with prefilled variables, plus optional extras from the `admin_message_templates` Setting
+- `app/services/whatsapp/TemplateBodySanitizer` — strips duplicated greetings, participant names, and Impulso signatures from template body variables before WhatsApp delivery
 - `app/services/whatsapp/MediaFetcher` — downloads media attachment binary payloads from Meta API
 - `app/services/outbound/Dispatcher` — decides "send now" vs "queue for admin" based on response mode
 - `app/services/ResponseMode` — resolves response mode precedence (participant > program > global Setting)

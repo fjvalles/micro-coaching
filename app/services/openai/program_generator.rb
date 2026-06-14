@@ -81,6 +81,9 @@ module Openai
             (elegir distinto), finales "anchor" (consolidar el nuevo hábito).
           - Personaliza cada día con el objetivo, el patrón y la identidad declarados.
           - Nunca incluyas URLs. resource_topics debe contener solo temas de búsqueda, no enlaces.
+          - morning_template, iareto_text y checkin_questions son fragmentos que se insertan
+            dentro de plantillas de WhatsApp. No incluyas saludo inicial, nombre de la
+            persona ni firma/remitente en esos campos.
           - Español neutro, cálido, sin tecnicismos. Nada de emojis en exceso.
           - IMPORTANTE: Usa siempre correcta ortografía en español. Respeta las tildes (á, é, í, ó, ú) y la letra eñe (ñ). Corrige cualquier falta de ortografía que traigan las respuestas del usuario.
         SYS

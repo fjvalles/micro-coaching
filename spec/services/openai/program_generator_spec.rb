@@ -47,6 +47,18 @@ RSpec.describe Openai::ProgramGenerator do
     described_class.new(answers: answers, client: fake_client).call
   end
 
+  it "instructs generated day fragments not to include greetings or signatures" do
+    allow(fake_client).to receive(:chat) do |args|
+      prompt = args[:messages].first[:content]
+      expect(prompt).to include("morning_template, iareto_text y checkin_questions son fragmentos")
+      expect(prompt).to include("No incluyas saludo inicial")
+      expect(prompt).to include("firma/remitente")
+      response_with(valid_spec.to_json)
+    end
+
+    described_class.new(answers: answers, client: fake_client).call
+  end
+
   it "returns spec: nil on unparseable JSON" do
     allow(fake_client).to receive(:chat).and_return(response_with("not json"))
     result = described_class.new(answers: answers, client: fake_client).call

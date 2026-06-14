@@ -52,6 +52,20 @@ RSpec.describe "daily template name usage", type: :job do
     expect(sent).to eq([ "iareto_dia_01" ])
   end
 
+  it "strips duplicated greetings from IAReto template variables" do
+    participant.update!(name: "Francisco J")
+    participant.day_content.update!(iareto_text: "Hola Francisco J, anota una pausa breve.\n\n— Impulso Coach")
+    sent_variables = []
+    allow_any_instance_of(Outbound::Dispatcher).to receive(:send_template) do |_dispatcher, args|
+      sent_variables = args[:variables]
+      Outbound::Dispatcher::Result.new(delivered: true, conversation: build(:conversation))
+    end
+
+    SendIaretoJob.new.perform(participant.id)
+
+    expect(sent_variables).to eq([ "Francisco J", "anota una pausa breve." ])
+  end
+
   it "cycles the check-in template for long programs outside the 24h window" do
     sent = []
     allow_any_instance_of(Outbound::Dispatcher).to receive(:send_template) do |_dispatcher, args|
@@ -62,5 +76,21 @@ RSpec.describe "daily template name usage", type: :job do
     CheckinForParticipantJob.new.perform(participant.id)
 
     expect(sent).to eq([ "checkin_dia_01" ])
+  end
+
+  it "strips duplicated greetings from check-in template variables" do
+    participant.update!(name: "Francisco J")
+    participant.day_content.update!(
+      checkin_questions: "Buenas noches, Francisco J. 1. ¿Qué observaste?\n2. ¿Qué eliges mañana?\n\nImpulso"
+    )
+    sent_variables = []
+    allow_any_instance_of(Outbound::Dispatcher).to receive(:send_template) do |_dispatcher, args|
+      sent_variables = args[:variables]
+      Outbound::Dispatcher::Result.new(delivered: true, conversation: build(:conversation))
+    end
+
+    CheckinForParticipantJob.new.perform(participant.id)
+
+    expect(sent_variables).to eq([ "Francisco J", "1. ¿Qué observaste?\n\n2. ¿Qué eliges mañana?" ])
   end
 end

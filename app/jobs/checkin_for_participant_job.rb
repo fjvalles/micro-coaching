@@ -9,7 +9,7 @@ class CheckinForParticipantJob < ApplicationJob
 
     return if already_handled?(participant: participant, moment: :checkin_question, day_number: participant.current_day)
 
-    questions = day_content.checkin_questions.to_s
+    questions = template_body(day_content.checkin_questions, participant)
     body = "Check-in del día #{day_content.day_number} — #{day_content.title}\n\n#{questions}"
 
     dispatcher = Outbound::Dispatcher.new(
@@ -30,5 +30,11 @@ class CheckinForParticipantJob < ApplicationJob
         participant.update!(pending_checkin_at: Time.current)
       end
     end
+  end
+
+  private
+
+  def template_body(body, participant)
+    Whatsapp::TemplateBodySanitizer.call(body, participant_name: participant.name)
   end
 end

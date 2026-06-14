@@ -46,6 +46,20 @@ RSpec.describe Whatsapp::AdminTemplateCatalog do
       expect(questions["default"]).to eq("1. P1\n\n2. P2\n\n3. P3")
     end
 
+    it "removes duplicated greetings from day-content template variables" do
+      program.day_contents.find_by(day_number: 1).update!(
+        iareto_text: "Hola Ana, toma una pausa breve.\n\n— Impulso Coach",
+        checkin_questions: "Buenas noches, Ana. 1. ¿Qué notaste?\n2. ¿Qué eliges mañana?\n\nImpulso"
+      )
+
+      result = described_class.new(participant: participant).call
+      iareto = result.find { |t| t["name"] == "iareto_dia_01" }
+      checkin = result.find { |t| t["name"] == "checkin_dia_01" }
+
+      expect(iareto["variables"].last["default"]).to eq("toma una pausa breve.")
+      expect(checkin["variables"].last["default"]).to eq("1. ¿Qué notaste?\n\n2. ¿Qué eliges mañana?")
+    end
+
     it "leaves the morning message blank (AI-generated)" do
       despertar = catalog.find { |t| t["name"] == "despertar_dia_01" }
       expect(despertar["variables"].last).to eq({ "label" => "Mensaje", "default" => "" })

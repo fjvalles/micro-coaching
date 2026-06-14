@@ -10,14 +10,21 @@ class SendIaretoJob < ApplicationJob
     return if already_handled?(participant: participant, moment: :iareto, day_number: participant.current_day)
 
     dispatcher = Outbound::Dispatcher.new(participant: participant, moment: :iareto, day_number: day_content.day_number)
+    body = template_body(day_content.iareto_text, participant)
     if participant.in_24h_window?
-      dispatcher.send_text(body: day_content.iareto_text)
+      dispatcher.send_text(body: body)
     else
       dispatcher.send_template(
         template_name: Whatsapp::DailyTemplateName.call(prefix: "iareto", day_number: day_content.day_number),
-        variables: [ participant.name, day_content.iareto_text ],
-        body_preview: day_content.iareto_text
+        variables: [ participant.name, body ],
+        body_preview: body
       )
     end
+  end
+
+  private
+
+  def template_body(body, participant)
+    Whatsapp::TemplateBodySanitizer.call(body, participant_name: participant.name)
   end
 end

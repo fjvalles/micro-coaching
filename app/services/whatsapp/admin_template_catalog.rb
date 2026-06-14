@@ -58,14 +58,14 @@ module Whatsapp
 
       template(format("iareto_dia_%02d", dc.day_number),
                "Día #{dc.day_number} · IARETO",
-               [ nombre, var("Texto IARETO", dc.iareto_text) ])
+               [ nombre, var("Texto IARETO", template_body(dc.iareto_text)) ])
     end
 
     def checkin(dc)
       return nil if dc.checkin_questions.blank?
 
       # Mirror CheckinForParticipantJob: first 3 non-blank question lines.
-      questions = dc.checkin_questions.to_s.split("\n").reject(&:blank?).first(3).join("\n\n")
+      questions = template_body(dc.checkin_questions).split("\n").reject(&:blank?).first(3).join("\n\n")
       template(format("checkin_dia_%02d", dc.day_number),
                "Día #{dc.day_number} · Check-in",
                [ nombre, var("Preguntas", questions) ])
@@ -87,6 +87,10 @@ module Whatsapp
 
     def nombre
       var("Nombre", participant&.name)
+    end
+
+    def template_body(body)
+      Whatsapp::TemplateBodySanitizer.call(body, participant_name: participant&.name)
     end
 
     def var(label, default)

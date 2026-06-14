@@ -208,8 +208,9 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 
 ### 8.2 Templates pre-aprobados, params genéricos
 - **Regla.** Los programas usan templates genéricos vía `{{1}}`, `{{2}}`: `bienvenida_piloto`, `despertar_dia_NN`, `iareto_dia_NN`, `checkin_dia_NN`. Para programas de más de 14 días, `NN` cicla sobre 01..14.
+- **Regla.** El contenido que entra como `{{2}}` es un fragmento, no un mensaje completo: no debe repetir saludo, nombre del participante ni firma/remitente. `Whatsapp::TemplateBodySanitizer` limpia defensivamente esos prefijos/sufijos en despertar, IAReto, check-in y el catálogo admin.
 - **Por qué.** Meta exige aprobación por template; variables genéricas permiten reutilizar el set aprobado sin registrar contenido clínico o metodológico específico.
-- **Enforce.** `Whatsapp::TemplateSender`, `Whatsapp::DailyTemplateName`, `DayContent#template_name_whatsapp`, `scripts/create_whatsapp_templates.rb`.
+- **Enforce.** `Whatsapp::TemplateSender`, `Whatsapp::DailyTemplateName`, `Whatsapp::TemplateBodySanitizer`, `DayContent#template_name_whatsapp`, `scripts/create_whatsapp_templates.rb`.
 
 ### 8.3 Locale = `ENV["PROGRAM_LOCALE"]` (default `es_MX`)
 - **Regla.** Todos los templates usan este locale. Cambiarlo requiere registrar templates con ese locale en Meta.

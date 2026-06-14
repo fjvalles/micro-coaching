@@ -76,6 +76,7 @@ module Openai
 
         Genera el mensaje de despertar de hoy, personalizado, refiriendo brevemente al
         reporte de ayer si existe. Máximo 4 frases. Sustituye {name} por el nombre real.
+        No incluyas saludo inicial, nombre del participante ni firma: la plantilla de WhatsApp ya agrega el saludo y el remitente.
       PROMPT
     end
 
@@ -100,15 +101,19 @@ module Openai
     end
 
     def parsed_response(content)
-      return { body: content.to_s, resource_id: nil } unless resource_catalog_available?
+      return { body: clean_body(content), resource_id: nil } unless resource_catalog_available?
 
       parsed = JSON.parse(content)
       {
-        body: parsed["body"].to_s.presence || content.to_s,
+        body: clean_body(parsed["body"].presence || content),
         resource_id: parsed["resource_id"].presence
       }
     rescue JSON::ParserError
-      { body: content.to_s, resource_id: nil }
+      { body: clean_body(content), resource_id: nil }
+    end
+
+    def clean_body(body)
+      Whatsapp::TemplateBodySanitizer.call(body, participant_name: @participant.name)
     end
   end
 end

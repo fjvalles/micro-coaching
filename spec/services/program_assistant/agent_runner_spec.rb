@@ -44,6 +44,19 @@ RSpec.describe ProgramAssistant::AgentRunner do
     expect(session.tokens_output).to eq(20)
   end
 
+  it "instructs program fragments not to include greetings or signatures" do
+    client = instance_double(Openai::Client)
+    allow(client).to receive(:chat) do |args|
+      prompt = args[:messages].first[:content]
+      expect(prompt).to include("morning_template, iareto_text y checkin_questions son fragmentos")
+      expect(prompt).to include("No incluyas saludo inicial")
+      expect(prompt).to include("firma/remitente")
+      result(content: "ok")
+    end
+
+    described_class.new(session: session, client: client).call
+  end
+
   it "gates create_program: records a pending action and never writes inline" do
     client = instance_double(Openai::Client)
     spec = { name: "Nuevo", total_days: 1,
