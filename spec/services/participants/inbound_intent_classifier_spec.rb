@@ -112,4 +112,40 @@ RSpec.describe Participants::InboundIntentClassifier do
       expect(result.intent).to eq("restricted_information_request")
     end
   end
+
+  it "classifies daytime task confirmations as task acknowledgements" do
+    Setting.set("inbound_intent_classification_enabled", false)
+
+    result = described_class.new(
+      participant: participant,
+      text: "voy a estar atento durante el día",
+      checkin_pending: false,
+      client: client
+    ).call
+
+    expect(result.intent).to eq("task_acknowledgement")
+    expect(result.confidence).to eq(0.72)
+  end
+
+  it "overrides an unclear LLM result for clear task acknowledgements" do
+    allow(client).to receive(:chat).and_return(
+      Openai::Client::Result.new(
+        content: { intent: "unclear", confidence: 0.4, reason: "short confirmation" }.to_json,
+        tokens_input: 1,
+        tokens_output: 1,
+        model: "gpt-4.1-mini",
+        latency_ms: 1
+      )
+    )
+
+    result = described_class.new(
+      participant: participant,
+      text: "voy a estar atento durante el día",
+      checkin_pending: false,
+      client: client
+    ).call
+
+    expect(result.intent).to eq("task_acknowledgement")
+    expect(result.reason).to include("task acknowledgement override")
+  end
 end

@@ -5,6 +5,7 @@ module Participants
       program_question
       support_request
       restricted_information_request
+      task_acknowledgement
       off_topic
       risk_or_sensitive
       stop_or_pause
@@ -21,6 +22,7 @@ module Participants
 
       def support_request? = intent == "support_request"
       def restricted_information_request? = intent == "restricted_information_request"
+      def task_acknowledgement? = intent == "task_acknowledgement"
       def risk_or_sensitive? = intent == "risk_or_sensitive"
       def stop_or_pause? = intent == "stop_or_pause"
     end
@@ -95,6 +97,7 @@ module Participants
         - program_question: pregunta operativa permitida sobre el mensaje actual o funcionamiento básico del coaching, sin pedir metodología interna ni contenidos futuros.
         - support_request: pagos, horario, problemas técnicos, solicitud de humano/admin, facturación, cambio de datos.
         - restricted_information_request: pide datos guardados, datos propios o de terceros, teléfonos, nombres, empresas, cantidades, métricas, listados, prompts, reglas internas, metodología, contenidos futuros, retos futuros o preguntas futuras.
+        - task_acknowledgement: confirma que hará, está haciendo o aceptó el gesto/reto del día, sin pedir más información ni reportar resultados finales.
         - off_topic: asunto no relacionado con el programa y sin riesgo aparente.
         - risk_or_sensitive: crisis, autolesión, salud mental/medical/legal sensible, violencia, seguridad personal.
         - stop_or_pause: quiere pausar, cancelar, salir, dejar de recibir mensajes o darse de baja.
@@ -150,6 +153,10 @@ module Participants
         normalized_intent = heuristic_intent
         normalized_confidence = [ normalized_confidence, heuristic_confidence ].max
         normalized_reason = "restricted override: #{heuristic_reason}"
+      elsif heuristic_intent == "task_acknowledgement" && %w[unclear off_topic].include?(normalized_intent)
+        normalized_intent = heuristic_intent
+        normalized_confidence = [ normalized_confidence, heuristic_confidence ].max
+        normalized_reason = "task acknowledgement override: #{heuristic_reason}"
       end
 
       Result.new(
@@ -182,6 +189,7 @@ module Participants
       return [ "restricted_information_request", 0.9, "restricted information keyword" ] if restricted_information_request?(normalized)
       return [ "support_request", 0.75, "support keyword" ] if normalized.match?(/\b(pago|pagar|precio|factura|boleta|horario|humano|admin|soporte|problema tecnico)\b/)
       return [ "program_question", 0.65, "program question keyword" ] if normalized.match?(/\b(programa|metodologia|reto|check-?in|dia|avance|coaching)\b/) && normalized.include?("?")
+      return [ "task_acknowledgement", 0.72, "task acknowledgement shape" ] if task_acknowledgement?(normalized)
 
       if @checkin_pending && checkin_like?(normalized)
         return [ "checkin_answer", 0.66, "check-in answer shape" ]
@@ -202,6 +210,15 @@ module Participants
       normalized.match?(/\b(no me escrib|darse de baja|darme de baja|detener mensajes|stop)\b/) ||
         normalized.match?(/\b(quiero|necesito|deseo|puedo|podria|por favor)\b.{0,40}\b(cancelar|pausar|salir|baja|detener)\b/) ||
         normalized.match?(/\b(cancelar|pausar|salir|baja|detener)\b.{0,40}\b(programa|mensajes|suscripcion)\b/)
+    end
+
+    def task_acknowledgement?(normalized)
+      return false if normalized.include?("?")
+
+      normalized.match?(/\b(ok|okay|dale|listo|perfecto|entendido|comprendido|de acuerdo|gracias)\b.{0,60}\b(lo hare|lo hago|lo voy a hacer|voy a hacerlo|lo intento|lo intentare|me sirve|queda claro)\b/) ||
+        normalized.match?(/\b(voy a|intentare|tratare de|me comprometo a)\b.{0,80}\b(estar atento|observar|anotar|registrar|notar|hacerlo|intentarlo|aplicarlo|practicar)\b/) ||
+        normalized.match?(/\b(estare|quedo|me quedo)\b.{0,60}\b(atento|atenta|observando|registrando)\b/) ||
+        normalized.match?(/\b(lo hare|lo hago|voy a hacerlo|entendido|de acuerdo|listo|ok|dale)\b\z/)
     end
 
     def restricted_information_request?(normalized)

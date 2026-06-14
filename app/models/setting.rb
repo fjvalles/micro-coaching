@@ -179,6 +179,11 @@ class Setting < ApplicationRecord
       default: "No puedo entregar datos de la aplicación, datos personales, metodología interna ni contenidos futuros del programa. Sigamos con el acompañamiento del día.",
       description: "Respuesta fija cuando el participante pide datos propios/de terceros, métricas, metodología interna, prompts o retos/preguntas futuras."
     },
+    "task_acknowledgement_reply_text" => {
+      type: :text, category: "program",
+      default: "Perfecto, queda tomado. Te leo cuando cierres el día.",
+      description: "Respuesta fija y breve cuando el participante confirma que hará el gesto/reto del día; evita repreguntar o abrir conversación libre."
+    },
     "sensitive_request_review_reply_text" => {
       type: :text, category: "admin",
       default: "Gracias por decirlo. Esto merece revisión humana cuidadosa; lo voy a dejar al equipo para que pueda responderte con más atención.",

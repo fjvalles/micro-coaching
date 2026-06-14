@@ -289,6 +289,11 @@ class ProcessIncomingMessageJob < ApplicationJob
       return false
     end
 
+    if intent.task_acknowledgement?
+      handle_task_acknowledgement(participant)
+      return false
+    end
+
     handle_free(participant, text, voice_analysis: voice_analysis, operational_context: operational_context)
     true
   end
@@ -304,6 +309,10 @@ class ProcessIncomingMessageJob < ApplicationJob
 
   def handle_restricted_information(participant)
     ack(participant, Setting.fetch("restricted_information_reply_text").to_s)
+  end
+
+  def handle_task_acknowledgement(participant)
+    ack(participant, Setting.fetch("task_acknowledgement_reply_text").to_s)
   end
 
   def handle_stop_or_pause(participant)

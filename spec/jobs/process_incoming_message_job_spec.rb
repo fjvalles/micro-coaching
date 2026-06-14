@@ -249,6 +249,39 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
       expect(DailyReport.count).to eq(0)
     end
 
+    it "acks task confirmations without generating a free AI reply or asking another question" do
+      Setting.set("task_acknowledgement_reply_text", "Perfecto, queda tomado. Te leo cuando cierres el día.")
+      expect_any_instance_of(Openai::FreeResponseGenerator).not_to receive(:call)
+
+      travel_to(Time.utc(2026, 5, 23, 11, 48)) do
+        described_class.new.perform(text_payload(text: "voy a estar atento durante el día"))
+      end
+
+      inbound = participant.conversations.where(role: :user).last
+      reply = participant.conversations.where(role: :assistant).last
+
+      expect(inbound.inbound_intent).to eq("task_acknowledgement")
+      expect(reply.body).to eq("Perfecto, queda tomado. Te leo cuando cierres el día.")
+      expect(reply.body).not_to include("?")
+      expect(DailyReport.count).to eq(0)
+    end
+
+    it "does not consume a pending check-in when the participant only confirms the task" do
+      Setting.set("task_acknowledgement_reply_text", "Perfecto, queda tomado. Te leo cuando cierres el día.")
+      expect_any_instance_of(Openai::CheckinSummarizer).not_to receive(:call)
+      expect_any_instance_of(Openai::FreeResponseGenerator).not_to receive(:call)
+
+      travel_to(now) do
+        described_class.new.perform(text_payload(text: "ok, lo haré"))
+      end
+
+      inbound = participant.conversations.where(role: :user).last
+      expect(inbound.moment).to eq("free_user")
+      expect(inbound.inbound_intent).to eq("task_acknowledgement")
+      expect(participant.conversations.where(moment: :checkin_response).count).to eq(0)
+      expect(DailyReport.count).to eq(0)
+    end
+
     it "does not store restricted requests as the initial pattern" do
       Setting.set("restricted_information_reply_text", "No puedo entregar esa información.")
       participant.update!(initial_pattern: nil)
