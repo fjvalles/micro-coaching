@@ -5,8 +5,15 @@ module PortalHelper
   def portal_tabs
     [
       [ "Inicio",   portal_root_path,      :home,     %w[dashboard] ],
+      [ "Programa", portal_program_path,   :map,      %w[programs] ],
       [ "Recursos", portal_resources_path, :bookmark, %w[resources] ]
     ]
+  end
+
+  PHASE_LABEL = { "see" => "Ver", "choose" => "Elegir", "anchor" => "Anclar" }.freeze
+
+  def portal_phase_label(phase)
+    PHASE_LABEL.fetch(phase.to_s, phase.to_s.humanize)
   end
 
   RESOURCE_KIND_ICON = { "video" => :video, "article" => :article, "audio_ref" => :headphones }.freeze

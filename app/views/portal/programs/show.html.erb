@@ -1,0 +1,79 @@
+<% content_for :title, "Mi programa — Impulso" %>
+
+<% if @program %>
+  <div class="card">
+    <p class="eyebrow">Tu programa</p>
+    <h1 class="section-title" style="margin-top: 2px;"><%= @program.name %></h1>
+
+    <div class="stat-grid" style="margin-bottom: 20px;">
+      <div class="stat-card">
+        <p class="k">Duración</p>
+        <p class="v"><%= @total_days %> días</p>
+      </div>
+      <div class="stat-card">
+        <p class="k">Día actual</p>
+        <p class="v"><%= current_participant.current_day %></p>
+      </div>
+      <div class="stat-card">
+        <p class="k">Etapa</p>
+        <p class="v"><%= portal_phase_label(current_participant.phase) %></p>
+      </div>
+    </div>
+
+    <% if @phases.any? %>
+      <p class="label">Arco del programa</p>
+      <div class="phase-arc">
+        <% @phases.each do |phase, state| %>
+          <div class="phase-step <%= state %>">
+            <div class="bar"></div>
+            <span class="lbl"><%= portal_phase_label(phase) %></span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @program.manifesto.present? %>
+    <div class="card">
+      <h2 class="section-title">Manifiesto</h2>
+      <div class="manifesto-text"><%= @program.manifesto %></div>
+    </div>
+  <% end %>
+
+  <% if @closing_manifesto.present? %>
+    <div class="card" style="border-color: var(--secondary); box-shadow: 0 0 24px rgba(129, 140, 248, 0.15);">
+      <h2 class="section-title"><span class="ico-md" style="vertical-align: -4px; color: var(--secondary);"><%= portal_icon(:check) %></span> Tu reporte final</h2>
+      <p class="eyebrow" style="margin: -8px 0 14px;">El manifiesto de cierre que generó tu programa.</p>
+      <div class="manifesto-text"><%= @closing_manifesto %></div>
+    </div>
+  <% end %>
+
+  <div class="card">
+    <h2 class="section-title">Tus reportes diarios</h2>
+    <% if @reports.any? %>
+      <% @reports.each do |r| %>
+        <div class="data-row" style="display: block;">
+          <div class="eyebrow" style="font-weight: 500; margin-bottom: 4px;">Día <%= r.day_number %> · <%= r.reported_at&.strftime("%d/%m/%Y") %></div>
+          <% if r.ai_summary.present? %>
+            <div style="font-size: 14.5px; line-height: 1.5; margin-bottom: 6px;"><%= r.ai_summary %></div>
+          <% end %>
+          <% if r.ai_key_pattern.present? %>
+            <span class="pill pill-info">Patrón: <%= r.ai_key_pattern %></span>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="empty-state">
+        <%= portal_icon(:file) %>
+        <p>Aún no tienes reportes. Aparecerán a medida que avances en el programa.</p>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="card">
+    <div class="empty-state">
+      <%= portal_icon(:map) %>
+      <p>Todavía no tienes un programa asignado. Te avisaremos por WhatsApp cuando comience.</p>
+    </div>
+  </div>
+<% end %>
