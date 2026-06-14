@@ -581,6 +581,22 @@ class Setting < ApplicationRecord
       type: :integer, category: "copilot", default: 200_000,
       description: "Presupuesto de tokens (input+output) por sesión del copiloto. Al superarlo, el loop se detiene.",
       validate: ->(v) { v >= 1_000 || "debe ser >= 1000" }
+    },
+
+    # ── program assistant (chat IA para crear/editar programas) ──────────────
+    "program_assistant_enabled" => {
+      type: :boolean, category: "program", default: true,
+      description: "Kill-switch del Asistente IA de programas (modal en /admin/programs). Off = el agente no corre."
+    },
+    "program_assistant_action_cap_per_session" => {
+      type: :integer, category: "program", default: 15,
+      description: "Máximo de acciones (crear/editar programa) que el asistente puede proponer por sesión.",
+      validate: ->(v) { (1..100).cover?(v) || "debe estar entre 1 y 100" }
+    },
+    "program_assistant_token_budget_per_session" => {
+      type: :integer, category: "program", default: 400_000,
+      description: "Presupuesto de tokens (input+output) por sesión del asistente de programas. Al superarlo, el loop se detiene.",
+      validate: ->(v) { v >= 1_000 || "debe ser >= 1000" }
     }
   }.freeze
 
