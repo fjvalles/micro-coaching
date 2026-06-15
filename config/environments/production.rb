@@ -67,8 +67,20 @@ Rails.application.configure do
   # want to log everything, set the level to "debug".
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
-  # Use a different cache store in production.
-  # config.cache_store = :mem_cache_store
+  # Redis-backed cache. The default FileStore is not safe for concurrent
+  # same-key writes (Sidekiq runs jobs multi-threaded): two workers racing on
+  # `rename` for the same cache file raise Errno::ENOENT, which previously
+  # aborted outbound sends that read Setting kill-switches. Redis is already
+  # provisioned (shared across web + worker, unlike per-process memory_store).
+  # error_handler degrades gracefully (read-through to DB) instead of raising.
+  config.cache_store = :redis_cache_store, {
+    url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0"),
+    namespace: "impulso:cache",
+    expires_in: 1.day,
+    error_handler: lambda { |method:, returning:, exception:|
+      Sentry.capture_exception(exception, level: :warning, tags: { cache_method: method }) if defined?(Sentry)
+    }
+  }
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
   # config.active_job.queue_adapter = :resque
