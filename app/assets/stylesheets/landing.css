@@ -5,7 +5,7 @@
 :root {
   /* Clean editorial palette — ivory canvas, charcoal text, one accessible coral */
   --bg: #ffffff;          /* clean white */
-  --bg-hero: #b23a1f;     /* solid coral block for the hero */
+  --bg-hero: #faf6f1;     /* warm ivory canvas for the hero (coral kept as accent) */
   --bg-soft: #faf6f1;     /* warm ivory for alternating sections */
   --bg-card: #ffffff;
   --bg-tint: #f6ece3;     /* soft sand — highlight cards, chat bubble */
@@ -298,12 +298,8 @@ a { color: inherit; }
 .btn-landing-primary:hover { background: var(--primary-deep); transform: translateY(-2px); }
 .btn-landing-secondary { background: #fff; color: var(--text-main); border-color: var(--border-strong); }
 .btn-landing-secondary:hover { border-color: var(--primary); color: var(--primary-deep); }
-.btn-ghost { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.7); }
-.btn-ghost:hover { border-color: #fff; background: rgba(255, 255, 255, 0.1); }
-
-/* Hero sits on a solid coral block — invert the primary CTA to white-on-coral */
-.hero-section .btn-landing-primary { background: #ffffff; color: var(--primary); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14); }
-.hero-section .btn-landing-primary:hover { background: #fff; color: var(--primary-deep); transform: translateY(-2px); }
+.btn-ghost { background: transparent; color: var(--primary-deep); border: 1px solid var(--border-strong); }
+.btn-ghost:hover { border-color: var(--primary); color: var(--primary-deep); background: var(--primary-soft); }
 
 /* Pressed feedback — physical click cue */
 .btn-landing:active, .btn-pill-white:active { transform: translateY(1px); }
@@ -314,7 +310,6 @@ a { color: inherit; }
   outline-offset: 2px;
   border-radius: 4px;
 }
-.btn-ghost:focus-visible, .hero-proof-list:focus-visible { outline-color: #fff; }
 
 /* Skip link — keyboard users jump past nav */
 .skip-link {
@@ -352,7 +347,7 @@ a { color: inherit; }
   padding: 132px 6% 80px;
 }
 .hero-content {
-  color: #ffffff;
+  color: var(--text-main);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -374,7 +369,7 @@ a { color: inherit; }
   inset: -36px;
   z-index: -1;
   border-radius: 60px;
-  background: radial-gradient(closest-side, rgba(255,255,255,0.30), rgba(255,255,255,0) 72%);
+  background: radial-gradient(closest-side, rgba(178,58,31,0.12), rgba(178,58,31,0) 72%);
 }
 .hero-image {
   max-width: 100%;
@@ -401,17 +396,18 @@ a { color: inherit; }
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--primary);
   margin-bottom: 18px;
 }
-.hero-title { font-size: clamp(42px, 4.7vw, 58px); font-weight: 800; line-height: 0.95; text-transform: uppercase; color: #ffffff; }
+.hero-title { font-size: clamp(42px, 4.7vw, 58px); font-weight: 800; line-height: 0.95; text-transform: uppercase; color: var(--text-main); }
 .hero-description {
   font-size: 19px;
-  color: rgba(255, 255, 255, 0.96);
+  color: var(--text-soft);
   margin: 24px auto 30px;
   max-width: 580px;
   line-height: 1.6;
 }
+.hero-description strong { color: var(--text-main); }
 .hero-proof-list {
   display: flex;
   flex-wrap: wrap;
@@ -423,10 +419,10 @@ a { color: inherit; }
 .hero-proof-list span {
   display: inline-flex;
   align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.42);
+  border: 1px solid var(--accent-soft);
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: var(--primary-soft);
+  color: var(--primary-deep);
   font-size: 13px;
   font-weight: 700;
   padding: 7px 12px;
@@ -435,7 +431,7 @@ a { color: inherit; }
 .hero-buttons .btn-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: flex-start; }
 .hero-commitment {
   max-width: 480px;
-  color: rgba(255, 255, 255, 0.84);
+  color: var(--text-faint);
   font-size: 14px;
   line-height: 1.55;
   margin-top: 16px;
