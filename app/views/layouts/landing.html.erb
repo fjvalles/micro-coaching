@@ -1,19 +1,25 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <title><%= content_for(:title) || "Impulso by Comtraining · Tu coach personal por WhatsApp" %></title>
+    <title><%= content_for(:title) || "Impulso by Comtraining · 14 días para cumplirte por WhatsApp" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="description" content="Impulso es un programa de coaching por WhatsApp. Tú eliges qué quieres mejorar —dormir mejor, moverte más, tener calma— y cada día recibes un micro-reto hecho a tu medida. 14 días, 15 minutos al día.">
+    <meta name="description" content="Impulso es un programa de 14 días por WhatsApp para convertir una meta postergada en microacciones diarias de 15 minutos, con seguimiento, acompañamiento y garantía clara.">
 
     <!-- Favicon and Icons -->
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Impulso by Comtraining · Tu coach personal por WhatsApp">
-    <meta property="og:description" content="Logra eso que te propones, un paso a la vez. Un coach por WhatsApp con un micro-reto diario hecho a tu medida. 14 días, 15 minutos al día.">
+    <meta property="og:title" content="Impulso by Comtraining · 14 días para cumplirte por WhatsApp">
+    <meta property="og:description" content="Convierte una meta que vienes postergando en microacciones diarias de 15 minutos, con seguimiento por WhatsApp, acompañamiento y garantía clara.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="/icon.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Impulso by Comtraining · 14 días para cumplirte por WhatsApp">
+    <meta name="twitter:description" content="Convierte una meta que vienes postergando en microacciones diarias de 15 minutos, con seguimiento por WhatsApp, acompañamiento y garantía clara.">
+    <meta name="twitter:image" content="/icon.png">
 
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -23,6 +29,8 @@
   </head>
 
   <body>
+    <a href="#main" class="skip-link">Saltar al contenido</a>
+
     <!-- Floating Public Alerts -->
     <div class="flash-container-public">
       <% flash.each do |type, message| %>
@@ -34,14 +42,31 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="landing-nav">
-      <%= link_to root_path, class: "logo-container" do %>
-        <img src="/icon.svg" alt="Impulso Logo" class="logo-image">
-        <span class="logo-text">Impulso <span class="logo-subtext">by Comtraining</span></span>
+    <nav class="landing-nav" data-landing-nav>
+      <%= link_to root_path, class: "logo-container", aria: { label: "Impulso by Comtraining" } do %>
+        <img src="/icon.svg?v=20260615" alt="" class="logo-image" aria-hidden="true">
+        <span class="logo-copy">
+          <span class="logo-text">Impulso</span>
+          <span class="logo-subtext">by Comtraining</span>
+        </span>
       <% end %>
+
+      <div class="nav-links">
+        <a href="#como-funciona" class="nav-link">Cómo funciona</a>
+        <a href="#por-que" class="nav-link">Por qué Impulso</a>
+        <a href="#coach" class="nav-link">Quién acompaña</a>
+        <a href="#precio" class="nav-link">Precio</a>
+      </div>
+
       <div class="nav-actions">
-        <%= link_to "Iniciar sesión", portal_login_path, class: "nav-login" %>
-        <a href="#empezar" class="nav-cta">Probar gratis</a>
+        <%= link_to portal_login_path, class: "nav-login" do %>
+          <span class="nav-login-full">Iniciar sesión</span>
+          <span class="nav-login-short">Entrar</span>
+        <% end %>
+        <a href="#empezar" class="nav-cta btn-landing btn-landing-primary">
+          <span class="nav-cta-full">Reservar cupo</span>
+          <span class="nav-cta-short">Reservar</span>
+        </a>
       </div>
     </nav>
 
@@ -52,5 +77,19 @@
     <footer class="landing-footer">
       <p>&copy; 2026 Impulso by <%= link_to "Comtraining", "https://comtraining.cl", target: "_blank", rel: "noopener" %>. Todos los derechos reservados. · <%= link_to "Política de Privacidad", privacidad_path %></p>
     </footer>
+
+    <script>
+      (function () {
+        const nav = document.querySelector("[data-landing-nav]");
+        if (!nav) return;
+
+        const setNavState = () => {
+          nav.classList.toggle("is-scrolled", window.scrollY > 12);
+        };
+
+        setNavState();
+        window.addEventListener("scroll", setNavState, { passive: true });
+      })();
+    </script>
   </body>
 </html>

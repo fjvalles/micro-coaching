@@ -21,7 +21,7 @@ module ProgramAssistant
         phase: { type: "string", enum: %w[see choose anchor], description: "see=observar, choose=elegir distinto, anchor=consolidar" },
         title: { type: "string", description: "Foco corto del día" },
         morning_template: { type: "string", description: "Mensaje matinal (2-4 frases, segunda persona)" },
-        iareto_text: { type: "string", description: "El micro-reto o invitación concreta del día (1-2 frases)" },
+        iareto_text: { type: "string", description: "El micro-desafío o invitación concreta del día (1-2 frases)" },
         checkin_questions: { type: "string", description: "1-3 preguntas de cierre separadas por saltos de línea" },
         ai_system_prompt: { type: "string", description: "Instrucciones para el coach IA ese día: tono, foco, qué reforzar" }
       },

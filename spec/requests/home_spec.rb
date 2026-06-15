@@ -8,7 +8,15 @@ RSpec.describe "Home", type: :request do
       get root_path
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Impulso by Comtraining")
-      expect(response.body).to include("un paso a la vez")
+      expect(response.body).to include("Reservar mi cupo").or include("Solicitar mi cupo")
+      expect(response.body).to include("Cupos de lanzamiento")
+      expect(response.body).to include("garantía clara")
+      expect(response.body).to include("micro-desafío")
+      expect(response.body).to include("¿Te tinca?")
+      expect(response.body).not_to include("¿Te late?")
+      expect(response.body).not_to include("Empieza gratis")
+      expect(response.body).not_to include("prueba gratis")
+      expect(response.body).not_to include("fundador")
     end
   end
 
@@ -24,7 +32,7 @@ RSpec.describe "Home", type: :request do
     context "with valid goal" do
       let(:openai_result) do
         Openai::Client::Result.new(
-          content: "¡Hola! Eres genial. Tu reto de hoy es meditar 5 minutos.",
+          content: "Hola. Tu desafío de hoy es meditar 5 minutos.",
           tokens_input: 50,
           tokens_output: 30,
           model: "gpt-4.1-mini"
@@ -32,7 +40,12 @@ RSpec.describe "Home", type: :request do
       end
 
       before do
-        allow_any_instance_of(Openai::Client).to receive(:chat).and_return(openai_result)
+        allow_any_instance_of(Openai::Client).to receive(:chat) do |_client, args|
+          prompt = args[:messages].first[:content]
+          expect(prompt).to include("español chileno natural")
+          expect(prompt).to include("te late")
+          openai_result
+        end
       end
 
       it "returns the simulated challenge as json" do

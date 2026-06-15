@@ -33,9 +33,10 @@ class HomeController < ApplicationController
         3. Mantén el formato de WhatsApp (puedes usar *negrita* para enfatizar).
         4. Debe incluir:
            - Un saludo enérgico e introductorio.
-           - Un desafío/reto concreto para el Día 1 relacionado con su meta (debe ser muy simple de cumplir, un "micro-paso").
+           - Un micro-desafío concreto para el Día 1 relacionado con su meta (debe ser muy simple de cumplir, un micro-paso).
            - Una pregunta corta al final para invitar a la acción.
         5. Máximo 4 frases. Sé conciso y no uses marcadores de posición como "[Nombre]". Escribe como si te dirigieras al usuario directamente.
+        6. Usa español chileno natural y evita modismos ajenos a Chile como "te late", "órale", "ándale", "chido" o "vale" como muletilla.
       PROMPT
 
       result = client.chat(
@@ -51,7 +52,7 @@ class HomeController < ApplicationController
       render json: { challenge: result.content }
     rescue => e
       Rails.logger.error("OpenAI Preview Error: #{e.message}")
-      render json: { error: "Hubo un error generando tu reto. Por favor intenta de nuevo." }, status: :internal_server_error
+      render json: { error: "Hubo un error generando tu mensaje. Por favor intenta de nuevo." }, status: :internal_server_error
     end
   end
 

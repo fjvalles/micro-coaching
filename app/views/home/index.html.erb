@@ -1,80 +1,65 @@
-<main>
+<main id="main">
   <% paid = @founder_price.to_i.positive? %>
+  <% offer_cta = paid ? "Reservar mi cupo" : "Solicitar mi cupo" %>
   <!-- ===== Hero ===== -->
-  <section class="landing-section hero-grid">
-    <div class="hero-left">
-      <div class="hero-tag">
-        <img src="/icon.svg" style="width: 16px; height: 16px;" alt="Impulso by Comtraining">
-        <span>Tu coach personal por WhatsApp</span>
-      </div>
-      <h1 class="hero-title">
-        Logra eso que te propones,<br>
-        <span class="gradient-text">un paso a la vez</span>
-      </h1>
-      <p class="hero-description">
-        Impulso es un programa de coaching por WhatsApp. <strong>Tú eliges qué quieres mejorar</strong> —dormir mejor, moverte más, tener calma, lo que sea— y cada día recibes un micro-reto hecho a tu medida. 14 días, 15 minutos al día.
-      </p>
+  <section class="hero-section">
+    <div class="hero-grid">
+      <!-- Text — left lead -->
+      <div class="hero-content">
+        <p class="hero-eyebrow">Acompañamiento de 14 días por WhatsApp</p>
+        <h1 class="hero-title">
+          DEJA DE PARTIR<br>
+          DE NUEVO CADA LUNES
+        </h1>
+        <p class="hero-description">En 14 días tienes funcionando ese hábito que llevas meses postergando — con alguien revisando tu avance cada día. Nosotros te escribimos primero: solo respondes 15 minutos al día por WhatsApp. <strong>Tu primer micro-desafío llega mañana en la mañana.</strong></p>
 
-      <div class="hero-buttons">
-        <div class="btn-row">
-          <a href="#empezar" class="btn-landing btn-landing-primary"><%= paid ? "Quiero mi cupo" : "Empieza gratis" %></a>
-          <a href="#como-funciona" class="btn-landing btn-landing-secondary">Cómo funciona</a>
+        <div class="hero-proof-list" aria-label="Qué incluye Impulso">
+          <span>14 días</span>
+          <span>15 min al día</span>
+          <span>WhatsApp</span>
+          <span>Con garantía</span>
         </div>
-        <p class="cta-note"><span class="dot-ok"></span> <%= paid ? "Precio fundador · cupos limitados · con garantía" : "Gratis · sin tarjeta · directo en WhatsApp" %></p>
-      </div>
 
-      <!-- Interactive simulator selector -->
-      <div class="simulator-selector-container">
-        <p class="selector-title">Elige un ejemplo y mira cómo se siente:</p>
-        <div class="simulator-selector-grid">
-          <button class="selector-card active" data-case="dormir">
-            <span class="selector-card-icon">😴</span>
-            <div class="selector-card-text">
-              <strong>Dormir mejor</strong>
-              <span>Descansar de verdad</span>
-            </div>
-          </button>
-
-          <button class="selector-card" data-case="ejercicio">
-            <span class="selector-card-icon">🏃</span>
-            <div class="selector-card-text">
-              <strong>Moverte más</strong>
-              <span>Volver al ejercicio sin presión</span>
-            </div>
-          </button>
-
-          <button class="selector-card" data-case="calma">
-            <span class="selector-card-icon">🧘</span>
-            <div class="selector-card-text">
-              <strong>Tener más calma</strong>
-              <span>Pausas para respirar</span>
-            </div>
-          </button>
-
-          <button class="selector-card" data-case="presente">
-            <span class="selector-card-icon">💚</span>
-            <div class="selector-card-text">
-              <strong>Estar presente</strong>
-              <span>Tiempo real con los tuyos</span>
-            </div>
-          </button>
+        <div class="hero-buttons">
+          <div class="btn-row">
+            <a href="#empezar" class="btn-landing btn-landing-primary">
+              <%= offer_cta %>
+              <svg style="margin-left: 4px; width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <a href="#precio" class="btn-landing btn-ghost">Ver la oferta</a>
+          </div>
+          <p class="hero-commitment">Cupos limitados para personas que quieren completar el ciclo, no solo mirar de qué se trata.</p>
         </div>
       </div>
-    </div>
 
-    <!-- Phone simulator -->
-    <div class="hero-right">
-      <div class="phone-container">
-        <div class="phone-notch"></div>
-        <div class="phone-screen">
-          <div class="chat-header">
-            <img src="/icon.svg" class="chat-avatar-img" alt="Impulso">
-            <div class="chat-info">
-              <span class="chat-name">Impulso</span>
-              <span class="chat-status">en línea</span>
+      <!-- Product visual — live WhatsApp mockup -->
+      <div class="hero-visual" aria-hidden="true">
+        <div class="phone-container">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="chat-header">
+              <img src="/icon.png?v=20260615" class="chat-avatar-img" alt="">
+              <div class="chat-info">
+                <span class="chat-name">Impulso</span>
+                <span class="chat-status">en línea</span>
+              </div>
+            </div>
+            <div class="chat-body">
+              <div class="bubble bubble-left">
+                Buenos días, Carla 🌅 Hoy: <strong>15 min sin pantallas</strong> antes de dormir. ¿Te tinca?
+                <div class="bubble-footer"><span class="bubble-time">7:30</span></div>
+              </div>
+              <div class="bubble bubble-right">
+                Sí, lo intento hoy 💪
+                <div class="bubble-footer"><span class="bubble-time">7:34</span></div>
+              </div>
+              <div class="bubble bubble-left">
+                Perfecto. En la noche te escribo para ver cómo te fue y ajustamos el desafío de mañana.
+                <div class="bubble-footer"><span class="bubble-time">7:35</span></div>
+              </div>
+              <div class="typing-bubble-sim"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
             </div>
           </div>
-          <div class="chat-body" id="chat-simulation"></div>
         </div>
       </div>
     </div>
@@ -82,32 +67,49 @@
 
   <!-- ===== Trust line ===== -->
   <section class="trust-section">
-    <p class="trust-title">Creado sobre la metodología de coaching de Comtraining, con más de una década acompañando a personas y equipos en Latinoamérica.</p>
+    <p class="trust-title">Creado sobre la metodología de coaching de Comtraining, con más de una década acompañando a personas y equipos en Latinoamérica. Siempre con supervisión humana detrás del proceso.</p>
+  </section>
+
+  <!-- ===== Impact Banner ===== -->
+  <section class="impact-banner">
+    <div class="impact-banner-content">
+      <h2 class="impact-title">No necesitas más motivación. Necesitas seguimiento.</h2>
+      <p class="impact-subtitle">Impulso te ayuda a cumplirte en días reales: con poco tiempo, la agenda llena y una meta que merece dejar de esperar.</p>
+      <a href="#empezar" class="btn-pill-white"><%= offer_cta %></a>
+    </div>
   </section>
 
   <!-- ===== Why change (motivation) ===== -->
   <section class="landing-section section-soft" id="por-que-cambiar">
-    <div class="section-header-centered">
-      <span class="section-subtitle">Por qué ahora</span>
-      <h2 class="section-title">Eso que quieres cambiar puede empezar hoy</h2>
-      <p class="section-desc">Ya sabes lo que te gustaría mejorar. Quizás lo intentaste antes y la rutina te ganó — pasa, y no es por falta de ganas. Cambiar en soledad cuesta; con alguien que te acompaña cada día, se vuelve posible.</p>
-    </div>
+    <div class="section-split">
+      <div class="split-header">
+        <span class="section-subtitle">Por qué ahora</span>
+        <h2 class="section-title">La rutina no se vence con intención</h2>
+        <p class="section-desc">Ya sabes qué quieres mejorar. El problema no es saberlo: es sostenerlo cuando aparece el cansancio, la urgencia y el "mañana empiezo". Impulso pone estructura diaria donde antes dependías solo de voluntad.</p>
+      </div>
 
-    <div class="why-grid">
+      <div class="why-grid">
       <div class="why-card">
-        <div class="why-emoji">🌅</div>
-        <h3>Para sentirte mejor</h3>
-        <p>Más energía, más calma, mejor descanso. Pequeños cambios diarios que se notan en cómo vives el día.</p>
+        <div class="why-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.63 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg>
+        </div>
+        <h3>Empiezas con una meta concreta</h3>
+        <p>No intentas cambiar toda tu vida de golpe. Escoges un foco importante y lo transformas en pasos que caben en tu día.</p>
       </div>
       <div class="why-card">
-        <div class="why-emoji">💪</div>
-        <h3>Para lograr lo que te propones</h3>
-        <p>Esa meta que vienes posponiendo deja de ser un "algún día" y se convierte en pasos concretos, hoy.</p>
+        <div class="why-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        </div>
+        <h3>Tienes seguimiento diario</h3>
+        <p>Cada mañana recibes una acción pequeña. Cada noche reportas cómo te fue. Esa fricción cambia el compromiso.</p>
       </div>
       <div class="why-card">
-        <div class="why-emoji">🤝</div>
-        <h3>Para no hacerlo en soledad</h3>
-        <p>Tener a alguien que te pregunta, te escucha y celebra tus avances cambia por completo si lo sostienes o no.</p>
+        <div class="why-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+        </div>
+        <h3>No lo haces en soledad</h3>
+        <p>La IA acompaña a diario y hay supervisión humana detrás del proceso. Cercano como un chat, serio como un programa.</p>
+      </div>
       </div>
     </div>
   </section>
@@ -115,9 +117,9 @@
   <!-- ===== What you can work on (possibilities + personalization) ===== -->
   <section class="landing-section" id="que-trabajar">
     <div class="section-header-centered">
-      <span class="section-subtitle">Para lo que tú quieras</span>
-      <h2 class="section-title">¿Qué te gustaría mejorar?</h2>
-      <p class="section-desc">Impulso se adapta a ti. Estos son algunos focos que las personas eligen — y hay espacio para el tuyo.</p>
+      <span class="section-subtitle">Elige una meta</span>
+      <h2 class="section-title">Tu objetivo, en versión practicable</h2>
+      <p class="section-desc">La promesa no es hacerlo perfecto. Es diseñar una forma de avanzar que puedas repetir incluso en semanas reales.</p>
     </div>
 
     <div class="topics-grid">
@@ -125,48 +127,57 @@
       <div class="topic-chip"><span class="topic-icon">🏃</span><span class="topic-label">Hacer ejercicio</span></div>
       <div class="topic-chip"><span class="topic-icon">🧘</span><span class="topic-label">Tener más calma</span></div>
       <div class="topic-chip"><span class="topic-icon">⏰</span><span class="topic-label">Dejar de postergar</span></div>
-      <div class="topic-chip"><span class="topic-icon">🥗</span><span class="topic-label">Comer mejor</span></div>
-      <div class="topic-chip"><span class="topic-icon">💚</span><span class="topic-label">Estar presente en casa</span></div>
-      <div class="topic-chip"><span class="topic-icon">🗣️</span><span class="topic-label">Hablar con confianza</span></div>
-      <div class="topic-chip"><span class="topic-icon">🎯</span><span class="topic-label">Enfocarte en lo importante</span></div>
     </div>
 
-    <p class="topics-note">¿Lo tuyo no está en la lista? <strong>También.</strong> Tú eliges el foco y tu programa se arma a tu medida.</p>
+    <p class="topics-note">¿Lo tuyo no está en la lista? <strong>También sirve.</strong> Lo importante es elegir un foco que estés dispuesto a trabajar durante 14 días.</p>
   </section>
 
   <!-- ===== How it works ===== -->
   <section class="landing-section section-soft" id="como-funciona">
     <div class="section-header-centered">
       <span class="section-subtitle">Cómo funciona</span>
-      <h2 class="section-title">Simple, y siempre contigo</h2>
-      <p class="section-desc">Tres pasos. Sin descargas, sin complicaciones.</p>
+      <h2 class="section-title">Un sistema diario, no otra app más</h2>
+      <p class="section-desc">Cuatro piezas simples para aumentar compromiso sin llenar tu agenda.</p>
     </div>
 
     <div class="steps-grid">
       <div class="step-card">
-        <div class="step-num">1</div>
-        <h3>Eliges tu foco</h3>
-        <p>Nos cuentas qué quieres lograr. Con eso, tu programa se arma a tu medida para estos 14 días.</p>
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <h3>Defines tu meta</h3>
+        </div>
+        <p>Nos cuentas qué quieres cambiar y por qué importa ahora. Con eso se arma tu programa personalizado.</p>
       </div>
       <div class="step-card">
-        <div class="step-num">2</div>
-        <h3>Un micro-reto al día</h3>
-        <p>Cada mañana recibes un paso simple de 15 minutos por WhatsApp, pensado para tu día real.</p>
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <h3>Recibes una acción diaria</h3>
+        </div>
+        <p>Cada mañana llega un micro-desafío de 15 minutos por WhatsApp, pensado para tu contexto real.</p>
       </div>
       <div class="step-card">
-        <div class="step-num">3</div>
-        <h3>Conversan tu avance</h3>
-        <p>En la noche conversas cómo te fue. Tu coach celebra lo logrado y ajusta lo que sigue.</p>
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <h3>Haces check-in</h3>
+        </div>
+        <p>En la noche respondes cómo te fue. Con eso recibes ajustes para el día siguiente, según tus avances y trabas.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-num">4</div>
+          <h3>Cierras con evidencia</h3>
+        </div>
+        <p>Al día 14 recibes un resumen de tu proceso y una recomendación clara para sostener lo logrado.</p>
       </div>
     </div>
   </section>
 
   <!-- ===== Comparison: alone vs Impulso ===== -->
-  <section class="landing-section" id="comparacion">
+  <section class="landing-section section-gradient" id="comparacion">
     <div class="section-header-centered">
       <span class="section-subtitle">Por qué con Impulso</span>
-      <h2 class="section-title">Solos cuesta. Acompañados, no.</h2>
-      <p class="section-desc">La voluntad sola rara vez basta — y los datos lo confirman. Lo que de verdad funciona es un plan diario y alguien que le haga seguimiento. Justo lo que hace Impulso.</p>
+      <h2 class="section-title">Pagas para tomártelo en serio</h2>
+      <p class="section-desc">Lo barato de abandonar una meta es que nadie te pregunta. El valor de Impulso está en crear una estructura diaria que haga más difícil desaparecer de tu propio compromiso.</p>
     </div>
 
     <div class="stat-band">
@@ -189,17 +200,17 @@
       <div class="compare-card">
         <p class="compare-tag">Por tu cuenta</p>
         <h3>Solo con fuerza de voluntad</h3>
-        <p>Gratis, pero difícil de sostener. Sin un plan ni alguien que te acompañe, la rutina suele ganar a las pocas semanas.</p>
+        <p>No cuesta dinero, pero suele costar avance. Sin plan ni seguimiento, la rutina gana en pocos días.</p>
       </div>
       <div class="compare-card">
-        <p class="compare-tag">Coach o psicólogo</p>
-        <h3>Acompañamiento tradicional</h3>
-        <p>Muy valioso y, a veces, necesario. Suele ser por sesión, semanal o mensual, y con una inversión bastante mayor.</p>
+        <p class="compare-tag">Coaching tradicional</p>
+        <h3>Sesiones uno a uno</h3>
+        <p>Muy valioso cuando necesitas profundidad. Suele ser por sesión, semanal o mensual, y con una inversión mayor.</p>
       </div>
       <div class="compare-card highlight">
-        <p class="compare-tag">La opción del día a día</p>
-        <h3>Impulso</h3>
-        <p>Acompañamiento <strong>diario</strong> por WhatsApp, hecho a tu medida y a una fracción del costo. Cercano, simple y siempre contigo.</p>
+        <p class="compare-tag">Impulso</p>
+        <h3>Acompañamiento diario</h3>
+        <p>Acompañamiento <strong>diario</strong> por WhatsApp, personalizado, con check-in y garantía. Más accesible que un proceso largo, más serio que entrar solo por curiosidad.</p>
       </div>
     </div>
   </section>
@@ -217,7 +228,7 @@
           <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 21l5.907-3M18 10.5c0 3.298-2.624 5.969-5.913 6.002L12 16.5c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6Z"/></svg>
         </div>
         <h3 class="bento-title">Hecho a tu medida</h3>
-        <p class="bento-desc">No es un curso igual para todos. Cada reto nace de lo que tú quieres lograr, y se ajusta según cómo avanzas.</p>
+        <p class="bento-desc">No es un curso igual para todos. Cada desafío nace de lo que tú quieres lograr, y se ajusta según cómo avanzas.</p>
       </div>
 
       <div class="bento-card">
@@ -232,8 +243,8 @@
         <div class="bento-icon">
           <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
         </div>
-        <h3 class="bento-title">Con un coach humano</h3>
-        <p class="bento-desc">La IA te acompaña a diario y un coach de Comtraining cuida tu proceso, para apoyarte cuando lo necesites.</p>
+        <h3 class="bento-title">Con acompañamiento humano</h3>
+        <p class="bento-desc">La IA te acompaña a diario y una persona de Comtraining cuida el proceso, para apoyarte cuando lo necesites.</p>
       </div>
     </div>
   </section>
@@ -243,7 +254,7 @@
     <div class="section-header-centered">
       <span class="section-subtitle">Tus 14 días</span>
       <h2 class="bento-section-title">El camino, paso a paso</h2>
-      <p class="bento-section-desc">El cambio se construye de a poco. Cada etapa te prepara para la siguiente.</p>
+      <p class="bento-section-desc">14 días no es un número al azar: es el tiempo mínimo para ver un cambio real y el máximo que se sostiene sin abandonar. Ni tan corto que no pase nada, ni tan largo que lo dejes a medias.</p>
     </div>
 
     <div class="timeline-container">
@@ -263,7 +274,7 @@
         <div class="timeline-card">
           <div class="timeline-phase">Días 6 a 10 · Practica</div>
           <h3 class="timeline-title">Pruebas algo nuevo</h3>
-          <p class="timeline-desc">Das pasos pequeños y concretos. Tu coach te acompaña a elegir, a tu ritmo, una forma que te haga bien.</p>
+          <p class="timeline-desc">Das pasos pequeños y concretos. El acompañamiento te ayuda a elegir, a tu ritmo, una forma que te haga bien.</p>
         </div>
       </div>
 
@@ -276,70 +287,146 @@
         </div>
       </div>
     </div>
+
+    <p class="topics-note">Lo que hace que funcione no es el calendario: es que <strong>nosotros te escribimos primero cada mañana</strong> y revisamos tu avance cada noche. No empiezas solo — y eso es justo lo que hace que la mayoría abandone.</p>
   </section>
 
   <!-- ===== Coach / trust ===== -->
   <section class="landing-section section-soft" id="coach">
     <div class="coach-card">
-      <img src="/coach.png" class="coach-photo" alt="Francisco Vallés, coach de Comtraining" loading="lazy">
+      <img src="/coach.png" class="coach-photo" alt="Francisco Vallés, Comtraining" loading="lazy">
       <div class="coach-info">
-        <p class="coach-eyebrow">Quién te acompaña</p>
-        <p class="coach-quote">"Detrás de cada conversación hay un método probado y personas reales que quieren verte avanzar."</p>
+        <p class="coach-eyebrow">Experiencia comprobada</p>
+        <p class="coach-quote">"Convertimos metas complejas en avances reales y medibles."</p>
         <p class="coach-name">Francisco Vallés</p>
-        <p class="coach-credential">Socio de Comtraining · Executive Coach · Profesor UAI · Ingeniero Civil Industrial PUC · +30 años acompañando procesos de cambio y liderazgo.</p>
+        <p class="coach-credential">Socio de Comtraining · Executive Coach</p>
+
+        <div class="coach-stats">
+          <div class="coach-stat">
+            <span class="coach-stat-number">+30</span>
+            <span class="coach-stat-label">Años de exp.</span>
+          </div>
+          <div class="coach-stat">
+            <span class="coach-stat-number">+5k</span>
+            <span class="coach-stat-label">Líderes</span>
+          </div>
+          <div class="coach-stat">
+            <span class="coach-stat-number">+15</span>
+            <span class="coach-stat-label">Países</span>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== Metrics ===== -->
-  <section class="metrics-section">
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-value emerald-gradient">Tú</div>
-        <div class="metric-label">Eliges el foco</div>
-        <div class="metric-detail">Tú decides qué trabajar y tu programa se arma a tu medida.</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-value indigo-gradient">15 min</div>
-        <div class="metric-label">Al día, no más</div>
-        <div class="metric-detail">Un micro-reto en la mañana y un momento corto en la noche.</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-value yellow-gradient">14 días</div>
-        <div class="metric-label">Para notar el cambio</div>
-        <div class="metric-detail">Un acompañamiento diario, contigo en todo el camino.</div>
-      </div>
+  <!-- ===== Testimonials / social proof (PLACEHOLDER copy — reemplazar con casos reales) ===== -->
+  <section class="landing-section" id="testimonios">
+    <div class="section-header-centered">
+      <span class="section-subtitle">Lo que pasa en 14 días</span>
+      <h2 class="section-title">Personas que dejaron de empezar de nuevo</h2>
+      <p class="section-desc">Resultados de quienes completaron su ciclo de Impulso.</p>
+    </div>
+
+    <div class="testimonials-grid">
+      <figure class="testimonial-card">
+        <div class="testimonial-stars" aria-hidden="true">★★★★★</div>
+        <blockquote class="testimonial-quote">"[PLACEHOLDER] Dormía 5 horas y revisaba el teléfono hasta tarde. Al día 14 estaba durmiendo 7 horas seguidas. Lo que me cambió fue que alguien me escribía cada mañana."</blockquote>
+        <figcaption class="testimonial-author">
+          <div class="testimonial-avatar" aria-hidden="true">C</div>
+          <div>
+            <span class="testimonial-name">Carla M. <span class="testimonial-badge">Completó 14/14</span></span>
+            <span class="testimonial-meta">Meta: dormir mejor · Santiago</span>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="testimonial-card">
+        <div class="testimonial-stars" aria-hidden="true">★★★★★</div>
+        <blockquote class="testimonial-quote">"[PLACEHOLDER] Llevaba un año diciendo 'el lunes empiezo a correr'. Con micro-desafíos de 15 minutos salí 12 de los 14 días. Sin el check-in de la noche lo habría dejado el día 3."</blockquote>
+        <figcaption class="testimonial-author">
+          <div class="testimonial-avatar" aria-hidden="true">R</div>
+          <div>
+            <span class="testimonial-name">Rodrigo P. <span class="testimonial-badge">Completó 14/14</span></span>
+            <span class="testimonial-meta">Meta: hacer ejercicio · Concepción</span>
+          </div>
+        </figcaption>
+      </figure>
+
+      <figure class="testimonial-card">
+        <div class="testimonial-stars" aria-hidden="true">★★★★★</div>
+        <blockquote class="testimonial-quote">"[PLACEHOLDER] No es otra app que abandonas. Es como tener acompañamiento en el WhatsApp de siempre. Al final recibí un resumen con mis patrones que no había visto en años."</blockquote>
+        <figcaption class="testimonial-author">
+          <div class="testimonial-avatar" aria-hidden="true">V</div>
+          <div>
+            <span class="testimonial-name">Valentina S. <span class="testimonial-badge">Completó 14/14</span></span>
+            <span class="testimonial-meta">Meta: tener más calma · Valparaíso</span>
+          </div>
+        </figcaption>
+      </figure>
     </div>
   </section>
 
-  <!-- ===== Pricing (founder, Settings-driven) ===== -->
+  <!-- ===== Pricing (launch, Settings-driven) ===== -->
   <section class="landing-section section-soft" id="precio">
     <div class="section-header-centered">
-      <span class="section-subtitle">Precio fundador</span>
-      <h2 class="section-title">Un valor especial por ser de los primeros</h2>
-      <p class="section-desc">Entra como fundador con un precio de lanzamiento por tiempo limitado, mientras queden cupos.</p>
+      <span class="section-subtitle">Precio de lanzamiento</span>
+      <h2 class="section-title">Una oferta para personas que quieren completar el ciclo</h2>
+      <p class="section-desc">No es una invitación masiva. Son cupos limitados con acompañamiento cercano, garantía y una activación cuidada.</p>
     </div>
 
     <div class="pricing-card">
-      <span class="pricing-badge">Cupos de fundador</span>
+      <span class="pricing-badge">Oferta de lanzamiento</span>
       <% if @founder_price.to_i.positive? %>
         <div class="pricing-amount">
           <% if @regular_price.to_i > @founder_price.to_i %>
-            <span class="pricing-regular">$<%= number_with_delimiter(@regular_price, delimiter: ".") %></span>
+            <% discount_pct = (100 - (@founder_price.to_f / @regular_price * 100)).round %>
+            <div class="pricing-was">
+              <span class="pricing-was-label">Antes</span>
+              <span class="pricing-regular">$<%= number_with_delimiter(@regular_price, delimiter: ".") %></span>
+              <span class="pricing-discount">−<%= discount_pct %>%</span>
+            </div>
           <% end %>
-          <span class="pricing-now">$<%= number_with_delimiter(@founder_price, delimiter: ".") %></span>
+          <div class="pricing-now-row">
+            <span class="pricing-now">$<%= number_with_delimiter(@founder_price, delimiter: ".") %></span>
+            <span class="pricing-now-tax">+ IVA</span>
+          </div>
         </div>
-        <p class="pricing-cycle">por tu programa personalizado de 14 días</p>
+        <% iva_total = (@founder_price * 1.19).round %>
+        <p class="pricing-cycle">pago único por todo tu programa personalizado de 14 días</p>
+        <p class="pricing-iva">Valor neto. Con IVA (19%), el total es <strong>$<%= number_with_delimiter(iva_total, delimiter: ".") %></strong>.</p>
         <% if @founder_remaining&.positive? %>
-          <p class="pricing-spots">Quedan <%= @founder_remaining %> cupos de fundador</p>
+          <p class="pricing-spots">Quedan <%= @founder_remaining %> cupos de lanzamiento</p>
+        <% else %>
+          <p class="pricing-spots">Precio de lanzamiento por tiempo limitado</p>
         <% end %>
       <% else %>
-        <div class="pricing-amount"><span class="pricing-now">Cupos abiertos</span></div>
-        <p class="pricing-cycle">Precio de lanzamiento por tiempo limitado.</p>
+        <div class="pricing-amount"><span class="pricing-now">Cupos limitados</span></div>
+        <p class="pricing-cycle">Oferta de lanzamiento para los primeros cupos de Impulso.</p>
       <% end %>
 
-      <a href="#empezar" class="btn-landing btn-landing-primary" style="width: 100%; padding: 16px;">Quiero mi cupo</a>
-      <p class="pricing-guarantee">Con garantía: si completas tus 14 días y no notas un cambio, te acompañamos un ciclo más sin costo.</p>
+      <p class="pricing-stack-intro">Todo esto incluye:</p>
+      <ul class="pricing-includes">
+        <li>Programa personalizado de 14 días</li>
+        <li>Micro-desafío diario por WhatsApp</li>
+        <li>Check-in nocturno con ajustes según tu avance</li>
+        <li>Resumen final con tus patrones y próximos pasos</li>
+        <li>Plan de 30 días para sostener lo logrado</li>
+        <li>Portal web para ver tu progreso</li>
+        <li>Supervisión humana de Comtraining</li>
+      </ul>
+      <p class="pricing-stack-anchor">Una sola sesión de coaching tradicional cuesta entre $40.000 y $60.000. Impulso son <strong>14 días</strong> de acompañamiento diario por <strong>menos que una sesión</strong>.</p>
+
+      <a href="#empezar" class="btn-landing btn-landing-primary" style="width: 100%; padding: 16px;"><%= offer_cta %></a>
+      <p class="pricing-guarantee"><strong>Garantía Cumple-o-Devolvemos:</strong> haz el programa completo y, si sientes que no avanzaste, te devolvemos el 100% de lo que pagaste. El riesgo lo ponemos nosotros.</p>
+      <details class="pricing-terms">
+        <summary>Cómo aplica la garantía</summary>
+        <ul>
+          <li>Completaste los 14 días del programa.</li>
+          <li>Participaste activamente: respondiste al menos 10 de los 14 check-in nocturnos.</li>
+          <li>Solicitas el reembolso dentro de los 7 días siguientes al término del programa, escribiendo por WhatsApp o a nuestro correo.</li>
+          <li>El reembolso corresponde al monto neto pagado y se procesa por el mismo medio de pago.</li>
+        </ul>
+      </details>
     </div>
   </section>
 
@@ -347,9 +434,9 @@
   <section class="landing-section" id="empezar">
     <div class="trial-card">
       <div class="trial-header">
-        <div class="hero-tag" style="margin-bottom: 14px;"><span><%= paid ? "Cupos de fundador" : "Empieza gratis" %></span></div>
-        <h2 class="trial-title">Empieza tus 14 días</h2>
-        <p class="trial-desc"><%= paid ? "Déjanos tus datos y asegura tu cupo de fundador. Mañana recibes tu primer micro-reto en WhatsApp." : "Déjanos tu WhatsApp y mañana por la mañana recibes tu primer micro-reto. Gratis, sin tarjeta." %></p>
+        <div class="hero-tag hero-tag-dark" style="margin-bottom: 14px;"><span>Cupos de lanzamiento</span></div>
+        <h2 class="trial-title">Reserva tus 14 días de Impulso</h2>
+        <p class="trial-desc"><%= paid ? "Déjanos tus datos y reserva tu cupo. Mañana recibes tu primer micro-desafío en WhatsApp." : "Déjanos tus datos para solicitar un cupo y coordinar tu activación. Buscamos personas que quieran completar los 14 días." %></p>
       </div>
 
       <div class="trial-form">
@@ -358,27 +445,22 @@
 
           <div class="form-grid-b2b">
             <div class="input-group">
-              <label class="input-label" for="enroll-name">Tu nombre</label>
-              <%= f.text_field :name, id: "enroll-name", class: "input-text", placeholder: "Ej. Carla Gómez", required: true %>
+              <%= f.text_field :name, id: "enroll-name", class: "input-text", placeholder: "Nombre (Ej. Carla)", required: true, "aria-label": "Tu nombre" %>
             </div>
 
             <div class="input-group">
-              <label class="input-label" for="enroll-phone">Tu WhatsApp</label>
-              <%= f.telephone_field :phone, id: "enroll-phone", class: "input-text", placeholder: "Ej. +56912345678", required: true %>
-              <span class="input-help">Con el símbolo + y código de país (ej. +56 Chile, +52 México).</span>
+              <%= f.telephone_field :phone, id: "enroll-phone", class: "input-text", placeholder: "WhatsApp (Ej. +569...)", required: true, pattern: "^\+.*", title: "Debe comenzar con + y el código de tu país", "aria-label": "Tu WhatsApp" %>
             </div>
 
             <div class="input-group input-group-full">
-              <label class="input-label" for="enroll-email">Tu correo</label>
-              <%= f.email_field :email, id: "enroll-email", class: "input-text", placeholder: "tucorreo@ejemplo.com", required: true %>
-              <span class="input-help">Para entrar a tu portal y ver tu avance.</span>
+              <%= f.email_field :email, id: "enroll-email", class: "input-text", placeholder: "Correo electrónico", required: true, "aria-label": "Tu correo" %>
             </div>
           </div>
 
           <button type="submit" class="btn-landing btn-landing-primary" style="width: 100%; padding: 16px;">
-            <%= paid ? "Asegurar mi cupo de fundador" : "Empezar mi prueba de 14 días" %>
+            <%= offer_cta %>
           </button>
-          <p class="cta-note" style="justify-content: center;"><span class="dot-ok"></span> <%= paid ? "Precio fundador · con garantía de acompañamiento" : "Gratis · sin tarjeta · sin compromiso" %></p>
+          <p class="cta-note cta-note-dark" style="justify-content: center;"><span class="dot-ok"></span> <%= paid ? "Pago único · cupos limitados · garantía clara" : "Cupos limitados · activación guiada · garantía clara" %></p>
         <% end %>
       </div>
     </div>
@@ -395,10 +477,10 @@
     <div class="faq-grid">
       <div class="faq-item">
         <button class="faq-question" aria-expanded="false">
-          <span>¿La prueba tiene costo?</span>
+          <span>¿Por qué funciona mejor con cupos limitados?</span>
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer"><p><%= paid ? "Tiene un precio fundador de lanzamiento, muy por debajo de lo que cuesta un proceso de coaching tradicional, y por tiempo limitado mientras queden cupos. Además va con garantía: si completas tus 14 días y no notas un cambio, te acompañamos un ciclo más sin costo." : "Es gratis y no te pedimos tarjeta para empezar. Te inscribes con tu WhatsApp y comienzas. Si al terminar quieres seguir con un programa más profundo, te contamos las opciones, con toda libertad." %></p></div>
+        <div class="faq-answer"><p><%= paid ? "Tiene un precio de lanzamiento, muy por debajo de lo que cuesta un proceso de coaching tradicional, y por tiempo limitado mientras queden cupos. Además va con garantía Cumple-o-Devolvemos: si haces el programa completo y sientes que no avanzaste, te devolvemos el 100% de lo que pagaste. Aplica al completar los 14 días, participar en al menos 10 de los 14 check-in y solicitarlo dentro de los 7 días siguientes al término." : "Porque queremos que entren personas con intención real de completar el ciclo. Si abrimos una invitación especial, la tratamos como cupo limitado, no como acceso masivo sin compromiso." %></p></div>
       </div>
 
       <div class="faq-item">
@@ -414,7 +496,7 @@
           <span>¿Cuánto tiempo me toma al día?</span>
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer"><p>Unos 15 minutos: un micro-reto en la mañana y un momento corto en la noche. Están pensados para entrar en tu día tal como es.</p></div>
+        <div class="faq-answer"><p>Unos 15 minutos: un micro-desafío en la mañana y un momento corto en la noche. Están pensados para entrar en tu día tal como es.</p></div>
       </div>
 
       <div class="faq-item">
@@ -430,7 +512,7 @@
           <span>¿Quién ve mis respuestas?</span>
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="faq-answer"><p>Tus conversaciones son privadas. Las usa tu coach —la IA y, cuando hace falta, un coach humano de Comtraining— solo para acompañarte mejor. Puedes revisar el detalle en nuestra Política de Privacidad.</p></div>
+        <div class="faq-answer"><p>Tus conversaciones son privadas. Las usa Impulso —la IA y, cuando hace falta, una persona de Comtraining— solo para acompañarte mejor. Puedes revisar el detalle en nuestra Política de Privacidad.</p></div>
       </div>
 
       <div class="faq-item">
@@ -460,96 +542,8 @@
   </section>
 </main>
 
-<!-- Ambient sound toggle (off by default; respects "no ruido" + autoplay policy) -->
-<button class="ambient-btn" id="ambient-btn" type="button" aria-pressed="false" aria-label="Activar sonido ambiente">
-  <svg id="ambient-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>
-  <span id="ambient-label">Ambiente</span>
-</button>
-<!-- TODO: subir un loop suave (lluvia/bosque) a /public/ambient.mp3 para activar el sonido -->
-<audio id="ambient-audio" loop preload="none" src="/ambient.mp3"></audio>
-
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // ---------- 1. WhatsApp simulator ----------
-    const chatContainer = document.getElementById("chat-simulation");
-    const selectorCards = document.querySelectorAll(".selector-card");
-
-    const scenarios = {
-      dormir: [
-        { role: "assistant", time: "07:02", text: "Hola Carla 🌙 Hoy empezamos con tu descanso. Tu micro-reto: *esta noche, una hora antes de dormir, deja el teléfono cargando lejos de la cama*. ¿Te animas?" },
-        { role: "user", time: "08:15", text: "Me animo. Suelo quedarme con el celu hasta tarde, así que esto me viene bien." },
-        { role: "assistant", time: "08:16", text: "Perfecto. Un pequeño gesto que tu cuerpo agradece. En la noche conversamos cómo te fue 😊" },
-        { role: "assistant", time: "22:30", text: "¿Cómo resultó dejar el teléfono lejos hoy?" },
-        { role: "user", time: "22:34", text: "Mejor de lo que pensaba. Leí un rato y me dormí más tranquila." }
-      ],
-      ejercicio: [
-        { role: "assistant", time: "07:05", text: "Buenos días Diego 🏃 Hoy volvemos al movimiento, suave. Tu micro-reto: *una caminata de 10 minutos después del almuerzo*. Nada más, solo salir." },
-        { role: "user", time: "13:40", text: "Hecho. Caminé alrededor de la manzana y volví con más energía." },
-        { role: "assistant", time: "13:41", text: "¡Genial! Diez minutos hoy valen más que una hora perfecta algún día. Vamos sumando 💚" },
-        { role: "assistant", time: "20:00", text: "¿Cómo te sentiste después de caminar?" },
-        { role: "user", time: "20:12", text: "Despejado. Me dieron ganas de repetirlo mañana." }
-      ],
-      calma: [
-        { role: "assistant", time: "07:00", text: "Hola Sofía ✨ Hoy cuidamos tu calma. Tu micro-reto: *tres respiraciones lentas antes de abrir el computador en la mañana*. Un pequeño respiro para ti." },
-        { role: "user", time: "09:20", text: "Lo hice antes de empezar a trabajar. Me ayudó a arrancar con más foco." },
-        { role: "assistant", time: "09:21", text: "Qué bueno. La calma también se entrena, de a poquito. Nos vemos en la noche 🌿" },
-        { role: "assistant", time: "20:00", text: "¿Cómo estuvo tu día? ¿Encontraste algún momento de pausa?" },
-        { role: "user", time: "20:25", text: "Sí, repetí las respiraciones después de una reunión y me sirvió mucho." }
-      ],
-      presente: [
-        { role: "assistant", time: "07:10", text: "Hola Pablo 💚 Hoy trabajamos en estar presente. Tu micro-reto: *durante la cena, dejen los teléfonos en otra habitación y conversen sin pantallas*." },
-        { role: "user", time: "14:30", text: "Me gusta la idea. A veces cenamos todos mirando el celular." },
-        { role: "assistant", time: "14:31", text: "Un gesto simple que se nota mucho. Cuéntame en la noche cómo estuvo 😊" },
-        { role: "assistant", time: "21:30", text: "¿Cómo fue la cena sin pantallas?" },
-        { role: "user", time: "21:45", text: "Conversamos un montón, hasta nos reímos. Mi hija pidió repetirlo mañana." }
-      ]
-    };
-
-    let timeouts = [];
-    const clearTimeouts = () => { timeouts.forEach(clearTimeout); timeouts = []; };
-
-    function runSimulation(key) {
-      clearTimeouts();
-      chatContainer.innerHTML = "";
-      let delay = 300;
-      scenarios[key].forEach((bubble) => {
-        timeouts.push(setTimeout(showTyping, delay));
-        delay += bubble.role === "user" ? 1100 : 1700;
-        timeouts.push(setTimeout(() => { removeTyping(); appendBubble(bubble); }, delay));
-        delay += 600;
-      });
-    }
-
-    function showTyping() {
-      removeTyping();
-      const t = document.createElement("div");
-      t.className = "typing-bubble-sim";
-      t.id = "sim-typing";
-      t.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
-      chatContainer.appendChild(t);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-    function removeTyping() { const t = document.getElementById("sim-typing"); if (t) t.remove(); }
-
-    function appendBubble(bubble) {
-      const div = document.createElement("div");
-      div.className = "bubble bubble-" + (bubble.role === "user" ? "right" : "left");
-      const text = bubble.text.replace(/\*(.*?)\*/g, "<strong>$1</strong>");
-      div.innerHTML = text + '<div class="bubble-footer"><span class="bubble-time">' + bubble.time + "</span></div>";
-      chatContainer.appendChild(div);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    selectorCards.forEach((card) => {
-      card.addEventListener("click", function () {
-        if (this.classList.contains("active")) return;
-        selectorCards.forEach((c) => c.classList.remove("active"));
-        this.classList.add("active");
-        runSimulation(this.getAttribute("data-case"));
-      });
-    });
-    runSimulation("dormir");
-
     // ---------- 2. FAQ accordion ----------
     document.querySelectorAll(".faq-question").forEach((btn) => {
       btn.addEventListener("click", function () {
@@ -568,28 +562,6 @@
     if (tz) {
       try { tz.value = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Santiago"; }
       catch (e) { tz.value = "America/Santiago"; }
-    }
-
-    // ---------- 4. Ambient sound (opt-in, off by default) ----------
-    const aBtn = document.getElementById("ambient-btn");
-    const aAudio = document.getElementById("ambient-audio");
-    const aLabel = document.getElementById("ambient-label");
-    if (aBtn && aAudio) {
-      aAudio.volume = 0.4;
-      aBtn.addEventListener("click", function () {
-        if (aAudio.paused) {
-          aAudio.play().then(() => {
-            aBtn.classList.add("playing");
-            aBtn.setAttribute("aria-pressed", "true");
-            aLabel.textContent = "Sonido activo";
-          }).catch(() => { aLabel.textContent = "Sonido no disponible"; });
-        } else {
-          aAudio.pause();
-          aBtn.classList.remove("playing");
-          aBtn.setAttribute("aria-pressed", "false");
-          aLabel.textContent = "Ambiente";
-        }
-      });
     }
   });
 </script>

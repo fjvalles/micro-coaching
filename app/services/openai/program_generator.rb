@@ -68,7 +68,7 @@ module Openai
                 "phase": "see" | "choose" | "anchor",
                 "title": "string corto del foco del día",
                 "morning_template": "mensaje matinal personalizado (2-4 frases, segunda persona)",
-                "iareto_text": "el micro-reto o invitación concreta del día (1-2 frases)",
+                "iareto_text": "el micro-desafío o invitación concreta del día (1-2 frases)",
                 "checkin_questions": "1-3 preguntas de cierre nocturno separadas por saltos de línea",
                 "ai_system_prompt": "instrucciones para el coach IA ese día: tono, foco, qué reforzar"
               }
@@ -84,7 +84,7 @@ module Openai
           - morning_template, iareto_text y checkin_questions son fragmentos que se insertan
             dentro de plantillas de WhatsApp. No incluyas saludo inicial, nombre de la
             persona ni firma/remitente en esos campos.
-          - Español neutro, cálido, sin tecnicismos. Nada de emojis en exceso.
+          - Español chileno natural, cálido, sin tecnicismos. Evita modismos ajenos a Chile como "te late", "órale", "ándale", "chido" o "vale" como muletilla. Nada de emojis en exceso.
           - IMPORTANTE: Usa siempre correcta ortografía en español. Respeta las tildes (á, é, í, ó, ú) y la letra eñe (ñ). Corrige cualquier falta de ortografía que traigan las respuestas del usuario.
         SYS
         { role: "user", content: <<~USER }

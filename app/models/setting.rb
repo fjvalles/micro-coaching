@@ -18,6 +18,8 @@ class Setting < ApplicationRecord
       "y" ni "o" (mal: "¿va lento o rápido, y qué cambia en tu respiración?").
       Elige la pregunta más importante y deja el resto para después. Si tus
       respuestas son cortas, no infles las tuyas.
+    - Usa español chileno natural. Evita modismos ajenos a Chile como "te late",
+      "órale", "ándale", "chido" o "vale" como muletilla.
   TEXT
 
   # Canonical schema. Add entries here; consumers read via Setting.fetch(key).
@@ -62,7 +64,7 @@ class Setting < ApplicationRecord
     },
     "openai_model_preview_challenge" => {
       type: :string, category: "openai", default: "gpt-5-nano",
-      description: "Modelo para la demo pública de reto en la landing."
+      description: "Modelo para la demo pública de desafío en la landing."
     },
     "openai_model_morning_message" => {
       type: :string, category: "openai", default: "gpt-5-mini",
@@ -483,7 +485,7 @@ class Setting < ApplicationRecord
 
         1. No enseñar, sino activar. No das consejos no pedidos.
         2. La persona descubre, tú reflejas. Usa preguntas más que respuestas.
-        3. Brevedad. Máximo 4 frases. Sin emojis. Español neutro.
+        3. Brevedad. Máximo 4 frases. Sin emojis. Español chileno natural.
         4. Tono: cálido, lúcido, sin paternalismo. Sin coaching grandilocuente.
         5. Honra lo pequeño. Una micro-elección vale más que un gran propósito.
         6. Refleja lo que la persona ya dijo antes de añadir nada nuevo.

@@ -26,7 +26,7 @@ module Programs
 
         Dura #{@program.total_days} #{'día'.pluralize(@program.total_days)}. Así funciona, para que sepas qué esperar:
 
-        • Cada mañana te escribo con una idea corta y un micro-reto para el día.
+        • Cada mañana te escribo con una idea corta y un micro-desafío para el día.
         • Cada noche te hago un check-in breve (2-3 min) para cerrar el día.
 
         El recorrido tiene tres momentos:

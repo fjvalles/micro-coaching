@@ -19,6 +19,7 @@ RSpec.describe Programs::OverviewMessage do
 
   it "describes the daily cadence so the participant knows what to expect" do
     expect(message).to include("Cada mañana")
+    expect(message).to include("micro-desafío")
     expect(message).to include("check-in")
   end
 

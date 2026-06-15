@@ -53,6 +53,8 @@ RSpec.describe Openai::ProgramGenerator do
       expect(prompt).to include("morning_template, iareto_text y checkin_questions son fragmentos")
       expect(prompt).to include("No incluyas saludo inicial")
       expect(prompt).to include("firma/remitente")
+      expect(prompt).to include("Español chileno natural")
+      expect(prompt).to include("te late")
       response_with(valid_spec.to_json)
     end
 

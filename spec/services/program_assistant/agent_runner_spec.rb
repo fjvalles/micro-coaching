@@ -51,6 +51,8 @@ RSpec.describe ProgramAssistant::AgentRunner do
       expect(prompt).to include("morning_template, iareto_text y checkin_questions son fragmentos")
       expect(prompt).to include("No incluyas saludo inicial")
       expect(prompt).to include("firma/remitente")
+      expect(prompt).to include("español chileno natural")
+      expect(prompt).to include("te late")
       result(content: "ok")
     end
 
