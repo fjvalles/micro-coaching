@@ -176,6 +176,11 @@ class Setting < ApplicationRecord
       default: "Te respondo eso y dejo pendiente el check-in de hoy. Cuando puedas, responde las preguntas del día para cerrar el avance.",
       description: "Contexto operativo que se inyecta a la respuesta libre cuando un mensaje no es check-in pero llega con check-in pendiente."
     },
+    "missed_checkin_reminder_text" => {
+      type: :text, category: "program",
+      default: "Antes de abrir el siguiente paso, cerremos el check-in pendiente. Responde las preguntas del día cuando puedas; con eso retomamos el avance.",
+      description: "Mensaje matinal cuando el participante tiene pendiente el check-in de un día anterior; bloquea la cadencia normal hasta responder."
+    },
     "support_request_review_reply_text" => {
       type: :text, category: "admin",
       default: "Recibí tu solicitud. La voy a dejar para revisión del equipo y te respondemos por este mismo canal.",

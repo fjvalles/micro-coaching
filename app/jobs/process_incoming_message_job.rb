@@ -243,6 +243,9 @@ class ProcessIncomingMessageJob < ApplicationJob
       ai_key_pattern: result.key_pattern,
       reported_at: Time.current
     )
+    PaperTrail.request(whodunnit: "ai:Checkin", controller_info: { source: "ai" }) do
+      participant.update!(pending_checkin_at: nil)
+    end
 
     ack(participant, "Gracias. Mañana retomamos.", moment: :free_assistant,
         prompt_used: result.prompt_used, tokens_input: result.tokens_input,

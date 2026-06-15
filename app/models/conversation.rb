@@ -18,7 +18,8 @@ class Conversation < ApplicationRecord
     admin_manual: 8,
     program_intake: 9,
     program_overview: 10,
-    nivel2_offer: 11
+    nivel2_offer: 11,
+    checkin_reminder: 12
   }
 
   enum :role, { user: 0, assistant: 1, system: 2 }

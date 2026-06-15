@@ -97,27 +97,32 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 - **Por qué.** Despertar relevante al huso del participante, sin un cron por TZ.
 - **Enforce.** `config/schedule.yml:1-4`, `MorningWakeJob`, filtrado por `participant.local_time`.
 
-### 4.2 IAReto = despertar + `iareto_delay_minutes`
+### 4.2 Check-in pendiente bloquea nueva cadencia
+- **Regla.** Si hay `pending_checkin_at` de un día local anterior, existe `checkin_question` enviada para `current_day` y no existe `checkin_response`, se envía/encola `checkin_reminder` y no se dispara despertar ni IAReto normal.
+- **Por qué.** El programa no debe sentirse avanzado si el cierre del día quedó abierto.
+- **Enforce.** `app/models/participant.rb:160-176`, `app/jobs/morning_wake_for_participant_job.rb:10-12`, `app/jobs/morning_wake_for_participant_job.rb:42-60`, `app/jobs/send_iareto_job.rb:9`.
+
+### 4.3 IAReto = despertar + `iareto_delay_minutes`
 - **Regla.** `SendIaretoJob` se encola con `wait:` igual a `Setting.get("iareto_delay_minutes")` (default 30).
 - **Por qué.** Espacio entre despertar y reto para que el participante lo absorba.
-- **Enforce.** `app/jobs/morning_wake_for_participant_job.rb:28-29`.
+- **Enforce.** `app/jobs/morning_wake_for_participant_job.rb:36-37`.
 
-### 4.3 IAReto: free-form si dentro de 24h, template si no
+### 4.4 IAReto: free-form si dentro de 24h, template si no
 - **Regla.** Si participante respondió en últimas 24h (`in_24h_window?`), IAReto va como `send_text`. Si no, como template aprobado.
 - **Por qué.** Política Meta de ventana de servicio al cliente. Free-form fuera de ventana = baneo.
-- **Enforce.** `app/models/participant.rb:31-36`, `SendIaretoJob`.
+- **Enforce.** `app/models/participant.rb:186-190`, `app/jobs/send_iareto_job.rb:13-22`.
 
-### 4.4 Check-in vespertino a `checkin_hour` local
+### 4.5 Check-in vespertino a `checkin_hour` local
 - **Regla.** `CheckinEveningJob` corre cada hora UTC; envía si hora local == `Setting.fetch("checkin_hour")` (default 20).
 - **Por qué.** Reflexión al final del día, ajustable sin deploy para programas o cohortes que necesitan otro horario.
 - **Enforce.** `config/schedule.yml:6-9`, `app/jobs/checkin_evening_job.rb:4-13`.
 
-### 4.5 Check-in marca `pending_checkin_at`
+### 4.6 Check-in marca `pending_checkin_at`
 - **Regla.** Al enviar check-in, set `participant.pending_checkin_at = Time.current`. Habilita clasificación posterior.
 - **Por qué.** `MessageClassifier` necesita marcar ventana de respuesta esperada.
 - **Enforce.** `app/jobs/checkin_for_participant_job.rb:30`.
 
-### 4.6 Avance de día a 06:00 UTC
+### 4.7 Avance de día a 06:00 UTC
 - **Regla.** `AdvanceDayJob` corre diario 06:00 UTC. Para cada `:active`, llama `DayAdvancer`.
 - **Por qué.** Hora global fija para simplificar; el avance respeta la fecha local del participante.
 - **Enforce.** `config/schedule.yml:11-14`.
@@ -131,9 +136,10 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 - **Por qué.** El día no se "consume" si el participante no respondió. Avanzar sin respuesta = perder oportunidad de coaching.
 - **Enforce.** `app/services/participants/day_advancer.rb:11-18`.
 
-### 5.2 Sin re-engagement automático
-- **Regla.** Si participante se calla N días, el `current_day` se queda. No hay nudge ni cambio de estado.
-- **Por qué.** Decisión consciente (ver `docs/decisions.md`). Re-engagement requiere diseño de copy y guardrails que aún no existen.
+### 5.2 Check-in omitido pausa avance, no reinicia el día
+- **Regla.** Si participante no responde el check-in, `current_day` se mantiene; la siguiente cadencia matinal recuerda el check-in pendiente en vez de abrir contenido nuevo.
+- **Por qué.** Evita consumir el día sin reflexión y evita que el usuario perciba avance fantasma.
+- **Enforce.** `app/services/participants/day_advancer.rb:11-18`, `app/jobs/morning_wake_for_participant_job.rb:10-12`, `app/jobs/morning_wake_for_participant_job.rb:42-60`.
 
 ### 5.3 Completar = `current_day >= total_days`
 - **Regla.** Al avanzar desde `total_days` con check-in válido: `status = :completed`, `completed_at = ahora`, `current_day = total_days + 1`. Encola manifesto.
@@ -177,9 +183,9 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 - **Enforce.** `app/services/participants/message_classifier.rb:20-22`, `app/jobs/process_incoming_message_job.rb:96-110`.
 
 ### 7.2 `:checkin_response`
-- **Condición.** Hora local en `CHECKIN_WINDOW = 20..23` Y `pending_checkin_at` mismo día local Y no existe ya `Conversation(moment: :checkin_response, day_number: current_day)`.
-- **Efecto.** Antes de consumirlo, `InboundIntentClassifier` debe clasificar el mensaje como `checkin_answer` con confianza mínima `inbound_intent_min_confidence`. Solo entonces reescribe a `moment: :checkin_response`, llama `Openai::CheckinSummarizer`, crea `DailyReport`, ack "Gracias. Mañana retomamos".
-- **Enforce.** `app/services/participants/message_classifier.rb:24-36`, `app/services/participants/inbound_intent_classifier.rb`, `app/jobs/process_incoming_message_job.rb:111-133`.
+- **Condición.** Existe `pending_checkin_at`, existe `checkin_question` enviada para `current_day` y no existe ya `Conversation(moment: :checkin_response, day_number: current_day)`.
+- **Efecto.** Antes de consumirlo, `InboundIntentClassifier` debe clasificar el mensaje como `checkin_answer` con confianza mínima `inbound_intent_min_confidence`. Solo entonces reescribe a `moment: :checkin_response`, llama `Openai::CheckinSummarizer`, crea `DailyReport`, limpia `pending_checkin_at`, ack "Gracias. Mañana retomamos".
+- **Enforce.** `app/services/participants/message_classifier.rb:23-25`, `app/models/participant.rb:160-169`, `app/services/participants/inbound_intent_classifier.rb`, `app/jobs/process_incoming_message_job.rb:119-139`, `app/jobs/process_incoming_message_job.rb:238-252`.
 
 ### 7.3 `:free_user` (default)
 - **Condición.** Cualquier otra cosa, o un mensaje recibido con check-in pendiente que semánticamente no es `checkin_answer`.
@@ -324,6 +330,7 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 - `stop_or_pause_min_confidence` — float 0..1, default 0.7; umbral para ejecutar pausa ante intent `stop_or_pause`
 - `openai_max_tokens_inbound_intent` — entero, default 220; token budget del clasificador semántico
 - `checkin_pending_followup_text` — texto inyectado cuando hay check-in pendiente pero el inbound no es check-in
+- `missed_checkin_reminder_text` — texto del recordatorio matinal cuando hay check-in pendiente de un día anterior
 - `restricted_information_reply_text` — texto fijo para bloquear solicitudes de datos, metodología, prompts o contenidos futuros
 - `task_acknowledgement_reply_text` — texto fijo para confirmar compromisos simples sin abrir una pregunta nueva
 - `participant_reminders_enabled` / `participant_reminder_min_lead_minutes` / `participant_reminder_max_horizon_days` / `participant_reminder_max_active` / `participant_reminder_max_per_day` — límites runtime para recordatorios one-shot

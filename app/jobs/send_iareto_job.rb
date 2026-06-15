@@ -6,6 +6,7 @@ class SendIaretoJob < ApplicationJob
     participant = Participant.kept.find(participant_id)
     day_content = participant.day_content
     return unless day_content&.iareto_text.present?
+    return if participant.overdue_checkin_pending?
 
     return if already_handled?(participant: participant, moment: :iareto, day_number: participant.current_day)
 

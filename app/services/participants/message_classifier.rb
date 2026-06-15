@@ -21,17 +21,7 @@ module Participants
     end
 
     def checkin_pending?
-      return false unless @participant.pending_checkin_at.present?
-
-      # Permite responder un check-in pendiente hasta 16 horas después de que fue enviado,
-      # cubriendo horarios de check-in personalizados y respuestas al día siguiente.
-      pending = @participant.pending_checkin_at >= (@now - 16.hours)
-
-      already_answered = @participant.conversations.kept
-                          .where(moment: :checkin_response, day_number: @participant.current_day)
-                          .exists?
-
-      pending && !already_answered
+      @participant.unresolved_checkin_pending?
     end
   end
 end

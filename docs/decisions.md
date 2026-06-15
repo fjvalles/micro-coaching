@@ -292,3 +292,8 @@ Decisiones que tomé durante la implementación, separadas de lo que el plan ya 
 - **Recordatorio genérico de programa, no lista personal libre.** El cuerpo enviado sale de `participant_reminder_body_text`, no del texto arbitrario del usuario. Así se evita convertir WhatsApp en agenda médica/financiera/legal y se mantiene el alcance en coaching.
 - **Pausar exige intención explícita.** "Avísame a las 5pm" se trata como coordinación, no como baja. `stop_or_pause` queda protegido por heurística explícita y umbral `stop_or_pause_min_confidence`, porque pausar corta el programa y no debe depender de una lectura ambigua.
 - **Fuera de la ventana de 24h requiere template opt-in.** Los recordatorios intentan texto libre si el participante sigue dentro de la ventana de atención; fuera de ella solo usan `participant_reminder_template_name` si el operador configuró un template aprobado. Vacío = falla auditable, no envío informal.
+
+## Check-in omitido y cadencia diaria (15-jun-2026)
+
+- **El cierre pendiente pausa la cadencia normal.** Si un participante no responde el check-in del día, `current_day` se mantiene y el siguiente despertar no abre contenido nuevo ni agenda IAReto; en su lugar se registra `checkin_reminder`. Así no se “consume” el día ni se da la sensación de avance fantasma.
+- **El recordatorio respeta la política de WhatsApp.** Dentro de la ventana de 24h se envía texto libre con el recordatorio y las preguntas; fuera de ventana se reusa la plantilla aprobada `checkin_dia_NN` como recordatorio. No se inventa una plantilla nueva hasta validar copy/uso en producción.

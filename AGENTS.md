@@ -73,7 +73,7 @@ Cron jobs (sidekiq-cron, `config/schedule.yml`):
 | `Participant` | `phone_e164`, `status` (pending/active/completed/paused/awaiting_payment), `current_day`, `timezone`, `initial_pattern`, `energy_map` (jsonb), `pending_checkin_at`, `company_id` (assoc shadows legacy `company` string), `role`, `response_mode`, `coach_notes` (admin-only, **nunca** a la IA), `focus_hint` (directriz abstracta, sí a la IA), `ai_summary` (memoria rodante IA, post-checkin). `payment_required?` gates individual enroll. `has_many :enrollments` |
 | `Payment` | Webpay Plus/Oneclick: `amount` (CLP, IVA-incl), `status` (pending/authorized/rejected/failed/aborted/refunded), `buy_order`, `token`, `commission_amount`, `net_amount`; `belongs_to :participant/:company/:program/:subscription` |
 | `Subscription` | Webpay Oneclick recurring: `status` (pending/active/past_due/canceled/paused), `amount_clp`, `plan`, `tbk_user`/`tbk_username` (recurring token), `billing_interval_days`, `next_billing_at`, `billing_cycle_count`, `failed_attempts`; soft-deleted (`discard`); `has_many :payments`. ⚠️ scope with `.kept` |
-| `Conversation` | `moment` (welcome/morning_wake/iareto/checkin_question/checkin_response/free_user/free_assistant/manifesto), `role` (user/assistant/system), `day_number`, delivery timestamps, `media_id`, `transcription`, `voice_analysis` (jsonb) |
+| `Conversation` | `moment` (welcome/morning_wake/iareto/checkin_question/checkin_response/free_user/free_assistant/manifesto/admin_manual/program_intake/program_overview/nivel2_offer/checkin_reminder), `role` (user/assistant/system), `day_number`, delivery timestamps, `media_id`, `transcription`, `voice_analysis` (jsonb) |
 | `DailyReport` | `ai_summary`, `ai_key_pattern` (OpenAI output), `raw_text` |
 | `Setting` | key/value store — `wake_hour`, `response_mode`, etc. |
 | `PendingResponse` | `participant_id`, `conversation_id`, `status` (pending/approved/sent/rejected), `draft_body`, `delivery_kind` |
@@ -222,6 +222,7 @@ Use `travel_to` (Rails built-in), not Timecop.
 - `FreeResponseGenerator` keeps safety/privacy/memory in code, but style guardrails come from `Setting.fetch("free_chat_style_guardrails")` with a code fallback.
 - Recursos enriquecidos: la IA nunca escribe URLs; solo puede devolver `resource_id` del catálogo. `resource_catalog_enabled`, `resource_autodiscovery_enabled` y `link_preview_enabled` están OFF por defecto; ver `docs/business-rules.md` §30.
 - Recordatorios por WhatsApp: solo one-shot, relacionados al programa, con hora clara y límites (`participant_reminder_*`). Fuera de ventana 24h requieren `participant_reminder_template_name`.
+- Check-in omitido: si `pending_checkin_at` quedó de un día local anterior, existe `checkin_question` enviada para `current_day` y no hay `checkin_response`, no se envía despertar/IAReto normal; se registra `checkin_reminder` y se reusa template de check-in fuera de ventana 24h.
 
 ## Quality gate (mandatory on code change)
 

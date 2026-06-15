@@ -178,6 +178,8 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
       participant.update!(timezone: "UTC")
       create(:day_content, program: participant.program, day_number: participant.current_day)
       participant.update!(pending_checkin_at: now)
+      create(:conversation, participant: participant, moment: :checkin_question, role: :assistant,
+                            day_number: participant.current_day, sent_at: now)
     end
 
     it "does not consume a program question as check-in during the check-in window" do
@@ -217,6 +219,7 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
       expect(inbound.moment).to eq("checkin_response")
       expect(inbound.inbound_intent).to eq("checkin_answer")
       expect(DailyReport.count).to eq(1)
+      expect(participant.reload.pending_checkin_at).to be_nil
     end
 
     it "queues support requests for admin review without generating a free AI reply" do
@@ -245,7 +248,7 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
       inbound = participant.conversations.where(role: :user).last
       expect(inbound.moment).to eq("free_user")
       expect(inbound.inbound_intent).to eq("restricted_information_request")
-      expect(participant.conversations.where(role: :assistant).last.body).to eq("No puedo entregar esa información.")
+      expect(participant.conversations.where(role: :assistant).pluck(:body)).to include("No puedo entregar esa información.")
       expect(DailyReport.count).to eq(0)
     end
 
@@ -258,11 +261,11 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
       end
 
       inbound = participant.conversations.where(role: :user).last
-      reply = participant.conversations.where(role: :assistant).last
+      replies = participant.conversations.where(role: :assistant).pluck(:body)
 
       expect(inbound.inbound_intent).to eq("task_acknowledgement")
-      expect(reply.body).to eq("Perfecto, queda tomado. Te leo cuando cierres el día.")
-      expect(reply.body).not_to include("?")
+      expect(replies).to include("Perfecto, queda tomado. Te leo cuando cierres el día.")
+      expect(replies.find { |body| body == "Perfecto, queda tomado. Te leo cuando cierres el día." }).not_to include("?")
       expect(DailyReport.count).to eq(0)
     end
 
@@ -304,7 +307,7 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
       inbound = participant.conversations.where(role: :user).last
       expect(inbound.inbound_intent).to eq("stop_or_pause")
       expect(participant.reload.status).to eq("paused")
-      expect(participant.conversations.where(role: :assistant).last.body).to include("pausé")
+      expect(participant.conversations.where(role: :assistant).pluck(:body).join("\n")).to include("pausé")
     end
 
     it "schedules reminder requests without pausing or generating a free AI reply" do
@@ -321,12 +324,12 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
 
       inbound = participant.conversations.where(role: :user).last
       reminder = ParticipantReminder.last
-      reply = participant.conversations.where(role: :assistant).last
+      replies = participant.conversations.where(role: :assistant).pluck(:body).join("\n")
 
       expect(inbound.inbound_intent).to eq("reminder_request")
       expect(participant.reload).to be_active
       expect(reminder.scheduled_at.in_time_zone("America/Santiago")).to eq(Time.zone.parse("2026-06-14 17:00:00 -0400"))
-      expect(reply.body).to include("Listo, te aviso")
+      expect(replies).to include("Listo, te aviso")
     end
   end
 

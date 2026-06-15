@@ -79,6 +79,48 @@ RSpec.describe Participant, type: :model do
     end
   end
 
+  describe "pending check-in helpers" do
+    let(:tz) { "America/Santiago" }
+    let(:participant) { create(:participant, timezone: tz, current_day: 1) }
+
+    before do
+      create(:conversation, participant: participant, moment: :checkin_question, role: :assistant, day_number: 1, sent_at: Time.current)
+    end
+
+    it "detects an unresolved pending check-in" do
+      participant.update!(pending_checkin_at: Time.find_zone(tz).local(2026, 6, 14, 20))
+
+      expect(participant.unresolved_checkin_pending?).to be true
+    end
+
+    it "ignores stale pending timestamps without a check-in question for the current day" do
+      participant.update!(current_day: 2, pending_checkin_at: Time.find_zone(tz).local(2026, 6, 14, 20))
+
+      expect(participant.unresolved_checkin_pending?).to be false
+    end
+
+    it "does not treat an answered check-in as unresolved" do
+      participant.update!(pending_checkin_at: Time.find_zone(tz).local(2026, 6, 14, 20))
+      create(:conversation, participant: participant, moment: :checkin_response, role: :user, day_number: 1)
+
+      expect(participant.unresolved_checkin_pending?).to be false
+    end
+
+    it "marks a pending check-in as overdue on the next local day" do
+      now = Time.find_zone(tz).local(2026, 6, 15, 8)
+      participant.update!(pending_checkin_at: Time.find_zone(tz).local(2026, 6, 14, 20))
+
+      expect(participant.overdue_checkin_pending?(now)).to be true
+    end
+
+    it "does not mark today's pending check-in as overdue" do
+      now = Time.find_zone(tz).local(2026, 6, 14, 21)
+      participant.update!(pending_checkin_at: Time.find_zone(tz).local(2026, 6, 14, 20))
+
+      expect(participant.overdue_checkin_pending?(now)).to be false
+    end
+  end
+
   describe "#nivel2_offer_active?" do
     let(:participant) { create(:participant) }
 

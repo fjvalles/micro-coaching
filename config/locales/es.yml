@@ -93,6 +93,7 @@ es:
           free_user: "Respuesta Libre (Usuario)"
           free_assistant: "Respuesta Libre (Asistente)"
           manifesto: "Manifiesto de Cierre"
+          checkin_reminder: "Recordatorio de Check-in"
   errors:
     messages:
       confirmation: "no coincide con %{attribute}"

@@ -157,6 +157,24 @@ class Participant < ApplicationRecord
     now.in_time_zone(timezone)
   end
 
+  def unresolved_checkin_pending?
+    return false if pending_checkin_at.blank?
+    return false unless conversations.kept
+                                     .where(moment: :checkin_question, day_number: current_day)
+                                     .where.not(sent_at: nil)
+                                     .exists?
+
+    !conversations.kept
+                  .where(moment: :checkin_response, day_number: current_day)
+                  .exists?
+  end
+
+  def overdue_checkin_pending?(now = Time.current)
+    return false unless unresolved_checkin_pending?
+
+    pending_checkin_at.in_time_zone(timezone).to_date < local_time(now).to_date
+  end
+
   # True while the day-14 founder offer window is open (founder price + expiring
   # bonus apply). Anchored on when SendNivel2OfferJob stamped nivel2_offer_sent_at.
   def nivel2_offer_active?(now = Time.current)

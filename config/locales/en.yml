@@ -93,6 +93,7 @@ en:
           free_user: "Free User"
           free_assistant: "Free Assistant"
           manifesto: "Closing Manifesto"
+          checkin_reminder: "Check-in Reminder"
   date:
     formats:
       default: "%m/%d/%Y"
