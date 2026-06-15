@@ -564,7 +564,7 @@ a { color: inherit; }
 }
 .chat-avatar-img { width: 38px; height: 38px; border-radius: 50%; background: #fff; padding: 4px; }
 .chat-info { display: flex; flex-direction: column; }
-.chat-name { font-weight: 600; font-size: 15px; }
+.chat-name { font-weight: 600; font-size: 15px; white-space: nowrap; }
 .chat-status { font-size: 12px; opacity: 0.9; }
 .chat-body {
   flex: 1;
@@ -626,13 +626,21 @@ a { color: inherit; }
 .topic-chip:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
 .topic-icon { font-size: 24px; line-height: 1; }
 .topic-label { font-weight: 600; font-size: 15px; color: var(--text-main); }
-.topics-note {
+.topics-examples-label {
   text-align: center;
-  margin-top: 26px;
-  font-size: 17px;
-  color: var(--text-soft);
+  margin-bottom: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
-.topics-note strong { color: var(--primary-deep); font-weight: 700; }
+.topic-chip-open {
+  border-style: dashed;
+  border-color: var(--primary-deep);
+  background: var(--primary-soft);
+}
+.topic-chip-open .topic-label { color: var(--primary-deep); }
 
 /* ---------- How it works (steps) ---------- */
 .steps-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
@@ -934,6 +942,7 @@ a { color: inherit; }
 .pricing-stack-anchor strong { color: var(--primary-deep); }
 
 /* ---------- Testimonials / social proof ---------- */
+.testimonials-carousel-wrapper { position: relative; }
 .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; }
 .testimonial-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 26px 24px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 14px; }
 .testimonial-stars { color: var(--accent); font-size: 15px; letter-spacing: 2px; }
@@ -943,6 +952,35 @@ a { color: inherit; }
 .testimonial-name { display: block; font-weight: 700; font-size: 14.5px; color: var(--text-main); }
 .testimonial-badge { display: inline-block; font-size: 11px; font-weight: 700; color: var(--primary-deep); background: var(--primary-soft); border-radius: var(--radius-pill); padding: 1px 8px; margin-left: 4px; vertical-align: middle; }
 .testimonial-meta { display: block; font-size: 13px; color: var(--text-faint); margin-top: 2px; }
+
+/* Carousel controls — hidden on desktop, shown on mobile */
+.carousel-controls { display: none; align-items: center; justify-content: center; gap: 16px; margin-top: 20px; }
+.carousel-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-main);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  box-shadow: var(--shadow-sm);
+}
+.carousel-btn:hover { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-deep); }
+.carousel-btn svg { width: 18px; height: 18px; }
+.carousel-dots { display: flex; gap: 6px; align-items: center; }
+.carousel-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.carousel-dot.active { background: var(--primary); transform: scale(1.45); }
 
 /* ---------- Trial / signup ---------- */
 .trial-card {
@@ -1097,7 +1135,20 @@ a { color: inherit; }
   .section-split .split-header { position: static; }
   .section-split .split-header .section-desc { max-width: 620px; margin: 14px auto 0; }
   .nav-links { display: none; } /* avoid overlap with right-side actions */
-  .bento-grid, .steps-grid, .metrics-grid, .why-grid, .stat-band, .compare-grid, .testimonials-grid { grid-template-columns: 1fr; }
+  .bento-grid, .steps-grid, .metrics-grid, .why-grid, .stat-band, .compare-grid { grid-template-columns: 1fr; }
+  /* Testimonials: horizontal scroll-snap carousel on mobile */
+  .testimonials-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 16px;
+    padding-bottom: 4px;
+  }
+  .testimonials-grid::-webkit-scrollbar { display: none; }
+  .testimonial-card { flex: 0 0 calc(85% - 8px); scroll-snap-align: start; }
+  .carousel-controls { display: flex; }
   .bento-card-2col, .bento-card-2row { grid-column: auto; grid-row: auto; }
   .coach-card { grid-template-columns: 1fr; text-align: center; justify-items: center; gap: 22px; }
   .coach-stats { justify-content: center; }
@@ -1126,16 +1177,38 @@ a { color: inherit; }
   .nav-cta-full { display: none; }
   .nav-login-short,
   .nav-cta-short { display: inline; }
-  .hero-grid { padding: 112px 5% 28px; gap: 24px; }
-  .hero-content { padding: 0; }
-  .phone-container { width: 264px; border-radius: 30px; padding: 10px; }
-  .phone-screen { height: 420px; border-radius: 22px; }
-  .hero-eyebrow { font-size: 11.5px; margin-bottom: 12px; }
-  .hero-title { font-size: 32px; line-height: 1.05; }
-  .hero-description { font-size: 15px; margin-bottom: 16px; margin-top: 16px; }
-  .hero-proof-list { gap: 6px; margin-bottom: 20px; }
-  .hero-proof-list span { font-size: 11.5px; padding: 5px 8px; }
-  .hero-commitment { font-size: 13px; margin-top: 12px; }
+  /* hero already has its own CTA — drop the redundant nav one while hero on screen */
+  .landing-nav.is-hero-visible .nav-cta { display: none; }
+  /* Single flex column so the phone can sit between title and pitch.
+     display:contents promotes hero-content's children to grid children
+     so all hero elements share one ordering context. */
+  /* Single column — badges hidden, phone spans full width */
+  .hero-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 72px 5% 16px;
+    gap: 10px;
+  }
+  .hero-content   { display: contents; }
+  .hero-eyebrow   { order: 1; font-size: 11px; margin-bottom: 0; }
+  .hero-title     { order: 2; font-size: 26px; line-height: 1.08; }
+  .hero-visual    { order: 3; margin: 6px 0; }
+  .hero-proof-list { display: none; } /* covered by eyebrow + description */
+  .hero-description { order: 4; font-size: 14.5px; margin: 0; }
+  .hero-buttons   { order: 5; width: 100%; }
+  .hero-commitment { font-size: 12.5px; margin-top: 10px; }
+
+  .phone-container { width: 220px; border-radius: 28px; padding: 9px; }
+  .phone-screen { height: 340px; border-radius: 20px; }
+  .phone-notch { width: 72px; height: 14px; top: 10px; }
+  .chat-header { padding: 26px 12px 8px; gap: 8px; }
+  .chat-avatar-img { width: 28px; height: 28px; }
+  .chat-name { font-size: 12px; }
+  .chat-body { padding: 10px 10px; gap: 6px; }
+  .bubble { font-size: 11.5px; line-height: 1.35; padding: 7px 9px; max-width: 84%; }
+  .bubble-time { font-size: 9px; }
 
   .topic-chip { padding: 12px 14px; gap: 8px; }
   .topic-icon { font-size: 20px; }
@@ -1150,11 +1223,22 @@ a { color: inherit; }
   .coach-photo { width: 100px; height: 100px; margin-bottom: 0px; }
   .coach-quote { font-size: 17.5px; margin-bottom: 12px; }
   .coach-stats { gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 14px; padding-top: 14px; }
-  .hero-buttons .btn-row { width: 100%; }
-  .hero-buttons .btn-landing { width: 100%; }
+  .hero-buttons .btn-row { width: 100%; flex-direction: column; gap: 10px; }
+  .hero-buttons .btn-landing-primary { width: 100%; }
+  /* demote secondary CTA to a quiet text link so there's one clear action */
+  .hero-buttons .btn-ghost {
+    width: auto;
+    min-height: 0;
+    padding: 4px;
+    border: none;
+    background: none;
+    text-decoration: underline;
+    color: var(--primary);
+  }
 
   /* Reduce grid gaps */
   .metrics-grid, .bento-grid, .steps-grid, .why-grid, .stat-band, .compare-grid { gap: 12px; }
+  .testimonial-card { flex: 0 0 calc(90% - 8px); }
 
   /* Reduce card paddings */
   .metric-card { padding: 16px 14px; }

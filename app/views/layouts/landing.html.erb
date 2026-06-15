@@ -89,6 +89,17 @@
 
         setNavState();
         window.addEventListener("scroll", setNavState, { passive: true });
+
+        // Hide the nav "Reservar" CTA while the hero (which has its own CTA)
+        // is on screen, so the action isn't shown twice. Show once past it.
+        const hero = document.querySelector(".hero-section");
+        if (hero && "IntersectionObserver" in window) {
+          const io = new IntersectionObserver(
+            ([entry]) => nav.classList.toggle("is-hero-visible", entry.isIntersecting),
+            { threshold: 0, rootMargin: "-72px 0px 0px 0px" }
+          );
+          io.observe(hero);
+        }
       })();
     </script>
   </body>

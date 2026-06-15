@@ -11,7 +11,7 @@
           DEJA DE PARTIR<br>
           DE NUEVO CADA LUNES
         </h1>
-        <p class="hero-description">En 14 días tienes funcionando ese hábito que llevas meses postergando — con alguien revisando tu avance cada día. Nosotros te escribimos primero: solo respondes 15 minutos al día por WhatsApp. <strong>Tu primer micro-desafío llega mañana en la mañana.</strong></p>
+        <p class="hero-description">Convierte esa meta que llevas meses postergando en tu primer avance real y medible. <strong>Nosotros te escribimos cada mañana; tú respondes 15 minutos al día por WhatsApp.</strong></p>
 
         <div class="hero-proof-list" aria-label="Qué incluye Impulso">
           <span>14 días</span>
@@ -41,7 +41,6 @@
               <img src="/icon.png?v=20260615" class="chat-avatar-img" alt="">
               <div class="chat-info">
                 <span class="chat-name">Impulso by Comtraining</span>
-                <span class="chat-status">en línea</span>
               </div>
             </div>
             <div class="chat-body">
@@ -117,19 +116,19 @@
   <!-- ===== What you can work on (possibilities + personalization) ===== -->
   <section class="landing-section" id="que-trabajar">
     <div class="section-header-centered">
-      <span class="section-subtitle">Elige una meta</span>
-      <h2 class="section-title">Tu objetivo, en versión practicable</h2>
-      <p class="section-desc">La promesa no es hacerlo perfecto. Es diseñar una forma de avanzar que puedas repetir incluso en semanas reales.</p>
+      <span class="section-subtitle">Tu elección</span>
+      <h2 class="section-title">Tu meta. Cualquiera que sea.</h2>
+      <p class="section-desc">No hay lista cerrada ni tema obligatorio. Nos cuentas qué quieres cambiar y construimos tu programa de 14 días completamente a tu medida.</p>
     </div>
 
+    <p class="topics-examples-label">Algunos ejemplos de lo que otros han trabajado:</p>
     <div class="topics-grid">
       <div class="topic-chip"><span class="topic-icon">😴</span><span class="topic-label">Dormir mejor</span></div>
       <div class="topic-chip"><span class="topic-icon">🏃</span><span class="topic-label">Hacer ejercicio</span></div>
       <div class="topic-chip"><span class="topic-icon">🧘</span><span class="topic-label">Tener más calma</span></div>
       <div class="topic-chip"><span class="topic-icon">⏰</span><span class="topic-label">Dejar de postergar</span></div>
+      <div class="topic-chip topic-chip-open"><span class="topic-icon">✨</span><span class="topic-label">Lo que tú elijas</span></div>
     </div>
-
-    <p class="topics-note">¿Lo tuyo no está en la lista? <strong>También sirve.</strong> Lo importante es elegir un foco que estés dispuesto a trabajar durante 14 días.</p>
   </section>
 
   <!-- ===== How it works ===== -->
@@ -254,7 +253,7 @@
     <div class="section-header-centered">
       <span class="section-subtitle">Tus 14 días</span>
       <h2 class="bento-section-title">El camino, paso a paso</h2>
-      <p class="bento-section-desc">14 días no es un número al azar: es el tiempo mínimo para ver un cambio real y el máximo que se sostiene sin abandonar. Ni tan corto que no pase nada, ni tan largo que lo dejes a medias.</p>
+      <p class="bento-section-desc">14 días es suficiente para ver tu primer cambio real y probarte que puedes sostenerlo. Corto para que te comprometas hoy; largo para que algo cambie de verdad.</p>
     </div>
 
     <div class="timeline-container">
@@ -283,7 +282,7 @@
         <div class="timeline-card">
           <div class="timeline-phase">Días 11 a 14 · Sostiene</div>
           <h3 class="timeline-title">Lo haces tuyo</h3>
-          <p class="timeline-desc">Unes el nuevo hábito a tu rutina para que se quede contigo. Al día 14 recibes un resumen personal con todo lo que lograste.</p>
+          <p class="timeline-desc">Anclas lo que funcionó y te vas con un plan concreto para sostenerlo. Al día 14 recibes un resumen personal con tus patrones y próximos pasos.</p>
         </div>
       </div>
     </div>
@@ -327,7 +326,8 @@
       <p class="section-desc">Resultados de quienes completaron su ciclo de Impulso.</p>
     </div>
 
-    <div class="testimonials-grid">
+    <div class="testimonials-carousel-wrapper">
+    <div class="testimonials-grid" id="testimonials-track">
       <figure class="testimonial-card">
         <div class="testimonial-stars" aria-hidden="true">★★★★★</div>
         <blockquote class="testimonial-quote">"[PLACEHOLDER] Dormía 5 horas y revisaba el teléfono hasta tarde. Al día 14 estaba durmiendo 7 horas seguidas. Lo que me cambió fue que alguien me escribía cada mañana."</blockquote>
@@ -363,7 +363,22 @@
           </div>
         </figcaption>
       </figure>
+    </div><!-- /.testimonials-grid -->
+
+    <div class="carousel-controls" aria-label="Navegación testimonios">
+      <button class="carousel-btn carousel-prev" aria-label="Testimonio anterior">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="carousel-dots" role="tablist">
+        <button class="carousel-dot active" aria-label="Testimonio 1" role="tab"></button>
+        <button class="carousel-dot" aria-label="Testimonio 2" role="tab"></button>
+        <button class="carousel-dot" aria-label="Testimonio 3" role="tab"></button>
+      </div>
+      <button class="carousel-btn carousel-next" aria-label="Testimonio siguiente">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
+    </div><!-- /.testimonials-carousel-wrapper -->
   </section>
 
   <!-- ===== Pricing (launch, Settings-driven) ===== -->
@@ -445,11 +460,11 @@
 
           <div class="form-grid-b2b">
             <div class="input-group">
-              <%= f.text_field :name, id: "enroll-name", class: "input-text", placeholder: "Nombre (Ej. Carla)", required: true, "aria-label": "Tu nombre" %>
+              <%= f.text_field :name, id: "enroll-name", class: "input-text", placeholder: "Nombre", required: true, "aria-label": "Tu nombre" %>
             </div>
 
             <div class="input-group">
-              <%= f.telephone_field :phone, id: "enroll-phone", class: "input-text", placeholder: "WhatsApp (Ej. +569...)", required: true, pattern: "^\+.*", title: "Debe comenzar con + y el código de tu país", "aria-label": "Tu WhatsApp" %>
+              <%= f.telephone_field :phone, id: "enroll-phone", class: "input-text", placeholder: "WhatsApp (+569...)", required: true, pattern: "^\+.*", title: "Debe comenzar con + y el código de tu país", "aria-label": "Tu WhatsApp" %>
             </div>
 
             <div class="input-group input-group-full">
@@ -557,7 +572,42 @@
       });
     });
 
-    // ---------- 3. Timezone for the form ----------
+    // ---------- 3. Testimonials carousel ----------
+    const testimonialTrack = document.getElementById("testimonials-track");
+    if (testimonialTrack) {
+      const testimonialCards = Array.from(testimonialTrack.querySelectorAll(".testimonial-card"));
+      const carouselDots = Array.from(document.querySelectorAll(".carousel-dot"));
+      const prevBtn = document.querySelector(".carousel-prev");
+      const nextBtn = document.querySelector(".carousel-next");
+      let currentSlide = 0;
+
+      function goToSlide(index) {
+        currentSlide = Math.max(0, Math.min(testimonialCards.length - 1, index));
+        const card = testimonialCards[currentSlide];
+        const offset = card.getBoundingClientRect().left - testimonialTrack.getBoundingClientRect().left + testimonialTrack.scrollLeft;
+        testimonialTrack.scrollTo({ left: offset, behavior: "smooth" });
+        carouselDots.forEach(function(d, i) { d.classList.toggle("active", i === currentSlide); });
+      }
+
+      if (prevBtn) prevBtn.addEventListener("click", function() { goToSlide(currentSlide - 1); });
+      if (nextBtn) nextBtn.addEventListener("click", function() { goToSlide(currentSlide + 1); });
+      carouselDots.forEach(function(d, i) { d.addEventListener("click", function() { goToSlide(i); }); });
+
+      testimonialTrack.addEventListener("scroll", function() {
+        var scrollLeft = testimonialTrack.scrollLeft;
+        var closest = 0, minDist = Infinity;
+        testimonialCards.forEach(function(card, i) {
+          var dist = Math.abs(card.offsetLeft - scrollLeft);
+          if (dist < minDist) { minDist = dist; closest = i; }
+        });
+        if (closest !== currentSlide) {
+          currentSlide = closest;
+          carouselDots.forEach(function(d, i) { d.classList.toggle("active", i === currentSlide); });
+        }
+      }, { passive: true });
+    }
+
+    // ---------- 4. Timezone for the form ----------
     const tz = document.getElementById("user-timezone");
     if (tz) {
       try { tz.value = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Santiago"; }
