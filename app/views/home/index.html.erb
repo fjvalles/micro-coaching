@@ -7,20 +7,24 @@
       <!-- Text — left lead -->
       <div class="hero-content">
         <p class="hero-eyebrow">Acompañamiento de 14 días por WhatsApp</p>
-        <h1 class="hero-title">
+        <h1 class="hero-title" id="typewriter-title">
           DEJA DE PARTIR<br>
           DE NUEVO <span class="gradient-text">CADA LUNES</span>
         </h1>
-        <p class="hero-description">No es disciplina lo que te falta.<br><strong>Es alguien que te haga la <span class="highlight-text">pregunta correcta</span> en el momento exacto.</strong></p>
+        <script>
+          document.getElementById("typewriter-title").style.opacity = "0";
+          document.documentElement.classList.add("js-sequence");
+        </script>
+        <p class="hero-description hero-fade-in">No es disciplina lo que te falta.<br><strong>Es alguien que te haga la <span class="highlight-text">pregunta correcta</span> en el momento exacto.</strong></p>
 
-        <div class="hero-proof-list" aria-label="Qué incluye Impulso">
+        <div class="hero-proof-list hero-fade-in" aria-label="Qué incluye Impulso">
           <span>14 días</span>
           <span>15 min al día</span>
           <span>WhatsApp</span>
           <span>Con garantía</span>
         </div>
 
-        <div class="hero-buttons">
+        <div class="hero-buttons hero-fade-in">
           <div class="btn-row">
             <a href="#empezar" class="btn-landing btn-landing-primary">
               <%= offer_cta %>
@@ -73,7 +77,7 @@
       <div class="trust-divider"></div>
       <div class="trust-stat">
         <span class="trust-stat-num">+10</span>
-        <span class="trust-stat-desc">años acompañando personas y equipos en Latinoamérica</span>
+        <span class="trust-stat-desc">años acompañando personas y equipos en Chile</span>
       </div>
       <div class="trust-divider"></div>
       <div class="trust-badge">
@@ -87,7 +91,7 @@
   <section class="landing-section" id="que-trabajar">
     <div class="section-header-centered">
       <span class="section-subtitle">Tu elección</span>
-      <h2 class="section-title">Tu meta. <span class="gradient-text">Cualquiera que sea.</span></h2>
+      <h2 class="section-title"><span id="anim-meta-1" style="display:inline-block">Tu meta.</span> <span class="gradient-text" id="anim-meta-2" style="display:inline-block">Cualquiera que sea.</span></h2>
       <p class="section-desc">Nos cuentas qué quieres cambiar y construimos tu programa de 14 días completamente a tu medida.</p>
     </div>
 
@@ -119,6 +123,7 @@
             <span class="step-tab-label step-tab-label-full">Defines tu meta</span>
           </div>
         </button>
+        <svg class="step-tab-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         <button class="step-tab" data-target="step-panel-2" type="button">
           <span class="step-tab-num">2</span>
           <div class="step-tab-texts">
@@ -127,6 +132,7 @@
             <span class="step-tab-label step-tab-label-full">Recibes una acción diaria</span>
           </div>
         </button>
+        <svg class="step-tab-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         <button class="step-tab" data-target="step-panel-3" type="button">
           <span class="step-tab-num">3</span>
           <div class="step-tab-texts">
@@ -135,6 +141,7 @@
             <span class="step-tab-label step-tab-label-full">Haces check-in</span>
           </div>
         </button>
+        <svg class="step-tab-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         <button class="step-tab" data-target="step-panel-4" type="button">
           <span class="step-tab-num">4</span>
           <div class="step-tab-texts">
@@ -186,13 +193,13 @@
       <p class="bento-section-desc">14 días: suficiente para ver un cambio real y saber que puedes sostenerlo.</p>
     </div>
 
-    <div class="timeline-container">
+    <div class="timeline-container" id="timeline-container">
       <div class="timeline-line"></div>
 
       <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-card">
-          <div class="timeline-phase">Días 1 a 5 · Descubre</div>
+          <div class="timeline-phase"><span class="timeline-days">Días 1 a 5</span><span class="timeline-badge">Descubre</span></div>
           <h3 class="timeline-title">Conoces tu día a día</h3>
           <p class="timeline-desc">Observas cómo vives hoy tu foco. Solo mirar, sin exigencias.</p>
         </div>
@@ -201,7 +208,7 @@
       <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-card">
-          <div class="timeline-phase">Días 6 a 10 · Practica</div>
+          <div class="timeline-phase"><span class="timeline-days">Días 6 a 10</span><span class="timeline-badge">Practica</span></div>
           <h3 class="timeline-title">Pruebas algo nuevo</h3>
           <p class="timeline-desc">Das pasos pequeños, a tu ritmo, con acompañamiento diario.</p>
         </div>
@@ -210,7 +217,7 @@
       <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-card">
-          <div class="timeline-phase">Días 11 a 14 · Sostiene</div>
+          <div class="timeline-phase"><span class="timeline-days">Días 11 a 14</span><span class="timeline-badge">Sostiene</span></div>
           <h3 class="timeline-title">Lo haces tuyo</h3>
           <p class="timeline-desc">Anclas lo que funcionó y recibes un resumen personal con tus patrones al día 14.</p>
         </div>
@@ -223,7 +230,7 @@
   <section class="landing-section section-gradient" id="comparacion">
     <div class="section-header-centered">
       <span class="section-subtitle">Por qué con Impulso</span>
-      <h2 class="section-title">Pagas para <span class="highlight-text">tomártelo en serio</span></h2>
+      <h2 class="section-title">Pagas por <span class="highlight-text">resultados,</span> no por intenciones</h2>
     </div>
 
     <div class="stat-band">
@@ -293,10 +300,16 @@
       <img src="/coach.png" class="coach-photo" alt="Francisco Vallés, Comtraining" loading="lazy">
       <div class="coach-info">
         <p class="coach-eyebrow">La persona detrás de Impulso</p>
-        <p class="coach-quote">"Después de años acompañando líderes, descubrí que el problema nunca fue la motivación. Fue no tener a alguien que te hiciera la pregunta correcta en el momento en que más lo necesitabas."</p>
+        <div class="coach-quote-container">
+          <p class="coach-quote scroll-fade-up" style="margin-bottom: 8px;">"Descubrí que el problema rara vez es la falta de motivación.</p>
+          <p class="coach-quote scroll-fade-up" style="transition-delay: 0.4s;">Es no tener a alguien que te haga la <strong class="highlight-coach-word">pregunta correcta</strong>, justo cuando más lo necesitas."</p>
+        </div>
         <p class="coach-name">Francisco Vallés</p>
         <p class="coach-credential">Life & Executive Coach</p>
-        <p class="coach-method">Por eso Impulso no te da información sobre hábitos — te hace las preguntas que tú no te harías solo, en el momento exacto en que importan.</p>
+        <div class="coach-method-callout scroll-fade-up" style="transition-delay: 0.8s;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="coach-method-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <p class="coach-method">Por eso Impulso <strong>te hace la pregunta que tú no te harías</strong>, justo cuando más la necesitas.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -367,7 +380,9 @@
   <!-- ===== Pricing (launch, Settings-driven) ===== -->
   <section class="landing-section section-soft" id="precio">
     <div class="pricing-card">
-      <span class="pricing-badge">Oferta de lanzamiento</span>
+      <div class="pricing-badge">
+        <span>Oferta de lanzamiento<% if @founder_remaining&.positive? %> &nbsp;•&nbsp; Solo quedan <%= @founder_remaining %> cupos<% end %></span>
+      </div>
       <% if @founder_price.to_i.positive? %>
         <div class="pricing-amount">
           <% if @regular_price.to_i > @founder_price.to_i %>
@@ -383,45 +398,27 @@
             <span class="pricing-now-tax">+ IVA</span>
           </div>
         </div>
-        <% iva_total = (@founder_price * 1.19).round %>
-        <p class="pricing-cycle">pago único por todo tu programa personalizado de 14 días</p>
-        <p class="pricing-iva">Valor neto. Con IVA (19%), el total es <strong>$<%= number_with_delimiter(iva_total, delimiter: ".") %></strong>.</p>
-        <% if @founder_remaining&.positive? %>
-          <p class="pricing-spots">Quedan <%= @founder_remaining %> cupos de lanzamiento</p>
-        <% else %>
-          <p class="pricing-spots">Precio de lanzamiento por tiempo limitado</p>
-        <% end %>
       <% else %>
-        <div class="pricing-amount"><span class="pricing-now">Cupos limitados</span></div>
-        <p class="pricing-cycle">Oferta de lanzamiento para los primeros cupos de Impulso.</p>
+        <div class="pricing-amount"><span class="pricing-now"><%= @founder_spots.positive? ? "#{@founder_spots} cupos" : "50 cupos limitados" %></span></div>
+        <p class="pricing-cycle">Oferta de lanzamiento para los primeros inscritos en Impulso.</p>
       <% end %>
 
-      <details class="pricing-includes-toggle">
-        <summary>Ver qué incluye</summary>
-        <ul class="pricing-includes">
-          <li>Programa personalizado de 14 días</li>
-          <li>Micro-desafío diario por WhatsApp</li>
-          <li>Check-in nocturno con ajustes según tu avance</li>
-          <li>Resumen final con tus patrones y próximos pasos</li>
-          <li>Plan de 30 días para sostener lo logrado</li>
-          <li>Portal web para ver tu progreso</li>
-          <li>Supervisión humana de Comtraining</li>
-        </ul>
-      </details>
       <p class="pricing-stack-anchor">Una sola sesión de coaching tradicional cuesta entre $40.000 y $60.000. Impulso son <strong>14 días</strong> de acompañamiento diario por <strong>menos que una sesión</strong>.</p>
 
-      <a href="#empezar" class="btn-landing btn-landing-primary" style="width: 100%; padding: 16px;"><%= offer_cta %></a>
-      <p class="pricing-objection">No es una invitación masiva. Son cupos limitados con acompañamiento cercano, garantía y una activación cuidada.</p>
-      <p class="pricing-guarantee"><strong>Garantía Cumple-o-Devolvemos:</strong> haz el programa completo y, si sientes que no avanzaste, te devolvemos el 100% de lo que pagaste. El riesgo lo ponemos nosotros.</p>
-      <details class="pricing-terms">
-        <summary>Cómo aplica la garantía</summary>
-        <ul>
-          <li>Completaste los 14 días del programa.</li>
-          <li>Participaste activamente: respondiste al menos 10 de los 14 check-in nocturnos.</li>
-          <li>Solicitas el reembolso dentro de los 7 días siguientes al término del programa, escribiendo por WhatsApp o a nuestro correo.</li>
-          <li>El reembolso corresponde al monto neto pagado y se procesa por el mismo medio de pago.</li>
+      <div class="pricing-includes-wrapper" style="margin: 20px 0 10px;">
+        <ul class="pricing-includes">
+          <li>1 programa personalizado de 14 días</li>
+          <li>Micro-desafío diario</li>
+          <li>Check-in nocturno para ajustar según avance</li>
+          <li>Reporte final con tus patrones y próximos pasos</li>
+          <li>Portal web para ver tu progreso</li>
+          <li>Supervisión humana de coach</li>
         </ul>
-      </details>
+      </div>
+
+      <a href="#empezar" class="btn-landing btn-landing-primary" style="width: 100%; padding: 16px;"><%= offer_cta %></a>
+      <p class="pricing-guarantee"><strong>Garantía 100%:</strong> Si completas el programa y no ves avances, te devolvemos tu dinero.</p>
+      <p class="pricing-terms-link"><%= link_to "Términos y condiciones", terminos_path %></p>
     </div>
   </section>
 
@@ -430,7 +427,7 @@
     <div class="trial-card">
       <div class="trial-header">
         <div class="hero-tag hero-tag-dark" style="margin-bottom: 14px;"><span>Cupos de lanzamiento</span></div>
-        <h2 class="trial-title">Reserva tus <span class="highlight-text">14 días</span> de Impulso</h2>
+        <h2 class="trial-title">Reserva tus 14 días de <span class="brand-wave-text">Impulso</span></h2>
         <p class="trial-desc"><%= paid ? "Déjanos tus datos y reserva tu cupo. Mañana recibes tu primer micro-desafío en WhatsApp." : "Déjanos tus datos para solicitar un cupo y coordinar tu activación. Buscamos personas que quieran completar los 14 días." %></p>
       </div>
 
@@ -539,6 +536,119 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    // ---------- 1. Typewriter effect for Hero Title ----------
+    const heroTitle = document.getElementById("typewriter-title");
+    if (heroTitle) {
+      const nodes = Array.from(heroTitle.childNodes).map(n => n.cloneNode(true));
+      heroTitle.innerHTML = "";
+      heroTitle.style.opacity = "1";
+      
+      const cursor = document.createElement("span");
+      cursor.textContent = "|";
+      cursor.style.fontWeight = "300";
+      cursor.style.animation = "blink 1s step-end infinite";
+      
+      // Inject blink keyframes if not exists
+      if (!document.getElementById("typewriter-styles")) {
+        const style = document.createElement("style");
+        style.id = "typewriter-styles";
+        style.innerHTML = "@keyframes blink { 50% { opacity: 0; } }";
+        document.head.appendChild(style);
+      }
+
+      heroTitle.appendChild(cursor);
+
+      async function typeNode(node, container) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent;
+          let currentTextNode = document.createTextNode("");
+          container.insertBefore(currentTextNode, cursor);
+          for (let i = 0; i < text.length; i++) {
+            currentTextNode.textContent += text[i];
+            if (text[i].trim() !== "") {
+              await new Promise(r => setTimeout(r, 40 + Math.random() * 30));
+            }
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const el = document.createElement(node.tagName);
+          Array.from(node.attributes).forEach(attr => el.setAttribute(attr.name, attr.value));
+          container.insertBefore(el, cursor);
+          const childNodes = Array.from(node.childNodes);
+          for (let child of childNodes) {
+            await typeNode(child, el); // For children, we can append normally inside the element
+          }
+        }
+      }
+
+      // Modified typeNode for children of elements so they don't use the cursor insertion point
+      async function typeChildNode(node, container) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent;
+          let currentTextNode = document.createTextNode("");
+          container.appendChild(currentTextNode);
+          for (let i = 0; i < text.length; i++) {
+            currentTextNode.textContent += text[i];
+            if (text[i].trim() !== "") {
+              await new Promise(r => setTimeout(r, 40 + Math.random() * 30));
+            }
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const el = document.createElement(node.tagName);
+          Array.from(node.attributes).forEach(attr => el.setAttribute(attr.name, attr.value));
+          container.appendChild(el);
+          const childNodes = Array.from(node.childNodes);
+          for (let child of childNodes) {
+            await typeChildNode(child, el);
+          }
+        }
+      }
+
+      async function startTyping() {
+        for (let node of nodes) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            await typeNode(node, heroTitle);
+          } else {
+            // For element nodes (like <br> or <span>)
+            const el = document.createElement(node.tagName);
+            Array.from(node.attributes).forEach(attr => el.setAttribute(attr.name, attr.value));
+            heroTitle.insertBefore(el, cursor);
+            const childNodes = Array.from(node.childNodes);
+            for (let child of childNodes) {
+              await typeChildNode(child, el);
+            }
+          }
+        }
+        // Remove cursor after typing
+        setTimeout(() => cursor.remove(), 2000);
+      }
+
+      async function runHeroSequence() {
+        await startTyping();
+        
+        await new Promise(r => setTimeout(r, 400));
+        
+        const bubbles = document.querySelectorAll(".chat-body .bubble");
+        for (let i = 0; i < bubbles.length; i++) {
+          bubbles[i].classList.add("animate-bubble");
+          await new Promise(r => setTimeout(r, 800));
+        }
+        
+        const typingSim = document.querySelector(".typing-bubble-sim");
+        if (typingSim) {
+          typingSim.classList.add("animate-bubble");
+          await new Promise(r => setTimeout(r, 600));
+        }
+        
+        const fadeEls = document.querySelectorAll(".hero-fade-in");
+        for (let i = 0; i < fadeEls.length; i++) {
+          fadeEls[i].classList.add("visible");
+          await new Promise(r => setTimeout(r, 150));
+        }
+      }
+
+      runHeroSequence();
+    }
+
     // ---------- 2. FAQ accordion ----------
     document.querySelectorAll(".faq-question").forEach((btn) => {
       btn.addEventListener("click", function () {
@@ -605,5 +715,258 @@
       try { tz.value = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Santiago"; }
       catch (e) { tz.value = "America/Santiago"; }
     }
+
+    // ---------- 6. Animate "Tu meta" section ----------
+    const tuMetaSection = document.getElementById("que-trabajar");
+    if (tuMetaSection) {
+      const meta1 = document.getElementById("anim-meta-1");
+      const meta2 = document.getElementById("anim-meta-2");
+      const chips = Array.from(tuMetaSection.querySelectorAll(".topic-chip"));
+      
+      // Initial state for chips
+      chips.forEach(chip => {
+        chip.style.opacity = "0";
+      });
+
+      const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            obs.unobserve(entry.target);
+            
+            // Step 1: animate meta1
+            if (meta1) {
+              meta1.style.animation = "pop-scale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards";
+            }
+            
+            // Step 2: animate meta2 after meta1 finishes
+            setTimeout(() => {
+              if (meta2) {
+                meta2.style.animation = "pop-scale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards";
+              }
+            }, 500);
+            
+            // Step 3: animate chips one by one
+            setTimeout(() => {
+              chips.forEach((chip, i) => {
+                setTimeout(() => {
+                  chip.style.animation = "fadeInUp 0.5s ease forwards";
+                  chip.addEventListener('animationend', (ev) => {
+                    if (ev.animationName === "fadeInUp") {
+                      chip.style.animation = "";
+                      chip.style.opacity = "1";
+                      
+                      if (i === chips.length - 1) {
+                        setTimeout(() => {
+                          chip.classList.add("chip-highlight-anim");
+                          chip.addEventListener('animationend', (e) => {
+                            if (e.animationName === "pop-scale") {
+                              chip.classList.remove("chip-highlight-anim");
+                            }
+                          }, { once: true });
+                        }, 200);
+                      }
+                    }
+                  });
+                }, i * 120);
+              });
+            }, 1000);
+          }
+        });
+      }, { threshold: 0.3 });
+      
+      observer.observe(tuMetaSection);
+    }
+
+    // ---------- 7. Karaoke Tab Content effect ----------
+    const howItWorksSection = document.getElementById("como-funciona");
+    if (howItWorksSection) {
+      const stepPanels = [
+        document.getElementById("step-panel-1"),
+        document.getElementById("step-panel-2"),
+        document.getElementById("step-panel-3"),
+        document.getElementById("step-panel-4")
+      ];
+      const stepTabs = [
+        document.querySelector('.step-tab[data-target="step-panel-1"]'),
+        document.querySelector('.step-tab[data-target="step-panel-2"]'),
+        document.querySelector('.step-tab[data-target="step-panel-3"]'),
+        document.querySelector('.step-tab[data-target="step-panel-4"]')
+      ];
+
+      let karaokeTimeout;
+      let isObserverTriggered = false;
+
+      function prepareKaraokeText(panel) {
+        const p = panel.querySelector(".step-content p");
+        if (p && !p.classList.contains("karaoke-prepared")) {
+          // preserve words but add spans
+          const words = p.innerHTML.split(" ");
+          p.innerHTML = "";
+          words.forEach(word => {
+            if (word.trim() === "") {
+              p.appendChild(document.createTextNode(" "));
+              return;
+            }
+            const span = document.createElement("span");
+            span.className = "karaoke-word";
+            span.innerHTML = word;
+            p.appendChild(span);
+            p.appendChild(document.createTextNode(" "));
+          });
+          p.classList.add("karaoke-prepared");
+        }
+      }
+
+      function playKaraokeForTab(index) {
+        if (index >= stepPanels.length) return;
+        
+        clearTimeout(karaokeTimeout);
+
+        // Switch tab visually by clicking it (re-uses existing tab listener)
+        if (!stepTabs[index].classList.contains("is-active")) {
+          stepTabs[index].click();
+        }
+
+        const panel = stepPanels[index];
+        prepareKaraokeText(panel);
+        const words = panel.querySelectorAll(".karaoke-word");
+        
+        words.forEach(w => w.classList.remove("active-word", "past-word"));
+
+        let wordIdx = 0;
+        function nextWord() {
+          if (wordIdx < words.length) {
+            // Mark previous as past
+            if (wordIdx > 0) {
+              words[wordIdx - 1].classList.remove("active-word");
+              words[wordIdx - 1].classList.add("past-word");
+            }
+            // Mark current as active
+            words[wordIdx].classList.add("active-word");
+            
+            // Speed calculation: wait a bit for punctuation, less for short words
+            const text = words[wordIdx].textContent;
+            let delay = 240; // base ms per word
+            if (text.length > 6) delay += 40;
+            if (text.includes(",") || text.includes(".")) delay += 150;
+
+            wordIdx++;
+            karaokeTimeout = setTimeout(nextWord, delay);
+          } else {
+            if (wordIdx > 0) {
+              words[wordIdx - 1].classList.remove("active-word");
+              words[wordIdx - 1].classList.add("past-word");
+            }
+            // Finished paragraph, go to next tab after a pause
+            karaokeTimeout = setTimeout(() => {
+              playKaraokeForTab(index + 1);
+            }, 1200);
+          }
+        }
+        
+        karaokeTimeout = setTimeout(nextWord, 400);
+      }
+
+      const observerKaraoke = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !isObserverTriggered) {
+            isObserverTriggered = true;
+            obs.unobserve(entry.target);
+            playKaraokeForTab(0);
+          }
+        });
+      }, { threshold: 0.4 });
+      
+      observerKaraoke.observe(howItWorksSection);
+
+      // Stop autoplay if user manually clicks a tab
+      stepTabs.forEach((tab, i) => {
+        tab.addEventListener("click", (e) => {
+          if (e.isTrusted) { // Only clear if it's a real user click, not our script
+            clearTimeout(karaokeTimeout);
+            
+            // Clean up previous karaoke state
+            stepPanels.forEach(p => {
+              p.querySelectorAll(".karaoke-word").forEach(w => {
+                w.classList.remove("active-word", "past-word");
+              });
+            });
+            
+            // Optional: start karaoke on the clicked tab
+            // playKaraokeForTab(i); 
+          }
+        });
+      });
+    }
+
+    // ---------- 8. Animate Timeline Items ----------
+    const timelineContainer = document.getElementById("timeline-container");
+    if (timelineContainer) {
+      const timelineItems = Array.from(timelineContainer.querySelectorAll(".timeline-item"));
+      
+      // Initial state
+      timelineItems.forEach(item => {
+        item.style.opacity = "0";
+      });
+
+      const timelineObserver = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            obs.unobserve(entry.target);
+            
+            timelineItems.forEach((item, i) => {
+              setTimeout(() => {
+                item.style.animation = "fadeInUp 0.6s ease forwards";
+                
+                // After fade in, animate the badge
+                setTimeout(() => {
+                  const badge = item.querySelector(".timeline-badge");
+                  if (badge) {
+                    badge.classList.add("chip-highlight-anim");
+                    badge.addEventListener('animationend', (e) => {
+                      if (e.animationName === "pop-scale") {
+                        badge.classList.remove("chip-highlight-anim");
+                      }
+                    }, { once: true });
+                  }
+                }, 500);
+                
+              }, i * 350);
+            });
+          }
+        });
+      }, { threshold: 0.2 });
+      
+      timelineObserver.observe(timelineContainer);
+    }
+
+    // ---------- 9. Animate Highlighted Compare Card ----------
+    const comparacionSection = document.getElementById("comparacion");
+    const highlightCard = document.querySelector(".compare-card.highlight");
+    
+    if (comparacionSection && highlightCard) {
+      const compareObserver = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            obs.unobserve(entry.target);
+            highlightCard.classList.add("flash-border-active");
+          }
+        });
+      }, { threshold: 0.3 });
+      
+      compareObserver.observe(comparacionSection);
+    }
+
+    // ---------- 10. Scroll fade-up generic ----------
+    const scrollFadeObserver = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+    
+    document.querySelectorAll('.scroll-fade-up').forEach(el => scrollFadeObserver.observe(el));
   });
 </script>

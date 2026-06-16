@@ -128,6 +128,7 @@ Rails.application.routes.draw do
   post "preview_challenge", to: "home#preview_challenge", as: :preview_challenge
   post "enroll", to: "home#enroll", as: :enroll
   get "privacidad", to: "home#privacidad", as: :privacidad
+  get "terminos", to: "home#terminos", as: :terminos
 
   # Pagos (Webpay Plus). retorno acepta GET (flujo normal) y POST (abort/timeout).
   get  "pagos",         to: "payments#new",    as: :pagos

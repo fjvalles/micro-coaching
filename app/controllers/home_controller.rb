@@ -130,4 +130,8 @@ class HomeController < ApplicationController
   def privacidad
     @privacy_policy = Setting.fetch("privacy_policy")
   end
+
+  def terminos
+    @terms_conditions = Setting.fetch("terms_conditions")
+  end
 end

@@ -573,6 +573,48 @@ class Setting < ApplicationRecord
       TEXT
       description: "Texto completo de la Política de Privacidad de Impulso (Markdown)."
     },
+    "terms_conditions" => {
+      type: :text, category: "program",
+      default: <<~TEXT,
+        Estos Términos y Condiciones regulan la contratación y participación en el programa de coaching **Impulso**, impartido por **Comtraining** ("nosotros") a través de la plataforma de mensajería WhatsApp. Al inscribirte y reservar tu cupo, declaras haber leído y aceptado estos términos.
+
+        #### 1. El programa
+        Impulso es un programa de micro-coaching de **14 días** entregado por WhatsApp. Cada día recibes un micro-desafío en la mañana y un check-in en la noche. El acompañamiento combina mensajes generados con inteligencia artificial y supervisión humana del equipo de Comtraining.
+
+        #### 2. Inscripción y cupos
+        Los cupos son limitados y se asignan por orden de reserva. La inscripción se realiza entregando tu nombre, número de WhatsApp y correo electrónico. Nos reservamos el derecho de admisión para resguardar la calidad del acompañamiento.
+
+        #### 3. Precio y pago
+        El valor del programa es el indicado en la página de oferta vigente al momento de tu inscripción. El pago es **único** y se procesa a través de Webpay (Transbank). Los precios de lanzamiento aplican solo mientras queden cupos disponibles.
+
+        #### 4. Garantía Cumple-o-Devolvemos
+        Si haces el programa completo y sientes que no avanzaste, te devolvemos el **100%** de lo que pagaste. Para que aplique la garantía:
+        * Completaste los 14 días del programa.
+        * Participaste activamente: respondiste al menos **10 de los 14** check-in nocturnos.
+        * Solicitas el reembolso dentro de los **7 días** siguientes al término del programa, escribiendo por WhatsApp o a nuestro correo.
+        * El reembolso corresponde al monto neto pagado y se procesa por el mismo medio de pago.
+
+        #### 5. Compromiso del participante
+        El programa requiere tu participación diaria. Impulso es una herramienta de acompañamiento y desarrollo personal; **no constituye terapia, atención psicológica ni tratamiento médico**. Si atraviesas una situación de salud mental que requiera atención profesional, te recomendamos acudir a un especialista.
+
+        #### 6. Uso de la inteligencia artificial
+        Parte de los mensajes que recibes son generados con modelos de lenguaje, bajo supervisión humana. Los contenidos tienen fines de orientación y reflexión, y no deben interpretarse como consejo profesional, legal, financiero ni médico.
+
+        #### 7. Datos personales
+        El tratamiento de tus datos se rige por nuestra [Política de Privacidad](/privacidad), conforme a la **Ley N.° 19.628** de Chile.
+
+        #### 8. Cancelación y modificaciones
+        Comtraining puede actualizar el contenido del programa, los precios futuros o estos Términos. Los cambios materiales se notifican por WhatsApp o correo. Las condiciones aceptadas al momento de tu inscripción se mantienen vigentes para tu ciclo contratado.
+
+        #### 9. Contacto
+        Para consultas, reembolsos o reclamos relacionados con el programa:
+
+        **Comtraining**
+        Correo electrónico: [info@comtraining.cl](mailto:info@comtraining.cl)
+        País: Chile
+      TEXT
+      description: "Texto completo de los Términos y Condiciones de Impulso (Markdown)."
+    },
 
     # ── finances ───────────────────────────────────────────────────────────
     "cost_hosting_monthly_usd" => {
