@@ -124,7 +124,7 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 
 ### 4.6.1 Resolución manual de check-in pendiente
 - **Regla.** El admin no edita `pending_checkin_at` directamente. Si el check-in pendiente corresponde a un día local anterior, la ficha del participante permite seleccionar una o más respuestas entrantes elegibles y asignarlas como check-in.
-- **Efecto.** `Participants::ManualCheckinAssignment` reclasifica esas conversaciones como `checkin_response`, crea un `DailyReport` con el texto combinado, corre `Openai::CheckinSummarizer` y limpia `pending_checkin_at`.
+- **Efecto.** `Participants::ManualCheckinAssignment` reclasifica esas conversaciones como `checkin_response`, crea un `DailyReport` con el texto combinado, corre `Openai::CheckinSummarizer`, limpia `pending_checkin_at`, llama a `Participants::DayAdvancer` y, si el nuevo día ya debía haber recibido despertar hace no más de 4 horas, encola `MorningWakeForParticipantJob`.
 - **Por qué.** Borrar un timestamp sin crear evidencia rompe `DayAdvancer`, reportes y memoria IA.
 - **Enforce.** `app/services/participants/manual_checkin_assignment.rb`, `app/controllers/admin/participants_controller.rb`.
 

@@ -46,11 +46,54 @@ RSpec.describe Participants::ManualCheckinAssignment do
     expect(second.reload).to be_checkin_response
     expect(first.inbound_intent).to eq("checkin_answer")
     expect(participant.reload.pending_checkin_at).to be_nil
+    expect(participant.current_day).to eq(2)
 
     report = DailyReport.last
     expect(report.raw_text).to include("Ayer tuve ansiedad.")
     expect(report.raw_text).to include("Comí dos paquetes")
     expect(report.ai_summary).to eq("Observó ansiedad y consumo de dulce.")
+  end
+
+  it "advances the day and enqueues today's wake when inside the 4-hour grace window" do
+    pending_at = tz.local(2026, 6, 15, 20)
+    participant.update!(pending_checkin_at: pending_at, wake_hour: 8)
+    create(:day_content, program: program, day_number: 2, title: "Elegir")
+    create(:conversation, participant: participant, role: :assistant, moment: :checkin_question,
+                          day_number: 1, sent_at: pending_at)
+    answer = create(:conversation, participant: participant, role: :user, moment: :free_user,
+                                   day_number: 1, body: "Respondí tarde.", created_at: pending_at + 14.hours)
+
+    result = nil
+    travel_to tz.local(2026, 6, 16, 11, 59) do
+      expect {
+        result = described_class.new(participant: participant, conversation_ids: [ answer.id ], admin_user: admin).call
+      }.to have_enqueued_job(MorningWakeForParticipantJob).with(participant.id)
+    end
+
+    expect(result.day_advance_result).to eq(:advanced)
+    expect(result.morning_wake_enqueued).to be true
+    expect(participant.reload.current_day).to eq(2)
+  end
+
+  it "advances the day without enqueueing today's wake after the 4-hour grace window" do
+    pending_at = tz.local(2026, 6, 15, 20)
+    participant.update!(pending_checkin_at: pending_at, wake_hour: 8)
+    create(:day_content, program: program, day_number: 2, title: "Elegir")
+    create(:conversation, participant: participant, role: :assistant, moment: :checkin_question,
+                          day_number: 1, sent_at: pending_at)
+    answer = create(:conversation, participant: participant, role: :user, moment: :free_user,
+                                   day_number: 1, body: "Respondí tarde.", created_at: pending_at + 14.hours)
+
+    result = nil
+    travel_to tz.local(2026, 6, 16, 12, 1) do
+      expect {
+        result = described_class.new(participant: participant, conversation_ids: [ answer.id ], admin_user: admin).call
+      }.not_to have_enqueued_job(MorningWakeForParticipantJob)
+    end
+
+    expect(result.day_advance_result).to eq(:advanced)
+    expect(result.morning_wake_enqueued).to be false
+    expect(participant.reload.current_day).to eq(2)
   end
 
   it "refuses assignment before the pending check-in is overdue" do
