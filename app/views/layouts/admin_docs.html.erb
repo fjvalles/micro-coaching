@@ -3,6 +3,7 @@
   <head>
     <title><%= content_for(:title) || "Documentación · Impulso by Comtraining" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="icon" href="/favicon_cream.svg" type="image/svg+xml">
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="apple-touch-icon" href="/icon.png">
     <%= csrf_meta_tags %>
@@ -53,7 +54,7 @@
     <div class="topbar">
       <a href="/admin" class="brand" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
         <span>←</span>
-        <img src="/icon.png" alt="Impulso Logo" style="width: 24px; height: 24px; border-radius: 4px;">
+        <img src="/impulso_cream.svg" alt="Impulso Logo" style="width: 24px; height: 24px; border-radius: 4px;">
         <span>Impulso <span style="font-weight: 400; font-size: 13px; opacity: 0.65; margin-left: 2px;">by comtraining</span></span>
       </a>
       <a href="<%= admin_docs_path %>">Documentación</a>

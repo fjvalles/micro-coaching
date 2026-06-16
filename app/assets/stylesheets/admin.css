@@ -8,12 +8,12 @@
   --bg-card: #ffffff;
   --bg-sidebar: #0f172a;
   --bg-sidebar-hover: rgba(255, 255, 255, 0.06);
-  --bg-sidebar-active: rgba(234, 88, 12, 0.15);
+  --bg-sidebar-active: rgba(158, 99, 29, 0.15);
   
-  --brand: #ea580c;
-  --brand-hover: #c2410c;
-  --brand-light: #ffedd5;
-  --brand-text: #9a3412;
+  --brand: #9e631d;
+  --brand-hover: #7b4d17;
+  --brand-light: #fdf5e8;
+  --brand-text: #5c380e;
   
   --text-main: #0f172a;
   --text-muted: #64748b;
@@ -106,6 +106,7 @@ body {
   height: 32px;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
+  object-fit: contain;
 }
 
 .sidebar-brand {
@@ -474,7 +475,7 @@ body {
 }
 
 .table tbody tr:hover {
-  background-color: rgba(234, 88, 12, 0.02);
+  background-color: rgba(158, 99, 29, 0.02);
 }
 
 .table-actions {
@@ -551,12 +552,12 @@ body {
 .btn-primary {
   background-color: var(--brand);
   color: white;
-  box-shadow: 0 2px 4px rgba(234, 88, 12, 0.2);
+  box-shadow: 0 2px 4px rgba(158, 99, 29, 0.2);
 }
 
 .btn-primary:hover {
   background-color: var(--brand-hover);
-  box-shadow: 0 4px 6px rgba(234, 88, 12, 0.3);
+  box-shadow: 0 4px 6px rgba(158, 99, 29, 0.3);
 }
 
 .btn-secondary {
@@ -615,7 +616,7 @@ body {
 .form-select:focus,
 .form-textarea:focus {
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+  box-shadow: 0 0 0 3px rgba(158, 99, 29, 0.15);
 }
 
 .form-textarea {
@@ -804,7 +805,7 @@ body {
 }
 
 .filter-dropdown[open] .filter-trigger {
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.22);
+  box-shadow: 0 0 0 3px rgba(158, 99, 29, 0.22);
 }
 
 .filter-panel {
@@ -1057,7 +1058,7 @@ body {
 
 .search-input:focus {
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+  box-shadow: 0 0 0 3px rgba(158, 99, 29, 0.15);
 }
 
 .search-icon {
@@ -1392,7 +1393,7 @@ body {
 }
 
 .md tr:nth-child(even) {
-  background-color: rgba(234, 88, 12, 0.02);
+  background-color: rgba(158, 99, 29, 0.02);
 }
 
 .md hr {
@@ -1594,7 +1595,7 @@ body {
   min-height: 100vh;
   width: 100vw;
   background-color: #090d16;
-  background-image: radial-gradient(circle at center, rgba(234, 88, 12, 0.15) 0%, #090d16 75%);
+  background-image: radial-gradient(circle at center, rgba(158, 99, 29, 0.15) 0%, #090d16 75%);
   padding: 24px;
   position: relative;
   overflow: hidden;
@@ -1642,14 +1643,14 @@ body {
   border-radius: 20px;
   padding: 40px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
-              0 0 40px rgba(234, 88, 12, 0.05),
+              0 0 40px rgba(158, 99, 29, 0.05),
               inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .login-card:hover {
   box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.6), 
-              0 0 50px rgba(234, 88, 12, 0.08),
+              0 0 50px rgba(158, 99, 29, 0.08),
               inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
@@ -1664,8 +1665,8 @@ body {
   justify-content: center;
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, rgba(234, 88, 12, 0.2) 0%, rgba(234, 88, 12, 0.05) 100%);
-  border: 1px solid rgba(234, 88, 12, 0.3);
+  background: linear-gradient(135deg, rgba(158, 99, 29, 0.2) 0%, rgba(158, 99, 29, 0.05) 100%);
+  border: 1px solid rgba(158, 99, 29, 0.3);
   border-radius: 14px;
   margin-bottom: 16px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
@@ -1674,6 +1675,7 @@ body {
 .login-logo-img {
   width: 32px;
   height: 32px;
+  object-fit: contain;
 }
 
 .login-title {
@@ -1723,7 +1725,7 @@ body {
 .login-input:focus {
   border-color: var(--brand);
   background-color: rgba(15, 23, 42, 0.95);
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.25), 
+  box-shadow: 0 0 0 3px rgba(158, 99, 29, 0.25), 
               inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -1778,13 +1780,13 @@ body {
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+  box-shadow: 0 4px 12px rgba(158, 99, 29, 0.3);
   transition: all 0.2s ease;
 }
 
 .btn-login:hover {
   background-color: var(--brand-hover);
-  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
+  box-shadow: 0 6px 20px rgba(158, 99, 29, 0.4);
   transform: translateY(-1px);
 }
 
@@ -2052,7 +2054,7 @@ body {
   justify-content: center;
   font-size: 24px;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+  box-shadow: 0 4px 12px rgba(158, 99, 29, 0.25);
   flex-shrink: 0;
   letter-spacing: -0.02em;
   user-select: none;
@@ -2384,7 +2386,7 @@ body {
 
 .onboarding-card {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid rgba(234, 88, 12, 0.15);
+  border: 1px solid rgba(158, 99, 29, 0.15);
   border-left: 4px solid var(--brand);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
@@ -2411,8 +2413,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(234, 88, 12, 0.08);
-  background-color: rgba(234, 88, 12, 0.02);
+  border-bottom: 1px solid rgba(158, 99, 29, 0.08);
+  background-color: rgba(158, 99, 29, 0.02);
 }
 
 .onboarding-card-title-area {
@@ -3145,7 +3147,7 @@ body {
 
 .docs-section[open] {
   box-shadow: var(--shadow-md);
-  border-color: rgba(234, 88, 12, 0.25);
+  border-color: rgba(158, 99, 29, 0.25);
 }
 
 .docs-section-summary {
@@ -3462,7 +3464,7 @@ body {
 
 .copilot-input-wrapper:focus-within {
   border-color: var(--brand);
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.15);
+  box-shadow: 0 4px 12px rgba(158, 99, 29, 0.15);
 }
 
 .copilot-textarea {

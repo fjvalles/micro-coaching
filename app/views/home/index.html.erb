@@ -9,9 +9,9 @@
         <p class="hero-eyebrow">Acompañamiento de 14 días por WhatsApp</p>
         <h1 class="hero-title">
           DEJA DE PARTIR<br>
-          DE NUEVO CADA LUNES
+          DE NUEVO <span class="gradient-text">CADA LUNES</span>
         </h1>
-        <p class="hero-description">No es disciplina lo que te falta.<br><strong>Es alguien que te haga la pregunta correcta en el momento exacto.</strong></p>
+        <p class="hero-description">No es disciplina lo que te falta.<br><strong>Es alguien que te haga la <span class="highlight-text">pregunta correcta</span> en el momento exacto.</strong></p>
 
         <div class="hero-proof-list" aria-label="Qué incluye Impulso">
           <span>14 días</span>
@@ -24,7 +24,6 @@
           <div class="btn-row">
             <a href="#empezar" class="btn-landing btn-landing-primary">
               <%= offer_cta %>
-              <svg style="margin-left: 4px; width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </a>
             <a href="#precio" class="btn-landing btn-ghost">Ver la oferta</a>
           </div>
@@ -37,7 +36,7 @@
           <div class="phone-notch"></div>
           <div class="phone-screen">
             <div class="chat-header">
-              <img src="/whatsapp_profile.png" class="chat-avatar-img" alt="">
+              <img src="/impulso_green.svg" class="chat-avatar-img" alt="" style="object-fit: contain;">
               <div class="chat-info">
                 <span class="chat-name">Impulso by Comtraining</span>
               </div>
@@ -88,7 +87,7 @@
   <section class="landing-section" id="que-trabajar">
     <div class="section-header-centered">
       <span class="section-subtitle">Tu elección</span>
-      <h2 class="section-title">Tu meta. Cualquiera que sea.</h2>
+      <h2 class="section-title">Tu meta. <span class="gradient-text">Cualquiera que sea.</span></h2>
       <p class="section-desc">Nos cuentas qué quieres cambiar y construimos tu programa de 14 días completamente a tu medida.</p>
     </div>
 
@@ -106,68 +105,74 @@
   <section class="landing-section section-soft" id="como-funciona">
     <div class="section-header-centered">
       <span class="section-subtitle">Cómo funciona</span>
-      <h2 class="section-title">Un sistema diario, no otra app más</h2>
+      <h2 class="section-title">Un sistema diario, <span class="highlight-text">no otra app más</span></h2>
       <p class="section-desc">Cuatro piezas simples para aumentar compromiso sin llenar tu agenda.</p>
     </div>
 
-    <nav class="steps-tab-nav" aria-label="Pasos del programa">
-      <button class="step-tab is-active" data-target="step-panel-1" type="button">
-        <span class="step-tab-num">1</span>
-        <span class="step-tab-label">Meta</span>
-      </button>
-      <button class="step-tab" data-target="step-panel-2" type="button">
-        <span class="step-tab-num">2</span>
-        <span class="step-tab-label">Acción</span>
-      </button>
-      <button class="step-tab" data-target="step-panel-3" type="button">
-        <span class="step-tab-num">3</span>
-        <span class="step-tab-label">Check-in</span>
-      </button>
-      <button class="step-tab" data-target="step-panel-4" type="button">
-        <span class="step-tab-num">4</span>
-        <span class="step-tab-label">Cierre</span>
-      </button>
-    </nav>
-
-    <div class="steps-grid">
-      <div class="step-card is-active" id="step-panel-1">
-        <div class="step-num">1</div>
-        <div class="step-content">
-          <div class="step-header">
+    <div class="how-it-works-container">
+      <nav class="steps-tab-nav" aria-label="Pasos del programa">
+        <button class="step-tab is-active" data-target="step-panel-1" type="button">
+          <span class="step-tab-num">1</span>
+          <div class="step-tab-texts">
             <span class="step-time-label">Antes de empezar</span>
-            <h3>Defines tu meta</h3>
+            <span class="step-tab-label step-tab-label-short">Meta</span>
+            <span class="step-tab-label step-tab-label-full">Defines tu meta</span>
           </div>
-          <p>Nos cuentas qué quieres cambiar y por qué importa ahora. Con eso se arma tu programa personalizado.</p>
-        </div>
-      </div>
-      <div class="step-card" id="step-panel-2">
-        <div class="step-num">2</div>
-        <div class="step-content">
-          <div class="step-header">
+        </button>
+        <button class="step-tab" data-target="step-panel-2" type="button">
+          <span class="step-tab-num">2</span>
+          <div class="step-tab-texts">
             <span class="step-time-label">Cada mañana</span>
-            <h3>Recibes una acción diaria</h3>
+            <span class="step-tab-label step-tab-label-short">Acción</span>
+            <span class="step-tab-label step-tab-label-full">Recibes una acción diaria</span>
           </div>
-          <p>Cada mañana llega un micro-desafío de 15 minutos por WhatsApp, pensado para tu contexto real.</p>
-        </div>
-      </div>
-      <div class="step-card" id="step-panel-3">
-        <div class="step-num">3</div>
-        <div class="step-content">
-          <div class="step-header">
+        </button>
+        <button class="step-tab" data-target="step-panel-3" type="button">
+          <span class="step-tab-num">3</span>
+          <div class="step-tab-texts">
             <span class="step-time-label">Cada noche</span>
-            <h3>Haces check-in</h3>
+            <span class="step-tab-label step-tab-label-short">Check-in</span>
+            <span class="step-tab-label step-tab-label-full">Haces check-in</span>
           </div>
-          <p>En la noche respondes cómo te fue. Con eso recibes ajustes para el día siguiente, según tus avances y trabas.</p>
+        </button>
+        <button class="step-tab" data-target="step-panel-4" type="button">
+          <span class="step-tab-num">4</span>
+          <div class="step-tab-texts">
+            <span class="step-time-label">Día 14</span>
+            <span class="step-tab-label step-tab-label-short">Cierre</span>
+            <span class="step-tab-label step-tab-label-full">Cierras con evidencia</span>
+          </div>
+        </button>
+      </nav>
+
+      <div class="steps-grid">
+        <div class="step-card is-active" id="step-panel-1">
+          <div class="step-content">
+            <img src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=800&q=80" alt="Defines tu meta" class="step-image">
+            <h3>Defines tu meta</h3>
+            <p>Nos cuentas qué quieres cambiar y por qué importa ahora. Con eso se arma tu programa personalizado.</p>
+          </div>
         </div>
-      </div>
-      <div class="step-card step-payoff" id="step-panel-4">
-        <div class="step-num">4</div>
-        <div class="step-content">
-          <div class="step-header">
-            <span class="step-time-label">Día 14 <span class="step-result-badge">Resultado</span></span>
-            <h3>Cierras con evidencia</h3>
+        <div class="step-card" id="step-panel-2">
+          <div class="step-content">
+            <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80" alt="Acción diaria" class="step-image">
+            <h3>Recibes una acción diaria</h3>
+            <p>Cada mañana llega un micro-desafío de 15 minutos por WhatsApp, pensado para tu contexto real.</p>
           </div>
-          <p>Al día 14 recibes un resumen de tu proceso y una recomendación clara para sostener lo logrado.</p>
+        </div>
+        <div class="step-card" id="step-panel-3">
+          <div class="step-content">
+            <img src="https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=800&q=80" alt="Check-in" class="step-image">
+            <h3>Haces check-in</h3>
+            <p>En la noche respondes cómo te fue. Con eso recibes ajustes para el día siguiente, según tus avances y trabas.</p>
+          </div>
+        </div>
+        <div class="step-card step-payoff" id="step-panel-4">
+          <div class="step-content">
+            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80" alt="Resultados" class="step-image">
+            <h3>Cierras con evidencia <span class="step-result-badge">Resultado</span></h3>
+            <p>Al día 14 recibes un resumen de tu proceso y una recomendación clara para sostener lo logrado.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -177,7 +182,7 @@
   <section class="landing-section" id="metodo">
     <div class="section-header-centered">
       <span class="section-subtitle">Tus 14 días</span>
-      <h2 class="bento-section-title">El camino, paso a paso</h2>
+      <h2 class="bento-section-title">El camino, <span class="gradient-text">paso a paso</span></h2>
       <p class="bento-section-desc">14 días: suficiente para ver un cambio real y saber que puedes sostenerlo.</p>
     </div>
 
@@ -218,7 +223,7 @@
   <section class="landing-section section-gradient" id="comparacion">
     <div class="section-header-centered">
       <span class="section-subtitle">Por qué con Impulso</span>
-      <h2 class="section-title">Pagas para tomártelo en serio</h2>
+      <h2 class="section-title">Pagas para <span class="highlight-text">tomártelo en serio</span></h2>
     </div>
 
     <div class="stat-band">
@@ -236,21 +241,48 @@
       </div>
     </div>
 
+    <div class="stat-connector">
+      <svg viewBox="0 0 1000 60" preserveAspectRatio="none" class="stat-connector-svg">
+        <path d="M 166 0 C 166 30, 500 30, 500 60" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 6" />
+        <path d="M 833 0 C 833 30, 500 30, 500 60" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 6" />
+        <path d="M 500 0 L 500 60" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 6" />
+        <polyline points="492 52, 500 60, 508 52" fill="none" stroke="currentColor" stroke-width="2" />
+      </svg>
+    </div>
+
     <div class="compare-grid">
-      <div class="compare-card">
-        <div class="compare-tag">Por tu cuenta</div>
+      <div class="compare-card compare-card-dim">
+        <div class="compare-tag-row">
+          <div class="compare-tag">Por tu cuenta</div>
+          <div class="compare-badge badge-low">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"></polyline><polyline points="16 17 22 17 22 11"></polyline></svg>
+            Baja probabilidad
+          </div>
+        </div>
         <h3>Solo con fuerza de voluntad</h3>
         <p>No cuesta dinero, pero suele costar avance. Sin plan ni seguimiento, la rutina gana en pocos días.</p>
       </div>
-      <div class="compare-card">
-        <div class="compare-tag">Coaching tradicional</div>
-        <h3>Sesiones uno a uno</h3>
-        <p>Muy valioso cuando necesitas profundidad. Suele ser por sesión, semanal o mensual, y con una inversión mayor.</p>
-      </div>
       <div class="compare-card highlight">
-        <div class="compare-tag">Impulso</div>
+        <div class="compare-tag-row">
+          <div class="compare-tag">Impulso</div>
+          <div class="compare-badge badge-best">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            La mejor opción
+          </div>
+        </div>
         <h3>Acompañamiento diario</h3>
         <p>Acompañamiento <strong>diario</strong> por WhatsApp, personalizado, con check-in y garantía. Más accesible que un proceso largo, más serio que entrar solo por curiosidad.</p>
+      </div>
+      <div class="compare-card compare-card-dim">
+        <div class="compare-tag-row">
+          <div class="compare-tag">Coaching tradicional</div>
+          <div class="compare-badge badge-mid">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            Alto costo
+          </div>
+        </div>
+        <h3>Sesiones uno a uno</h3>
+        <p>Muy valioso cuando necesitas profundidad. Suele ser por sesión, semanal o mensual, y con una inversión mayor.</p>
       </div>
     </div>
   </section>
@@ -273,7 +305,7 @@
   <section class="landing-section" id="testimonios">
     <div class="section-header-centered">
       <span class="section-subtitle">Lo que pasa en 14 días</span>
-      <h2 class="section-title">Personas que dejaron de empezar de nuevo</h2>
+      <h2 class="section-title">Casos reales de <span class="gradient-text">cambio</span></h2>
       <p class="section-desc">Resultados de quienes completaron su ciclo de Impulso.</p>
     </div>
 
@@ -398,7 +430,7 @@
     <div class="trial-card">
       <div class="trial-header">
         <div class="hero-tag hero-tag-dark" style="margin-bottom: 14px;"><span>Cupos de lanzamiento</span></div>
-        <h2 class="trial-title">Reserva tus 14 días de Impulso</h2>
+        <h2 class="trial-title">Reserva tus <span class="highlight-text">14 días</span> de Impulso</h2>
         <p class="trial-desc"><%= paid ? "Déjanos tus datos y reserva tu cupo. Mañana recibes tu primer micro-desafío en WhatsApp." : "Déjanos tus datos para solicitar un cupo y coordinar tu activación. Buscamos personas que quieran completar los 14 días." %></p>
       </div>
 

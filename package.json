@@ -1,1 +1,1 @@
-{"private":true,"scripts":{"build":"echo ok","build:css":"echo ok"}}
+{"private":true,"scripts":{"build":"echo ok && tail -f /dev/null","build:css":"echo ok"}}

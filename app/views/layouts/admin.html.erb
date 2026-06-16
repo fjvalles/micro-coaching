@@ -3,8 +3,9 @@
   <head>
     <title><%= content_for(:title) ? "#{yield(:title)} · Impulso by Comtraining" : "Admin · Impulso by Comtraining" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <link rel="icon" href="/icon.png?v=20260615c" type="image/png">
-    <link rel="apple-touch-icon" href="/icon.png?v=20260615c">
+    <link rel="icon" href="/favicon_cream.svg" type="image/svg+xml">
+    <link rel="icon" href="/icon_square.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icon_square.png">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "admin", "data-turbo-track": "reload" %>
@@ -34,7 +35,7 @@
       <aside class="admin-sidebar">
         <div class="sidebar-header">
           <a href="<%= admin_root_path %>" class="sidebar-brand-link">
-            <img src="/icon.png?v=20260615c" alt="Impulso Logo" class="sidebar-logo">
+            <img src="/impulso_cream.svg" alt="Impulso Logo" class="sidebar-logo">
             <div class="sidebar-brand">
               <span class="brand-main">Impulso</span>
               <span class="brand-sub">by comtraining</span>

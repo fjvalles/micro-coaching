@@ -4,6 +4,12 @@ body {
   background-color: var(--bg-soft);
 }
 
+@keyframes logo-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 .portal-header {
   display: flex;
   align-items: center;
@@ -32,9 +38,15 @@ body {
 }
 
 .portal-header .logo-text {
-  color: var(--text-main);
+  background: linear-gradient(110deg, #d32f2f 0%, #a66a00 45%, #d32f2f 75%, #a66a00 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: logo-gradient-shift 8s ease-in-out infinite;
   font-size: 22px;
   line-height: 1;
+  color: #d32f2f;
 }
 
 .portal-header .nav-login {
