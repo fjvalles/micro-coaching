@@ -124,6 +124,12 @@ class ProcessIncomingMessageJob < ApplicationJob
       record_inbound_intent!(inbound, intent)
 
       unless intent.checkin_answer?(Setting.fetch("inbound_intent_min_confidence"))
+        if intent.intent == "checkin_answer"
+          handle_uncertain_checkin_answer(participant)
+          enqueue_post_conversation_analysis(inbound)
+          return
+        end
+
         taggable = route_by_intent(
           participant: participant, inbound: inbound, text: text, intent: intent,
           voice_analysis: voice_analysis,
@@ -326,6 +332,15 @@ class ProcessIncomingMessageJob < ApplicationJob
 
   def handle_task_acknowledgement(participant)
     ack(participant, Setting.fetch("task_acknowledgement_reply_text").to_s)
+  end
+
+  def handle_uncertain_checkin_answer(participant)
+    day_content = participant.day_content
+    questions = day_content&.checkin_questions.to_s.strip
+    body = Setting.fetch("missed_checkin_reminder_text").to_s
+    body = "#{body}\n\n#{questions}" if questions.present?
+
+    ack(participant, body)
   end
 
   def handle_reminder_request(participant, inbound, text)

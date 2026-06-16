@@ -285,6 +285,33 @@ RSpec.describe ProcessIncomingMessageJob, type: :job do
       expect(DailyReport.count).to eq(0)
     end
 
+    it "does not generate a free coaching task for low-confidence check-in answers" do
+      Setting.set("missed_checkin_reminder_text", "Antes de seguir, cerremos el check-in pendiente.")
+      expect_any_instance_of(Openai::FreeResponseGenerator).not_to receive(:call)
+      expect_any_instance_of(Openai::CheckinSummarizer).not_to receive(:call)
+      allow_any_instance_of(Participants::InboundIntentClassifier).to receive(:call).and_return(
+        Participants::InboundIntentClassifier::Result.new(
+          intent: "checkin_answer",
+          confidence: 0.42,
+          reason: "low confidence check-in",
+          model: "test"
+        )
+      )
+
+      travel_to(now) do
+        described_class.new.perform(text_payload(text: "Ayer me dieron ganas de comer dulce por ansiedad."))
+      end
+
+      inbound = participant.conversations.where(role: :user).last
+      replies = participant.conversations.where(role: :assistant).pluck(:body)
+
+      expect(inbound.moment).to eq("free_user")
+      expect(inbound.inbound_intent).to eq("checkin_answer")
+      expect(replies).to include(a_string_including("cerremos el check-in pendiente"))
+      expect(participant.reload.pending_checkin_at).to be_present
+      expect(DailyReport.count).to eq(0)
+    end
+
     it "does not store restricted requests as the initial pattern" do
       Setting.set("restricted_information_reply_text", "No puedo entregar esa información.")
       participant.update!(initial_pattern: nil)

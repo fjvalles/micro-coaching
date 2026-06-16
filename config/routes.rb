@@ -30,6 +30,7 @@ Rails.application.routes.draw do
           post :start_intake
           post :approve_program
           post :grant_guarantee
+          post :assign_checkin
         end
         collection do
           post :broadcast

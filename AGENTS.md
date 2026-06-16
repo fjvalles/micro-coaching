@@ -153,6 +153,7 @@ All tables use UUID PKs (`pgcrypto`). `Participant` and `Conversation` use `disc
 - `app/services/backups/S3Uploader` — uploads backups to S3/B2
 - `app/services/participants/Activator` — single activation path (sets `status: :active`, `current_day: 1`, opens cycle-1 `Enrollment`, fires `SendWelcomeJob`); idempotent; shared by `Enroller`, admin enroll, and payment commit
 - `app/services/participants/ProgramStarter` — admin-only immediate start path for day 0/1 participants; ensures active day 1 state/enrollment, enqueues welcome when needed, and enqueues `MorningWakeForParticipantJob` without waiting for the cron hour
+- `app/services/participants/ManualCheckinAssignment` — admin-only repair path for overdue pending check-ins: selects one or more inbound responses, marks them `checkin_response`, creates `DailyReport`, and clears `pending_checkin_at`
 - `app/services/participants/ReEnroller` — transitions a completed participant into `program.next_program` (sequential multi-cycle): repoints `program_id`/`current_day: 1`/`status: active`, opens a new `Enrollment` cycle, cancels stale active cycles, resets `ai_summary`, fires `SendWelcomeJob`. Admin button on `/admin/participants/:id`. See `business-rules.md` §26
 - `app/services/finances/CostCalculator` — single source of truth for USD operating costs over a range (OpenAI usage priced from `PromptExecution` + prorated manual fixed costs); shared by `Admin::FinancesController` and `Admin::ProfitLossController`
 - `app/services/ops/CapacitySnapshot` — read-only Sidekiq/DB-pool/Redis capacity snapshot (graceful if Redis down); shared by `Admin::HealthController` and `CapacityAlertJob`
@@ -223,6 +224,7 @@ Use `travel_to` (Rails built-in), not Timecop.
 - Recursos enriquecidos: la IA nunca escribe URLs; solo puede devolver `resource_id` del catálogo. `resource_catalog_enabled`, `resource_autodiscovery_enabled` y `link_preview_enabled` están OFF por defecto; ver `docs/business-rules.md` §30.
 - Recordatorios por WhatsApp: solo one-shot, relacionados al programa, con hora clara y límites (`participant_reminder_*`). Fuera de ventana 24h requieren `participant_reminder_template_name`.
 - Check-in omitido: si `pending_checkin_at` quedó de un día local anterior, existe `checkin_question` enviada para `current_day` y no hay `checkin_response`, no se envía despertar/IAReto normal; se registra `checkin_reminder` y se reusa template de check-in fuera de ventana 24h.
+- Reparación manual de check-in: no editar `pending_checkin_at` en admin. Usar la acción "Resolver check-in pendiente" cuando el pendiente es de un día local anterior; debe crear `checkin_response`, `DailyReport` y limpiar el pendiente juntos.
 
 ## Quality gate (mandatory on code change)
 

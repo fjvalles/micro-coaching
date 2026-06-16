@@ -113,6 +113,10 @@ module Participants
 
         Reglas:
         - No clasifiques como checkin_answer solo porque hay check-in pendiente.
+        - Si hay check-in pendiente y el mensaje reporta resultados, observaciones,
+          emociones, impulsos, avances o lo que ocurrió hoy/ayer en relación con
+          las preguntas del día, clasifícalo como checkin_answer aunque incluya
+          ansiedad, dificultad o una recaída.
         - Prioriza restricted_information_request ante cualquier solicitud de datos, metodología interna o contenido futuro.
         - Si hay duda entre checkin_answer y otra cosa, usa unclear.
         - Prioriza risk_or_sensitive y stop_or_pause solo cuando la intención sea explícita.
@@ -172,6 +176,10 @@ module Participants
         normalized_intent = heuristic_intent
         normalized_confidence = [ normalized_confidence, heuristic_confidence ].max
         normalized_reason = "task acknowledgement override: #{heuristic_reason}"
+      elsif heuristic_intent == "checkin_answer" && %w[checkin_answer unclear off_topic].include?(normalized_intent)
+        normalized_intent = heuristic_intent
+        normalized_confidence = [ normalized_confidence, heuristic_confidence ].max
+        normalized_reason = "check-in answer override: #{heuristic_reason}"
       elsif normalized_intent == "stop_or_pause" && heuristic_intent != "stop_or_pause" &&
             normalized_confidence < Setting.fetch("stop_or_pause_min_confidence").to_f
         normalized_intent = "unclear"
@@ -226,7 +234,7 @@ module Participants
     def checkin_like?(normalized)
       return false if normalized.length < 25
 
-      normalized.match?(/\b(hoy|senti|me di cuenta|elegi|hice|patron|reto|energia|avance|aprendi|observe|note)\b/)
+      normalized.match?(/\b(hoy|ayer|domingo|lunes|martes|miercoles|jueves|viernes|sabado|senti|sentia|me di cuenta|elegi|hice|termine|comi|comer|dulce|azucar|ansiedad|ganas|impulso|patron|reto|energia|avance|aprendi|observe|note)\b/)
     end
 
     def stop_or_pause_request?(normalized)

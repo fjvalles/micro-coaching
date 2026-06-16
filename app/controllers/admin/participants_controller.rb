@@ -7,7 +7,7 @@ module Admin
     before_action :set_participant, only: [
       :show, :edit, :update, :destroy, :enroll, :discard, :undiscard,
       :send_message, :re_enroll, :start_program, :versions,
-      :start_intake, :approve_program, :grant_guarantee
+      :start_intake, :approve_program, :grant_guarantee, :assign_checkin
     ]
 
     def index
@@ -85,6 +85,7 @@ module Admin
       @daily_reports = @participant.daily_reports.order(reported_at: :desc).limit(10)
       @message_templates = message_templates
       @dominant_skills = @participant.dominant_skills
+      @manual_checkin_candidates = manual_checkin_candidates_for(@participant)
     end
 
     def versions
@@ -265,6 +266,21 @@ module Admin
       end
     end
 
+    def assign_checkin
+      result = Participants::ManualCheckinAssignment.new(
+        participant: @participant,
+        conversation_ids: params[:conversation_ids],
+        admin_user: current_admin_user
+      ).call
+
+      if result.ok?
+        redirect_to admin_participant_path(@participant),
+                    notice: "Check-in asignado con #{result.conversations.size} respuesta(s). Se creó el reporte diario y se limpió el pendiente."
+      else
+        redirect_to admin_participant_path(@participant), alert: assign_checkin_error(result.reason)
+      end
+    end
+
     # Custom action: send a manual message (free text or curated template) now.
     def send_message
       result = Outbound::AdminMessage.new(
@@ -336,6 +352,17 @@ module Admin
       end
     end
 
+    def assign_checkin_error(reason)
+      case reason
+      when :not_overdue        then "Solo puedes asignar manualmente cuando el check-in pendiente corresponde a un día local anterior."
+      when :blank_selection    then "Selecciona al menos una respuesta del participante."
+      when :invalid_selection  then "Una o más respuestas seleccionadas no son elegibles para este check-in."
+      when :blank_body         then "Las respuestas seleccionadas no tienen texto utilizable."
+      when :already_resolved   then "El check-in ya fue resuelto."
+      else                          "No se pudo asignar el check-in."
+      end
+    end
+
     def start_program_error(reason)
       case reason
       when :no_program             then "Asigna un programa antes de empezarlo."
@@ -357,7 +384,7 @@ module Admin
       permitted = params.require(:participant).permit(
         :program_id, :company_id, :name, :phone_e164, :email, :role, :status,
         :current_day, :timezone, :initial_pattern, :energy_map,
-        :closing_manifesto, :pending_checkin_at, :response_mode,
+        :closing_manifesto, :response_mode,
         :focus_hint, :coach_notes, :wake_hour, :checkin_hour
       )
       # The intake sentinel is not a real program_id — drop it so the participant
@@ -387,6 +414,16 @@ module Admin
         redirect_to admin_participant_path(@participant),
                     alert: "#{prefix} No se pudo iniciar el intake: #{start_intake_error(result.reason)}"
       end
+    end
+
+    def manual_checkin_candidates_for(participant)
+      return Conversation.none unless participant.overdue_checkin_pending?
+
+      participant.conversations.kept
+                 .where(role: :user, day_number: participant.current_day)
+                 .where("created_at >= ?", participant.pending_checkin_at)
+                 .where.not(moment: :checkin_response)
+                 .order(:created_at)
     end
   end
 end

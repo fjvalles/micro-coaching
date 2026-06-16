@@ -120,6 +120,38 @@ RSpec.describe "Admin::Participants", type: :request do
 
       expect(response.body).to include("Empezar programa ahora")
     end
+
+    it "shows manual check-in assignment only for overdue pending check-ins with eligible responses" do
+      travel_to Time.zone.parse("2026-06-16 11:00 -0400") do
+        pending_at = Time.zone.parse("2026-06-15 20:00 -0400")
+        participant.update!(status: :active, current_day: 1, timezone: "America/Santiago", pending_checkin_at: pending_at)
+        create(:day_content, program: program, day_number: 1)
+        create(:conversation, participant: participant, role: :assistant, moment: :checkin_question,
+                              day_number: 1, sent_at: pending_at)
+        create(:conversation, participant: participant, role: :user, moment: :free_user,
+                              day_number: 1, body: "Ayer observé ansiedad.", created_at: Time.zone.parse("2026-06-16 10:00 -0400"))
+
+        get "/admin/participants/#{participant.id}"
+
+        expect(response.body).to include("Resolver check-in pendiente")
+        expect(response.body).to include("Asignar como check-in")
+      end
+    end
+
+    it "hides manual check-in assignment before the pending check-in is overdue" do
+      travel_to Time.zone.parse("2026-06-15 21:00 -0400") do
+        pending_at = Time.zone.parse("2026-06-15 20:00 -0400")
+        participant.update!(status: :active, current_day: 1, timezone: "America/Santiago", pending_checkin_at: pending_at)
+        create(:conversation, participant: participant, role: :assistant, moment: :checkin_question,
+                              day_number: 1, sent_at: pending_at)
+        create(:conversation, participant: participant, role: :user, moment: :free_user,
+                              day_number: 1, body: "Hoy observé ansiedad.", created_at: Time.current)
+
+        get "/admin/participants/#{participant.id}"
+
+        expect(response.body).not_to include("Resolver check-in pendiente")
+      end
+    end
   end
 
   describe "GET /admin/participants/:id/versions" do
@@ -166,6 +198,13 @@ RSpec.describe "Admin::Participants", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Sin empresa (individual)")
       expect(response.body).to include("Empresa Actual")
+    end
+
+    it "does not expose pending_checkin_at as an editable field" do
+      get "/admin/participants/#{participant.id}/edit"
+
+      expect(response.body).not_to include("participant_pending_checkin_at")
+      expect(response.body).not_to include("Check-in Pendiente Desde")
     end
   end
 
@@ -227,6 +266,77 @@ RSpec.describe "Admin::Participants", type: :request do
 
       expect(response).to redirect_to(admin_participant_path(participant))
       expect(participant.reload.company).to be_nil
+    end
+
+    it "does not allow editing pending_checkin_at directly" do
+      original_pending = Time.zone.parse("2026-06-15 20:00 -0400")
+      participant.update!(pending_checkin_at: original_pending)
+
+      patch "/admin/participants/#{participant.id}", params: {
+        participant: {
+          pending_checkin_at: Time.zone.parse("2026-06-16 20:00 -0400"),
+          name: participant.name,
+          phone_e164: participant.phone_e164,
+          program_id: program.id,
+          status: participant.status,
+          current_day: participant.current_day,
+          timezone: participant.timezone
+        }
+      }
+
+      expect(response).to redirect_to(admin_participant_path(participant))
+      expect(participant.reload.pending_checkin_at.to_i).to eq(original_pending.to_i)
+    end
+  end
+
+  describe "POST /admin/participants/:id/assign_checkin" do
+    before do
+      allow_any_instance_of(Openai::CheckinSummarizer).to receive(:call).and_return(
+        Openai::CheckinSummarizer::Result.new(
+          summary: "Resumen manual",
+          key_pattern: "patrón",
+          prompt_used: "p",
+          tokens_input: 1,
+          tokens_output: 1,
+          model: "m"
+        )
+      )
+    end
+
+    it "assigns selected responses as check-in and redirects with notice" do
+      travel_to Time.zone.parse("2026-06-16 11:00 -0400") do
+        pending_at = Time.zone.parse("2026-06-15 20:00 -0400")
+        participant.update!(status: :active, current_day: 1, timezone: "America/Santiago", pending_checkin_at: pending_at)
+        create(:day_content, program: program, day_number: 1)
+        create(:conversation, participant: participant, role: :assistant, moment: :checkin_question,
+                              day_number: 1, sent_at: pending_at)
+        answer = create(:conversation, participant: participant, role: :user, moment: :free_user,
+                                       day_number: 1, body: "Ayer tuve ansiedad.", created_at: Time.current)
+
+        post "/admin/participants/#{participant.id}/assign_checkin", params: { conversation_ids: [ answer.id ] }
+
+        expect(response).to redirect_to(admin_participant_path(participant))
+        expect(flash[:notice]).to include("Check-in asignado")
+        expect(answer.reload).to be_checkin_response
+        expect(participant.reload.pending_checkin_at).to be_nil
+        expect(DailyReport.last.raw_text).to include("Ayer tuve ansiedad.")
+      end
+    end
+
+    it "rejects assignment when the pending check-in is not overdue" do
+      travel_to Time.zone.parse("2026-06-15 21:00 -0400") do
+        pending_at = Time.zone.parse("2026-06-15 20:00 -0400")
+        participant.update!(status: :active, current_day: 1, timezone: "America/Santiago", pending_checkin_at: pending_at)
+        create(:conversation, participant: participant, role: :assistant, moment: :checkin_question,
+                              day_number: 1, sent_at: pending_at)
+        answer = create(:conversation, participant: participant, role: :user, moment: :free_user,
+                                       day_number: 1, body: "Hoy respondí.", created_at: Time.current)
+
+        post "/admin/participants/#{participant.id}/assign_checkin", params: { conversation_ids: [ answer.id ] }
+
+        expect(flash[:alert]).to include("día local anterior")
+        expect(answer.reload).to be_free_user
+      end
     end
   end
 

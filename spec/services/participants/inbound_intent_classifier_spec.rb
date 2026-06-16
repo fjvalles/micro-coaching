@@ -183,4 +183,31 @@ RSpec.describe Participants::InboundIntentClassifier do
     expect(result.intent).to eq("task_acknowledgement")
     expect(result.reason).to include("task acknowledgement override")
   end
+
+  it "raises low-confidence check-in answers when the text reports check-in observations" do
+    allow(client).to receive(:chat).and_return(
+      Openai::Client::Result.new(
+        content: {
+          intent: "checkin_answer",
+          confidence: 0.42,
+          reason: "mentions anxiety and may need support"
+        }.to_json,
+        tokens_input: 1,
+        tokens_output: 1,
+        model: "gpt-5-nano",
+        latency_ms: 1
+      )
+    )
+
+    result = described_class.new(
+      participant: participant,
+      text: "Ayer me vinieron ganas de comer dulce por ansiedad y terminé comiendo galletas.",
+      checkin_pending: true,
+      client: client
+    ).call
+
+    expect(result.intent).to eq("checkin_answer")
+    expect(result.confidence).to be >= 0.65
+    expect(result.reason).to include("check-in answer override")
+  end
 end

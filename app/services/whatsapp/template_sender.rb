@@ -35,14 +35,18 @@ module Whatsapp
     def build_components
       return [] if @variables.empty?
 
-      [{
+      [ {
         type: "body",
-        parameters: @variables.map { |v| { type: "text", text: v.to_s } }
-      }]
+        parameters: @variables.map { |v| { type: "text", text: template_parameter_text(v) } }
+      } ]
+    end
+
+    def template_parameter_text(value)
+      value.to_s.gsub(/[[:space:]]+/, " ").strip
     end
 
     def components_text
-      "[template:#{@template_name}] #{@variables.join(' | ')}"
+      "[template:#{@template_name}] #{@variables.map { |v| template_parameter_text(v) }.join(' | ')}"
     end
   end
 end

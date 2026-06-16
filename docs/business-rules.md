@@ -118,9 +118,15 @@ Si una regla cambia en código sin actualizar este doc → bug de proceso. Ver s
 - **Enforce.** `config/schedule.yml:6-9`, `app/jobs/checkin_evening_job.rb:4-13`.
 
 ### 4.6 Check-in marca `pending_checkin_at`
-- **Regla.** Al enviar check-in, set `participant.pending_checkin_at = Time.current`. Habilita clasificación posterior.
+- **Regla.** Al enviar check-in exitosamente (`sent_at` presente), set `participant.pending_checkin_at = Time.current`. Un rechazo de Meta no abre pendiente.
 - **Por qué.** `MessageClassifier` necesita marcar ventana de respuesta esperada.
-- **Enforce.** `app/jobs/checkin_for_participant_job.rb:30`.
+- **Enforce.** `app/services/outbound/dispatcher.rb`, `app/jobs/checkin_for_participant_job.rb:30`.
+
+### 4.6.1 Resolución manual de check-in pendiente
+- **Regla.** El admin no edita `pending_checkin_at` directamente. Si el check-in pendiente corresponde a un día local anterior, la ficha del participante permite seleccionar una o más respuestas entrantes elegibles y asignarlas como check-in.
+- **Efecto.** `Participants::ManualCheckinAssignment` reclasifica esas conversaciones como `checkin_response`, crea un `DailyReport` con el texto combinado, corre `Openai::CheckinSummarizer` y limpia `pending_checkin_at`.
+- **Por qué.** Borrar un timestamp sin crear evidencia rompe `DayAdvancer`, reportes y memoria IA.
+- **Enforce.** `app/services/participants/manual_checkin_assignment.rb`, `app/controllers/admin/participants_controller.rb`.
 
 ### 4.7 Avance de día a 06:00 UTC
 - **Regla.** `AdvanceDayJob` corre diario 06:00 UTC. Para cada `:active`, llama `DayAdvancer`.
@@ -184,8 +190,9 @@ La clasificación ocurre en dos capas. `Participants::MessageClassifier` decide 
 
 ### 7.2 `:checkin_response`
 - **Condición.** Existe `pending_checkin_at`, existe `checkin_question` enviada para `current_day` y no existe ya `Conversation(moment: :checkin_response, day_number: current_day)`.
-- **Efecto.** Antes de consumirlo, `InboundIntentClassifier` debe clasificar el mensaje como `checkin_answer` con confianza mínima `inbound_intent_min_confidence`. Solo entonces reescribe a `moment: :checkin_response`, llama `Openai::CheckinSummarizer`, crea `DailyReport`, limpia `pending_checkin_at`, ack "Gracias. Mañana retomamos".
-- **Enforce.** `app/services/participants/message_classifier.rb:23-25`, `app/models/participant.rb:160-169`, `app/services/participants/inbound_intent_classifier.rb`, `app/jobs/process_incoming_message_job.rb:119-139`, `app/jobs/process_incoming_message_job.rb:238-252`.
+- **Efecto.** Antes de consumirlo, `InboundIntentClassifier` debe clasificar el mensaje como `checkin_answer` con confianza mínima `inbound_intent_min_confidence`. Los reportes/reflexiones claras sobre lo ocurrido hoy/ayer pueden elevarse por heurística conservadora para evitar falsos negativos. Solo entonces reescribe a `moment: :checkin_response`, llama `Openai::CheckinSummarizer`, crea `DailyReport`, limpia `pending_checkin_at`, ack "Gracias. Mañana retomamos". Si el intent es `checkin_answer` pero queda bajo umbral, no se llama `FreeResponseGenerator`: se recuerda el check-in pendiente sin abrir nueva tarea.
+- **Resolución manual.** El admin puede asignar respuestas como check-in solo cuando `overdue_checkin_pending?` es true; esa ruta produce la misma evidencia operacional (`checkin_response` + `DailyReport` + limpieza del pendiente).
+- **Enforce.** `app/services/participants/message_classifier.rb:23-25`, `app/models/participant.rb:160-169`, `app/services/participants/inbound_intent_classifier.rb`, `app/services/participants/manual_checkin_assignment.rb`, `app/jobs/process_incoming_message_job.rb:119-139`, `app/jobs/process_incoming_message_job.rb:238-252`.
 
 ### 7.3 `:free_user` (default)
 - **Condición.** Cualquier otra cosa, o un mensaje recibido con check-in pendiente que semánticamente no es `checkin_answer`.

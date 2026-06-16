@@ -517,6 +517,36 @@
       </div>
     </div>
 
+    <% if @participant.overdue_checkin_pending? && @manual_checkin_candidates.any? %>
+      <div class="card" style="margin-bottom: 24px; border-color: var(--warning);">
+        <div class="card-header">
+          <h3 class="card-title" style="margin: 0;">Resolver check-in pendiente</h3>
+        </div>
+        <div class="card-body">
+          <p style="color: var(--text-muted); font-size: 13px; margin-top: 0;">
+            Selecciona una o más respuestas del participante para registrarlas como check-in del día <%= @participant.current_day %>.
+          </p>
+
+          <%= form_with url: assign_checkin_admin_participant_path(@participant), method: :post, local: true do %>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
+              <% @manual_checkin_candidates.each do |msg| %>
+                <label class="filter-option" style="align-items: flex-start; gap: 10px;">
+                  <%= check_box_tag "conversation_ids[]", msg.id, false %>
+                  <span>
+                    <strong><%= l(msg.created_at, format: :short) rescue msg.created_at.strftime("%d/%m %H:%M") %></strong>
+                    <br>
+                    <span style="color: var(--text-muted);"><%= truncate((msg.transcription.presence || msg.body).to_s, length: 220) %></span>
+                  </span>
+                </label>
+              <% end %>
+            </div>
+
+            <%= submit_tag "Asignar como check-in", class: "btn btn-primary", data: { turbo_confirm: "Esto creará el reporte diario, reclasificará las respuestas seleccionadas y limpiará el check-in pendiente. ¿Continuar?" } %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
     <!-- Conversaciones (Messages) -->
     <div class="card" style="margin-bottom: 0;">
       <div class="card-header" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">

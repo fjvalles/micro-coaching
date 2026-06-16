@@ -60,4 +60,16 @@ RSpec.describe CheckinForParticipantJob, type: :job do
 
     expect(sends.size).to eq(1)
   end
+
+  it "does not mark pending_checkin_at when Meta rejects the check-in send" do
+    participant.conversations.delete_all
+
+    allow_any_instance_of(Outbound::Dispatcher).to receive(:send_text).and_return(
+      Outbound::Dispatcher::Result.new(delivered: false, conversation: build(:conversation, sent_at: nil))
+    )
+
+    described_class.new.perform(participant.id)
+
+    expect(participant.reload.pending_checkin_at).to be_nil
+  end
 end

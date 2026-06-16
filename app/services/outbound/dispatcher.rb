@@ -27,7 +27,7 @@ module Outbound
       if @mode == "auto"
         convo = deliver_text(prepared.body, ai, preview_url: prepared.preview_url)
         record_resource_delivery(prepared.resource, convo)
-        Result.new(delivered: true, conversation: convo)
+        Result.new(delivered: convo.sent_at.present?, conversation: convo)
       else
         pending = queue(
           draft_body: prepared.body,
@@ -42,7 +42,7 @@ module Outbound
     def send_template(template_name:, variables: [], body_preview: nil, ai: {})
       if @mode == "auto"
         convo = deliver_template(template_name, variables)
-        Result.new(delivered: true, conversation: convo)
+        Result.new(delivered: convo.sent_at.present?, conversation: convo)
       else
         pending = queue(
           draft_body: body_preview.presence || variables.join(" | "),
