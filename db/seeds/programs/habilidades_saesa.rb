@@ -29,12 +29,16 @@
 # Local:
 #   asdf exec bundle exec rails runner db/seeds/programs/habilidades_saesa.rb
 #
-# Asignar + arrancar un participante (rol → focus_hint):
-#   PARTICIPANT_ID=<uuid> ROLE="Jefe de proyectos de distribución" SCHEDULE_FIRST_DAY=true \
-#     asdf exec bundle exec rails runner db/seeds/programs/habilidades_saesa.rb
-#
-# En producción:
+# En producción (solo sembrar el programa, sin asignar):
 #   kamal app exec --reuse --roles=web "bin/rails runner db/seeds/programs/habilidades_saesa.rb"
+#
+# Asignar + arrancar un participante (rol → focus_hint):
+#   Local:  PARTICIPANT_ID=<uuid> ROLE="Jefe de proyectos" SCHEDULE_FIRST_DAY=true \
+#             asdf exec bundle exec rails runner db/seeds/programs/habilidades_saesa.rb
+#   Prod:   el ENV local NO se propaga al contenedor vía `kamal app exec`, así que
+#           allá se asigna con el método explícito (mismo efecto, sin ENV):
+#             kamal app exec --reuse --roles=web \
+#               'bin/rails runner "Seeds::HabilidadesSaesa.assign!(participant_id: %q[<uuid>], role: %q[<cargo>], schedule: true)"'
 module Seeds
   module HabilidadesSaesa
     module_function
@@ -243,11 +247,36 @@ module Seeds
       company = upsert_company
       program = upsert_program(company)
       upsert_day_contents(program)
-      participant = assign_participant(program)
-      schedule_first_day(participant) if participant && ENV["SCHEDULE_FIRST_DAY"] == "true"
+      participant = assign_participant
 
       puts "Seeded '#{program.name}' (#{program.slug}) — #{program.day_contents.count} días · empresa: #{company.name}"
       puts "Asignado #{participant.name} al día #{participant.current_day}" if participant
+    end
+
+    # Prod-safe assignment (no depende de ENV; usable directo por `kamal app exec`).
+    # Mueve un participante existente al programa SAESA, lo deja en el día 1 y guarda
+    # su rol como focus_hint (único insumo por-persona que la IA puede leer). Idempotente.
+    def assign!(participant_id:, role: nil, schedule: false)
+      program = Program.find_by!(slug: SLUG)
+      participant = Participant.kept.find(participant_id)
+
+      PaperTrail.request(whodunnit: "system:HabilidadesSaesaSeed", controller_info: { source: "system" }) do
+        participant.enrollments.active.where.not(program: program).find_each(&:canceled!)
+        participant.update!(
+          program: program,
+          company: program.company,
+          status: :active,
+          current_day: 1,
+          focus_hint: role.present? ? "Rol del participante en SAESA: #{role}." : participant.focus_hint,
+          pending_checkin_at: nil,
+          started_at: Time.current,
+          enrolled_at: participant.enrolled_at || Time.current
+        )
+        participant.start_enrollment!(program)
+      end
+
+      schedule_first_day(participant) if schedule
+      participant
     end
 
     def upsert_company
@@ -284,32 +313,18 @@ module Seeds
       end
     end
 
-    # Asigna un participante existente al programa y lo deja listo para arrancar en
-    # el día 1. El rol (ENV ROLE) se guarda como focus_hint —insumo abstracto que la
-    # IA sí puede leer— para que el coach adapte las preguntas al cargo de la persona.
-    def assign_participant(program)
+    # Conveniencia local: lee ENV al correr el seed con `rails runner`. Solo funciona
+    # cuando `rails runner` se lanza localmente; a través de `kamal app exec` el ENV
+    # NO llega al contenedor, así que en prod se usa assign! directamente.
+    def assign_participant
       participant_id = ENV["PARTICIPANT_ID"].presence
       return unless participant_id
 
-      participant = Participant.kept.find(participant_id)
-      role = ENV["ROLE"].presence
-
-      PaperTrail.request(whodunnit: "system:HabilidadesSaesaSeed", controller_info: { source: "system" }) do
-        participant.enrollments.active.where.not(program: program).find_each(&:canceled!)
-        participant.update!(
-          program: program,
-          company: program.company,
-          status: :active,
-          current_day: 1,
-          focus_hint: role ? "Rol del participante en SAESA: #{role}." : participant.focus_hint,
-          pending_checkin_at: nil,
-          started_at: Time.current,
-          enrolled_at: participant.enrolled_at || Time.current
-        )
-        participant.start_enrollment!(program)
-      end
-
-      participant
+      assign!(
+        participant_id: participant_id,
+        role: ENV["ROLE"].presence,
+        schedule: ENV["SCHEDULE_FIRST_DAY"] == "true"
+      )
     end
 
     def schedule_first_day(participant)

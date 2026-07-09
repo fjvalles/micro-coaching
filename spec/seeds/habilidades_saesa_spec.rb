@@ -83,18 +83,14 @@ RSpec.describe "Seeds::HabilidadesSaesa", type: :model do
     end
   end
 
-  describe "ENV-driven assignment" do
+  # Prod-safe assignment path (no ENV, callable through `kamal app exec`).
+  describe ".assign!" do
     let!(:participant) { create(:participant, current_day: 4, status: :paused) }
 
-    before do
-      allow(ENV).to receive(:[]).and_call_original
-      allow(ENV).to receive(:[]).with("PARTICIPANT_ID").and_return(participant.id)
-      allow(ENV).to receive(:[]).with("ROLE").and_return("Jefe de proyectos de distribución")
-      allow(ENV).to receive(:[]).with("SCHEDULE_FIRST_DAY").and_return(nil)
-    end
-
     it "moves the participant onto SAESA at day 1 and stores the role as focus_hint" do
-      seed!
+      Seeds::HabilidadesSaesa.assign!(
+        participant_id: participant.id, role: "Jefe de proyectos de distribución"
+      )
       participant.reload
 
       expect(participant.program).to eq(program)
@@ -102,6 +98,14 @@ RSpec.describe "Seeds::HabilidadesSaesa", type: :model do
       expect(participant.status).to eq("active")
       expect(participant.current_day).to eq(1)
       expect(participant.focus_hint).to include("Jefe de proyectos de distribución")
+    end
+
+    it "only schedules the first-day wake when asked" do
+      expect { Seeds::HabilidadesSaesa.assign!(participant_id: participant.id) }
+        .not_to have_enqueued_job(MorningWakeForParticipantJob)
+
+      expect { Seeds::HabilidadesSaesa.assign!(participant_id: participant.id, schedule: true) }
+        .to have_enqueued_job(MorningWakeForParticipantJob).with(participant.id)
     end
   end
 end
