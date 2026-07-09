@@ -329,14 +329,7 @@
             </div>
             <div style="display: inline-flex; align-items: center; gap: 12px; margin-top: 4px;">
               <h1 class="header-title" style="margin: 0;"><%= content_for(:title) || "Panel de Control" %></h1>
-              <% unless content_for?(:hide_help_button) %>
-              <button id="toggle-onboarding-help" class="btn-help-toggle" title="Mostrar/ocultar guía de ayuda rápida" style="display: none;">
-                <svg class="help-icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-                </svg>
-                <span>Ayuda</span>
-              </button>
-              <% end %>
+
             </div>
             <% if content_for?(:page_description) %>
               <p class="header-description"><%= yield :page_description %></p>
@@ -353,39 +346,7 @@
       </main>
     </div>
 
-    <!-- Help Drawer -->
-    <div class="help-drawer-overlay" id="help-drawer-overlay"></div>
-    <div class="help-drawer" id="help-drawer" aria-label="Panel de ayuda">
-      <div class="help-drawer-header">
-        <div class="help-drawer-header-icon">
-          <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-          </svg>
-        </div>
-        <div class="help-drawer-title-group">
-          <p class="help-drawer-title">Ayuda — <%= content_for(:title) || "Esta sección" %></p>
-          <p class="help-drawer-subtitle">Guía contextual de uso y flujo de negocio</p>
-        </div>
-        <button class="help-drawer-close" id="close-help-drawer" aria-label="Cerrar panel de ayuda">
-          <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <div class="help-drawer-body">
-        <% help_content = render_layout_onboarding %>
-        <% if help_content.present? %>
-          <%= help_content %>
-        <% else %>
-          <div class="help-drawer-empty">
-            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-            </svg>
-            <p>No hay guía de ayuda específica para esta sección.<br>Consulta <a href="<%= admin_docs_path %>">la documentación</a> para más información.</p>
-          </div>
-        <% end %>
-      </div>
-    </div>
+
 
     <script>
       (function() {
@@ -436,68 +397,7 @@
           });
         }
 
-        // Help drawer state
-        function initHelpDrawer() {
-          const toggleBtn = document.getElementById("toggle-onboarding-help");
-          const drawer = document.getElementById("help-drawer");
-          const overlay = document.getElementById("help-drawer-overlay");
-          const closeBtn = document.getElementById("close-help-drawer");
 
-          if (!drawer || !toggleBtn) return;
-
-          // Always show the help button
-          toggleBtn.style.display = "inline-flex";
-
-          function openDrawer() {
-            drawer.classList.add("is-open");
-            overlay.classList.add("is-open");
-            toggleBtn.classList.add("is-active");
-          }
-
-          function closeDrawer() {
-            drawer.classList.remove("is-open");
-            overlay.classList.remove("is-open");
-            toggleBtn.classList.remove("is-active");
-          }
-
-          // Clone to remove stale listeners on Turbo navigation
-          [toggleBtn, closeBtn, overlay].forEach(function(el) {
-            if (!el) return;
-            const clone = el.cloneNode(true);
-            el.parentNode.replaceChild(clone, el);
-          });
-
-          document.getElementById("toggle-onboarding-help").addEventListener("click", function() {
-            const d = document.getElementById("help-drawer");
-            if (d.classList.contains("is-open")) {
-              d.classList.remove("is-open");
-              document.getElementById("help-drawer-overlay").classList.remove("is-open");
-              this.classList.remove("is-active");
-            } else {
-              d.classList.add("is-open");
-              document.getElementById("help-drawer-overlay").classList.add("is-open");
-              this.classList.add("is-active");
-            }
-          });
-
-          const closeBtnNew = document.getElementById("close-help-drawer");
-          if (closeBtnNew) {
-            closeBtnNew.addEventListener("click", function() {
-              document.getElementById("help-drawer").classList.remove("is-open");
-              document.getElementById("help-drawer-overlay").classList.remove("is-open");
-              document.getElementById("toggle-onboarding-help").classList.remove("is-active");
-            });
-          }
-
-          const overlayNew = document.getElementById("help-drawer-overlay");
-          if (overlayNew) {
-            overlayNew.addEventListener("click", function() {
-              document.getElementById("help-drawer").classList.remove("is-open");
-              this.classList.remove("is-open");
-              document.getElementById("toggle-onboarding-help").classList.remove("is-active");
-            });
-          }
-        }
 
         function initSidebar() {
           const sidebar = document.querySelector(".admin-sidebar");
@@ -556,7 +456,6 @@
         // Run formatters and initiations
         function runInitializers() {
           formatMarkdownAlerts();
-          initHelpDrawer();
           initSidebar();
           initSidebarScroll();
           initChatAutoScroll();
@@ -581,17 +480,7 @@
           }
         });
 
-        // Escape key closes the help drawer
-        document.addEventListener("keydown", function(e) {
-          if (e.key === "Escape") {
-            const drawer = document.getElementById("help-drawer");
-            if (drawer && drawer.classList.contains("is-open")) {
-              drawer.classList.remove("is-open");
-              document.getElementById("help-drawer-overlay").classList.remove("is-open");
-              document.getElementById("toggle-onboarding-help").classList.remove("is-active");
-            }
-          }
-        });
+
 
         // Click event listeners using delegation
         document.addEventListener("click", function(event) {
