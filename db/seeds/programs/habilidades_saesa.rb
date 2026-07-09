@@ -35,10 +35,11 @@
 # Asignar + arrancar un participante (rol → focus_hint):
 #   Local:  PARTICIPANT_ID=<uuid> ROLE="Jefe de proyectos" SCHEDULE_FIRST_DAY=true \
 #             asdf exec bundle exec rails runner db/seeds/programs/habilidades_saesa.rb
-#   Prod:   el ENV local NO se propaga al contenedor vía `kamal app exec`, así que
-#           allá se asigna con el método explícito (mismo efecto, sin ENV):
+#   Prod:   el ENV local NO se propaga al contenedor vía `kamal app exec`, y el módulo
+#           del seed no está en el autoload path, así que se hace `load` + assign! explícito
+#           (el load re-siembra el programa de forma idempotente, sin efecto extra):
 #             kamal app exec --reuse --roles=web \
-#               'bin/rails runner "Seeds::HabilidadesSaesa.assign!(participant_id: %q[<uuid>], role: %q[<cargo>], schedule: true)"'
+#               'bin/rails runner "load Rails.root.join(%q[db/seeds/programs/habilidades_saesa.rb]).to_s; Seeds::HabilidadesSaesa.assign!(participant_id: %q[<uuid>], role: %q[<cargo>], schedule: true)"'
 module Seeds
   module HabilidadesSaesa
     module_function
